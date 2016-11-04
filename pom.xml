@@ -74,20 +74,15 @@
   <properties>
 
     <!-- dependencies -->
-    <version.io.takari.maven.plugins>2.9.0</version.io.takari.maven.plugins>
-    <version.org.apache.maven>3.3.9</version.org.apache.maven>
     <!-- com.google.inject alias guice
          keep in sync with guiceVersion in maven
          around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
     <version.com.google.inject>4.0</version.com.google.inject>
-    <!-- keep in sync with aetherVersion in maven
-         around https://github.com/apache/maven/blob/master/pom.xml#L67 -->
-    <version.org.eclipse.aether>1.0.2.v20150114</version.org.eclipse.aether>
+    <version.junit>4.12</version.junit>
+    <version.org.eclipse.jgit>4.4.1.201607150455-r</version.org.eclipse.jgit>
     <!-- keep in sync with sisuInjectVersion in maven
          around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
     <version.org.eclipse.sisu>0.3.2</version.org.eclipse.sisu>
-    <version.org.eclipse.jgit>4.4.1.201607150455-r</version.org.eclipse.jgit>
-    <version.junit>4.12</version.junit>
     <version.org.slf4j>1.7.5</version.org.slf4j>
     <version.org.snakeyaml>1.17</version.org.snakeyaml>
 
@@ -173,18 +168,6 @@
       </dependency>
 
       <dependency>
-        <groupId>io.takari.maven.plugins</groupId>
-        <artifactId>takari-plugin-testing</artifactId>
-        <version>${version.io.takari.maven.plugins}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.takari.maven.plugins</groupId>
-        <artifactId>takari-plugin-integration-testing</artifactId>
-        <version>${version.io.takari.maven.plugins}</version>
-        <type>pom</type>
-      </dependency>
-
-      <dependency>
         <groupId>javax.inject</groupId>
         <artifactId>javax.inject</artifactId>
         <version>1</version>
@@ -195,29 +178,6 @@
         <artifactId>junit</artifactId>
         <version>${version.junit}</version>
       </dependency>
-
-      <dependency>
-        <groupId>org.apache.maven</groupId>
-        <artifactId>maven-core</artifactId>
-        <version>${version.org.apache.maven}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.eclipse.aether</groupId>
-        <artifactId>aether-api</artifactId>
-        <version>${version.org.eclipse.aether}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.aether</groupId>
-        <artifactId>aether-spi</artifactId>
-        <version>${version.org.eclipse.aether}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.aether</groupId>
-        <artifactId>aether-impl</artifactId>
-        <version>${version.org.eclipse.aether}</version>
-      </dependency>
-
 
       <dependency>
         <groupId>org.eclipse.jgit</groupId>
@@ -232,11 +192,6 @@
         <scope>provided</scope>
       </dependency>
 
-      <dependency>
-        <groupId>org.srcdeps.core</groupId>
-        <artifactId>srcdeps-config-yaml</artifactId>
-        <version>1.0.2-SNAPSHOT</version>
-      </dependency>
       <dependency>
         <groupId>org.srcdeps.core</groupId>
         <artifactId>srcdeps-core</artifactId>
