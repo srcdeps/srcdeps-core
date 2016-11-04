@@ -20,8 +20,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.l2x6.srcdeps</groupId>
-  <artifactId>srcdeps-parent</artifactId>
+  <groupId>org.srcdeps.core</groupId>
+  <artifactId>srcdeps-core-parent</artifactId>
   <version>1.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -47,7 +47,7 @@
 
   <modules>
     <module>srcdeps-core</module>
-    <module>srcdeps-config-yaml</module>
+    <module>srcdeps-core-config-yaml</module>
   </modules>
 
   <scm>
@@ -233,12 +233,12 @@
       </dependency>
 
       <dependency>
-        <groupId>org.l2x6.srcdeps</groupId>
+        <groupId>org.srcdeps.core</groupId>
         <artifactId>srcdeps-config-yaml</artifactId>
         <version>1.0.2-SNAPSHOT</version>
       </dependency>
       <dependency>
-        <groupId>org.l2x6.srcdeps</groupId>
+        <groupId>org.srcdeps.core</groupId>
         <artifactId>srcdeps-core</artifactId>
         <version>1.0.2-SNAPSHOT</version>
       </dependency>
@@ -688,8 +688,8 @@ limitations under the License.</inlineHeader>
             <configuration>
               <property>srcdeps-parent.basedir</property> <!-- Checkstyle will use this -->
               <project>
-                <groupId>org.l2x6.srcdeps</groupId>
-                <artifactId>srcdeps-parent</artifactId>
+                <groupId>org.srcdeps.core</groupId>
+                <artifactId>srcdeps-core-parent</artifactId>
               </project>
             </configuration>
           </execution>

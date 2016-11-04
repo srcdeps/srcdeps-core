@@ -21,12 +21,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.l2x6.srcdeps</groupId>
-    <artifactId>srcdeps-parent</artifactId>
+    <groupId>org.srcdeps.core</groupId>
+    <artifactId>srcdeps-core-parent</artifactId>
     <version>1.0.2-SNAPSHOT</version>
   </parent>
 
-  <artifactId>srcdeps-config-yaml</artifactId>
+  <artifactId>srcdeps-core-config-yaml</artifactId>
   <packaging>takari-jar</packaging>
 
   <name>Srcdeps YAML Configuration</name>
@@ -47,7 +47,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.l2x6.srcdeps</groupId>
+      <groupId>org.srcdeps.core</groupId>
       <artifactId>srcdeps-core</artifactId>
     </dependency>
 
