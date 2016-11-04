@@ -29,7 +29,7 @@
   <artifactId>srcdeps-core-config-yaml</artifactId>
   <packaging>takari-jar</packaging>
 
-  <name>Srcdeps YAML Configuration</name>
+  <name>Srcdeps Core YAML Configuration</name>
   <description>A YAML implementation of org.srcdeps.core.config.ConfigurationIo</description>
 
   <dependencies>
