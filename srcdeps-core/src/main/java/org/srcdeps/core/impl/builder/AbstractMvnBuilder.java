@@ -104,7 +104,7 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
         final List<String> args = Arrays.asList("versions:set", "-DnewVersion=" + request.getSrcVersion().toString(),
                 "-DgenerateBackupPoms=false");
         ShellCommand cliRequest = ShellCommand.builder() //
-                .executable(executable).arguments(args) //
+                .executable(locateExecutable(request)).arguments(args) //
                 .workingDirectory(request.getProjectRootDirectory()) //
                 .environment(request.getBuildEnvironment()) //
                 .ioRedirects(request.getIoRedirects()) //
