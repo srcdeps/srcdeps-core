@@ -50,7 +50,7 @@ public abstract class ShellBuilder implements Builder {
 
         List<String> args = mergeArguments(request);
         ShellCommand command = ShellCommand.builder() //
-                .executable(executable) //
+                .executable(locateExecutable(request)) //
                 .arguments(args) //
                 .workingDirectory(request.getProjectRootDirectory()) //
                 .environment(request.getBuildEnvironment()) //
@@ -97,6 +97,17 @@ public abstract class ShellBuilder implements Builder {
     protected abstract List<String> getSkipTestsArguments(boolean skipTests);
 
     protected abstract List<String> getVerbosityArguments(Verbosity verbosity);
+
+    /**
+     * Always returns {@link #executable}. Subclasses may choose to return some thing else depending on the given
+     * {@code request}.
+     *
+     * @param request the request to build
+     * @return the path to the executable
+     */
+    protected String locateExecutable(BuildRequest request) {
+        return executable;
+    }
 
     protected List<String> mergeArguments(BuildRequest request) {
         List<String> result = new ArrayList<>();

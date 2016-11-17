@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 
 /**
@@ -42,6 +43,11 @@ public class MvnwBuilder extends AbstractMvnBuilder {
     @Override
     public boolean canBuild(Path projectRootDirectory) {
         return hasMvnwFile(projectRootDirectory);
+    }
+
+    @Override
+    protected String locateExecutable(BuildRequest request) {
+        return request.getProjectRootDirectory().resolve(executable).toString();
     }
 
 }
