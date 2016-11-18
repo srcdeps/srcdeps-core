@@ -48,8 +48,13 @@ public class ScmRepository {
         }
 
         public ScmRepository build() {
-            return new ScmRepository(id, Collections.unmodifiableList(selectors), Collections.unmodifiableList(urls),
-                    Collections.unmodifiableList(buildArguments), skipTests, addDefaultBuildArguments);
+            ScmRepository result = new ScmRepository(id, Collections.unmodifiableList(selectors),
+                    Collections.unmodifiableList(urls), Collections.unmodifiableList(buildArguments), skipTests,
+                    addDefaultBuildArguments);
+            selectors = null;
+            urls = null;
+            buildArguments = null;
+            return result;
         }
 
         public Builder buildArgument(String buildArgument) {
@@ -218,6 +223,10 @@ public class ScmRepository {
         return true;
     }
 
+    /**
+     * @return a {@link List} of arguments to append to the list of build tool specific default build arguments. To
+     *         override the given # build tool's defaults, see {@link #isAddDefaultBuildArguments()}.
+     */
     public List<String> getBuildArguments() {
         return buildArguments;
     }

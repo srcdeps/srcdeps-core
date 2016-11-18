@@ -35,7 +35,9 @@ import org.srcdeps.core.BuildRequest.Verbosity;
 public class Configuration {
     public static class Builder {
 
+        private boolean addDefaultFailWithAnyOfArguments = true;
         private BuilderIo builderIo = BuilderIo.inheritAll();
+        private Set<String> failWithAnyOfArguments = new LinkedHashSet<>();
         private Set<String> forwardProperties = new LinkedHashSet<>(defaultForwardProperties);
         private List<ScmRepository> repositories = new ArrayList<>();
         private boolean skip = false;
@@ -46,9 +48,19 @@ public class Configuration {
             super();
         }
 
+        public Builder addDefaultBuildArguments(boolean addDefaultFailWithAnyOfArguments) {
+            this.addDefaultFailWithAnyOfArguments = addDefaultFailWithAnyOfArguments;
+            return this;
+        }
+
         public Configuration build() {
-            return new Configuration(repositories, sourcesDirectory, skip, verbosity, builderIo,
-                    forwardProperties);
+            Configuration result = new Configuration(Collections.unmodifiableList(repositories), sourcesDirectory, skip,
+                    verbosity, builderIo, Collections.unmodifiableSet(forwardProperties),
+                    Collections.unmodifiableSet(failWithAnyOfArguments), addDefaultFailWithAnyOfArguments);
+            repositories = null;
+            forwardProperties = null;
+            failWithAnyOfArguments = null;
+            return result;
         }
 
         public Builder builderIo(BuilderIo.Builder builderIo) {
@@ -61,6 +73,16 @@ public class Configuration {
                 throw new IllegalArgumentException(String.format("Cannot parse configModelVersion [%s]; expected [%s]",
                         configModelVersion, CONFIG_MODEL_VERSION));
             }
+            return this;
+        }
+
+        public Builder failWithAnyOfArgument(String value) {
+            failWithAnyOfArguments.add(value);
+            return this;
+        }
+
+        public Builder failWithAnyOfArguments(Collection<String> values) {
+            failWithAnyOfArguments.addAll(values);
             return this;
         }
 
@@ -104,6 +126,7 @@ public class Configuration {
         }
 
     }
+
     public static final String CONFIG_MODEL_VERSION = "1.0";
 
     public static final List<String> defaultForwardProperties = Collections.singletonList("srcdeps.mvn.*");
@@ -113,16 +136,21 @@ public class Configuration {
     public static Builder builder() {
         return new Builder();
     }
+
+    private final boolean addDefaultFailWithAnyOfArguments;
     private final BuilderIo builderIo;
+    private final Set<String> failWithAnyOfArguments;
     private final Set<String> forwardProperties;
     private final List<ScmRepository> repositories;
     private final boolean skip;
+
     private final Path sourcesDirectory;
 
     private final Verbosity verbosity;
 
-    private Configuration(List<ScmRepository> repositories, Path sourcesDirectory, boolean skip,
-            Verbosity verbosity, BuilderIo redirects, Set<String> forwardProperties) {
+    private Configuration(List<ScmRepository> repositories, Path sourcesDirectory, boolean skip, Verbosity verbosity,
+            BuilderIo redirects, Set<String> forwardProperties, Set<String> failWithAnyOfArguments,
+            boolean addDefaultFailWithAnyOfArguments) {
         super();
         this.repositories = repositories;
         this.sourcesDirectory = sourcesDirectory;
@@ -130,6 +158,8 @@ public class Configuration {
         this.verbosity = verbosity;
         this.forwardProperties = forwardProperties;
         this.builderIo = redirects;
+        this.failWithAnyOfArguments = failWithAnyOfArguments;
+        this.addDefaultFailWithAnyOfArguments = addDefaultFailWithAnyOfArguments;
     }
 
     @Override
@@ -141,10 +171,17 @@ public class Configuration {
         if (getClass() != obj.getClass())
             return false;
         Configuration other = (Configuration) obj;
+        if (addDefaultFailWithAnyOfArguments != other.addDefaultFailWithAnyOfArguments)
+            return false;
         if (builderIo == null) {
             if (other.builderIo != null)
                 return false;
         } else if (!builderIo.equals(other.builderIo))
+            return false;
+        if (failWithAnyOfArguments == null) {
+            if (other.failWithAnyOfArguments != null)
+                return false;
+        } else if (!failWithAnyOfArguments.equals(other.failWithAnyOfArguments))
             return false;
         if (forwardProperties == null) {
             if (other.forwardProperties != null)
@@ -173,6 +210,19 @@ public class Configuration {
      */
     public BuilderIo getBuilderIo() {
         return builderIo;
+    }
+
+    /**
+     * To be used to prevent building with srcdeps when any of the returned build arguments is present in the top level
+     * build. Note that this list is appended to the default {@code failWithAnyOfArguments} list of the given Build
+     * Tool. Maven's default {@code failWithAnyOfArguments} are <code>{"release:prepare",
+     * "org.apache.maven.plugins:maven-release-plugin:prepare", "release:perform",
+     * "org.apache.maven.plugins:maven-release-plugin:perform"}</code>.
+     *
+     * @return a {@link Set} of build arguments that make the top level build fail if they are present.
+     */
+    public Set<String> getFailWithAnyOfArguments() {
+        return failWithAnyOfArguments;
     }
 
     /**
@@ -210,8 +260,8 @@ public class Configuration {
 
     /**
      * Returns the verbosity level the appropriate dependency build tool (such as Maven) should use during the build of
-     * a dependency. The interpretation of the individual levels is up to the given build tool. Some build tools may
-     * map the levels listed here to a distinct set of levels they support internally.
+     * a dependency. The interpretation of the individual levels is up to the given build tool. Some build tools may map
+     * the levels listed here to a distinct set of levels they support internally.
      *
      * @return the verbosity level
      */
@@ -223,13 +273,25 @@ public class Configuration {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
+        result = prime * result + (addDefaultFailWithAnyOfArguments ? 1231 : 1237);
         result = prime * result + ((builderIo == null) ? 0 : builderIo.hashCode());
+        result = prime * result + ((failWithAnyOfArguments == null) ? 0 : failWithAnyOfArguments.hashCode());
         result = prime * result + ((forwardProperties == null) ? 0 : forwardProperties.hashCode());
         result = prime * result + ((repositories == null) ? 0 : repositories.hashCode());
         result = prime * result + (skip ? 1231 : 1237);
         result = prime * result + ((sourcesDirectory == null) ? 0 : sourcesDirectory.hashCode());
         result = prime * result + ((verbosity == null) ? 0 : verbosity.hashCode());
         return result;
+    }
+
+    /**
+     * @return if true the {@link Set} returned by {@link #getFailWithAnyOfArguments()} will be added to the default
+     *         list of {@code failWithAnyOfArguments} of the given build tool. Otherwise, the default list of
+     *         {@code failWithAnyOfArguments} of the given build tool will be disregared and only the {@link Set}
+     *         returned by {@link #getFailWithAnyOfArguments()} will be effective.
+     */
+    public boolean isAddDefaultFailWithAnyOfArguments() {
+        return addDefaultFailWithAnyOfArguments;
     }
 
     /**
@@ -241,8 +303,9 @@ public class Configuration {
 
     @Override
     public String toString() {
-        return "SrcdepsConfig [forwardProperties=" + forwardProperties + ", builderIo=" + builderIo + ", repositories="
-                + repositories + ", skip=" + skip + ", sourcesDirectory="
+        return "Configuration [addDefaultFailWithAnyOfArguments=" + addDefaultFailWithAnyOfArguments + ", builderIo="
+                + builderIo + ", failWithAnyOfArguments=" + failWithAnyOfArguments + ", forwardProperties="
+                + forwardProperties + ", repositories=" + repositories + ", skip=" + skip + ", sourcesDirectory="
                 + sourcesDirectory + ", verbosity=" + verbosity + "]";
     }
 
