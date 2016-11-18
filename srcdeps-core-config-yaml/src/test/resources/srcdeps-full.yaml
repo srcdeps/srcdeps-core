@@ -32,6 +32,12 @@ sourcesDirectory: /home/me/.m2/srcdeps
 
 verbosity: debug
 
+failWithAnyOfArguments:
+- failArg1
+- failArg2
+
+addDefaultBuildArguments: false
+
 repositories:
 
   repo1:
