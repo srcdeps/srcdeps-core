@@ -36,7 +36,7 @@ failWithAnyOfArguments:
 - failArg1
 - failArg2
 
-addDefaultBuildArguments: false
+addDefaultFailWithAnyOfArguments: false
 
 repositories:
 

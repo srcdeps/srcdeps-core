@@ -70,7 +70,7 @@ public class YamlConfigurationIoTest {
                     .repository(ScmRepository.builder().id("repo1").selector("sel1").selector("sel2").url("url1").url("url2").buildArgument("-arg1").buildArgument("-arg2").addDefaultBuildArguments(false).skipTests(false).build())
                     .repository(ScmRepository.builder().id("repo2").selector("sel3").selector("sel4").url("url3").url("url4").buildArgument("arg3").addDefaultBuildArguments(false).skipTests(false).build())
                     .failWithAnyOfArgument("failArg1").failWithAnyOfArgument("failArg2")
-                    .addDefaultBuildArguments(false)
+                    .addDefaultFailWithAnyOfArguments(false)
                     .build();
             Assert.assertEquals(expected, actual);
         }

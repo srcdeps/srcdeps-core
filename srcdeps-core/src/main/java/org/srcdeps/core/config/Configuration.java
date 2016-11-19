@@ -48,7 +48,7 @@ public class Configuration {
             super();
         }
 
-        public Builder addDefaultBuildArguments(boolean addDefaultFailWithAnyOfArguments) {
+        public Builder addDefaultFailWithAnyOfArguments(boolean addDefaultFailWithAnyOfArguments) {
             this.addDefaultFailWithAnyOfArguments = addDefaultFailWithAnyOfArguments;
             return this;
         }
