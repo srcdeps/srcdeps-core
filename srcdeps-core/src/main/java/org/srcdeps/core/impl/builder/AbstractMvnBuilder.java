@@ -101,8 +101,12 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
 
     @Override
     public void setVersions(BuildRequest request) throws BuildException {
-        final List<String> args = Arrays.asList("versions:set", "-DnewVersion=" + request.getSrcVersion().toString(),
-                "-DgenerateBackupPoms=false");
+        final List<String> args = new ArrayList<>();
+        args.add("versions:set");
+        args.add("-DnewVersion=" + request.getSrcVersion().toString());
+        args.add("-DgenerateBackupPoms=false");
+        args.addAll(getVerbosityArguments(request.getVerbosity()));
+
         ShellCommand cliRequest = ShellCommand.builder() //
                 .executable(locateExecutable(request)).arguments(args) //
                 .workingDirectory(request.getProjectRootDirectory()) //
