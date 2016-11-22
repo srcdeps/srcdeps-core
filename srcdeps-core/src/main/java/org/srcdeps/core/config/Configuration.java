@@ -18,6 +18,7 @@ package org.srcdeps.core.config;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -69,9 +70,9 @@ public class Configuration {
         }
 
         public Builder configModelVersion(String configModelVersion) {
-            if (!CONFIG_MODEL_VERSION.equals(configModelVersion)) {
-                throw new IllegalArgumentException(String.format("Cannot parse configModelVersion [%s]; expected [%s]",
-                        configModelVersion, CONFIG_MODEL_VERSION));
+            if (!SUPPORTED_CONFIG_MODEL_VERSIONS.contains(configModelVersion)) {
+                throw new IllegalArgumentException(String.format("Cannot parse configModelVersion [%s]; expected any of [%s]",
+                        configModelVersion, SUPPORTED_CONFIG_MODEL_VERSIONS));
             }
             return this;
         }
@@ -127,11 +128,12 @@ public class Configuration {
 
     }
 
-    public static final String CONFIG_MODEL_VERSION = "1.0";
-
     public static final List<String> defaultForwardProperties = Collections.singletonList("srcdeps.mvn.*");
 
     public static final String SRCDEPS_MVN_SETTINGS_PROP = "srcdeps.mvn.settings";
+
+    public static final Set<String> SUPPORTED_CONFIG_MODEL_VERSIONS = Collections
+            .unmodifiableSet(new LinkedHashSet<>(Arrays.asList("1.0", "1.1")));
 
     public static Builder builder() {
         return new Builder();
