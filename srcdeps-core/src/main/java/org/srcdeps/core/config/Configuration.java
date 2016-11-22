@@ -16,6 +16,7 @@
  */
 package org.srcdeps.core.config;
 
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,13 +35,13 @@ import org.srcdeps.core.BuildRequest.Verbosity;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class Configuration {
-    public static class Builder {
+    public static class Builder implements TraversableConfigurationNode<Builder> {
 
         private boolean addDefaultFailWithAnyOfArguments = true;
-        private BuilderIo builderIo = BuilderIo.inheritAll();
-        private Set<String> failWithAnyOfArguments = new LinkedHashSet<>();
-        private Set<String> forwardProperties = new LinkedHashSet<>(defaultForwardProperties);
-        private List<ScmRepository> repositories = new ArrayList<>();
+        private BuilderIo.Builder builderIo = BuilderIo.builder();
+        private List<String> failWithAnyOfArguments = new ArrayList<>();
+        private List<String> forwardProperties = new ArrayList<>(defaultForwardProperties);
+        private List<ScmRepository.Builder> repositories = new ArrayList<>();
         private boolean skip = false;
         private Path sourcesDirectory;
         private Verbosity verbosity = Verbosity.warn;
@@ -49,15 +50,36 @@ public class Configuration {
             super();
         }
 
+        /**
+         * Used to override the configuration by values coming from some higher-ranking source
+         *
+         * @param visitor
+         *            the {@link ConfigurationNodeVisitor} to accept
+         * @return this builder
+         */
+        @Override
+        public Builder accept(ConfigurationNodeVisitor visitor) {
+            for (Field field : this.getClass().getDeclaredFields()) {
+                visitor.visit(this, field);
+            }
+            return this;
+        }
+
         public Builder addDefaultFailWithAnyOfArguments(boolean addDefaultFailWithAnyOfArguments) {
             this.addDefaultFailWithAnyOfArguments = addDefaultFailWithAnyOfArguments;
             return this;
         }
 
         public Configuration build() {
-            Configuration result = new Configuration(Collections.unmodifiableList(repositories), sourcesDirectory, skip,
-                    verbosity, builderIo, Collections.unmodifiableSet(forwardProperties),
-                    Collections.unmodifiableSet(failWithAnyOfArguments), addDefaultFailWithAnyOfArguments);
+            List<ScmRepository> repos = new ArrayList<>(repositories.size());
+            for (ScmRepository.Builder repoBuilder : repositories) {
+                repos.add(repoBuilder.build());
+            }
+
+            Configuration result = new Configuration(Collections.unmodifiableList(repos), sourcesDirectory, skip,
+                    verbosity, builderIo.build(), Collections.unmodifiableSet(new LinkedHashSet<>(forwardProperties)),
+                    Collections.unmodifiableSet(new LinkedHashSet<>(failWithAnyOfArguments)),
+                    addDefaultFailWithAnyOfArguments);
             repositories = null;
             forwardProperties = null;
             failWithAnyOfArguments = null;
@@ -65,14 +87,15 @@ public class Configuration {
         }
 
         public Builder builderIo(BuilderIo.Builder builderIo) {
-            this.builderIo = builderIo.build();
+            this.builderIo = builderIo;
             return this;
         }
 
         public Builder configModelVersion(String configModelVersion) {
             if (!SUPPORTED_CONFIG_MODEL_VERSIONS.contains(configModelVersion)) {
-                throw new IllegalArgumentException(String.format("Cannot parse configModelVersion [%s]; expected any of [%s]",
-                        configModelVersion, SUPPORTED_CONFIG_MODEL_VERSIONS));
+                throw new IllegalArgumentException(
+                        String.format("Cannot parse configModelVersion [%s]; expected any of [%s]", configModelVersion,
+                                SUPPORTED_CONFIG_MODEL_VERSIONS));
             }
             return this;
         }
@@ -101,12 +124,12 @@ public class Configuration {
             for (Map.Entry<String, ScmRepository.Builder> en : repoBuilders.entrySet()) {
                 ScmRepository.Builder repoBuilder = en.getValue();
                 repoBuilder.id(en.getKey());
-                this.repositories.add(repoBuilder.build());
+                this.repositories.add(repoBuilder);
             }
             return this;
         }
 
-        public Builder repository(ScmRepository repo) {
+        public Builder repository(ScmRepository.Builder repo) {
             this.repositories.add(repo);
             return this;
         }

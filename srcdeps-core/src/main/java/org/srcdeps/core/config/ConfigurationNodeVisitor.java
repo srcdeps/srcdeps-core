@@ -14,29 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.config.yaml;
+package org.srcdeps.core.config;
 
-import java.io.Reader;
-
-import org.srcdeps.config.yaml.internal.SrcdepsConstructor;
-import org.srcdeps.core.config.Configuration;
-import org.srcdeps.core.config.ConfigurationException;
-import org.srcdeps.core.config.ConfigurationIo;
-import org.yaml.snakeyaml.Yaml;
+import java.lang.reflect.Field;
 
 /**
- * Reads {@link Configuration} from a YAML file.
+ * A visitor that gets called for every field of the node object that is being traversed.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
-public class YamlConfigurationIo implements ConfigurationIo {
+public interface ConfigurationNodeVisitor {
 
-    @Override
-    public Configuration.Builder read(Reader in) throws ConfigurationException {
-        Yaml yaml = new Yaml(new SrcdepsConstructor());
-        Configuration.Builder builder = yaml.loadAs(in, Configuration.Builder.class);
-        return builder;
-
-    }
-
+    /**
+     * Visit the given field of the given node object.
+     *
+     * @param node the object the given {@code field} belongs to
+     * @param field the field to traverse
+     */
+    void visit(Object node, Field field);
 }

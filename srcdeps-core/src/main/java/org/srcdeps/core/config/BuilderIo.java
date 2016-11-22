@@ -17,6 +17,7 @@
 package org.srcdeps.core.config;
 
 import java.lang.ProcessBuilder.Redirect;
+import java.lang.reflect.Field;
 
 import org.srcdeps.core.shell.IoRedirects;
 
@@ -30,13 +31,27 @@ import org.srcdeps.core.shell.IoRedirects;
  */
 public class BuilderIo {
 
-    public static class Builder {
+    public static class Builder implements TraversableConfigurationNode<Builder> {
 
         private String stderr = BuilderIoScheme.inherit.name();
 
         private String stdin = BuilderIoScheme.inherit.name();
 
         private String stdout = BuilderIoScheme.inherit.name();
+
+        /**
+         * Used to override the configuration by values coming from some higher-ranking source
+         *
+         * @param visitor the {@link ConfigurationNodeVisitor} to accept
+         * @return this builder
+         */
+        @Override
+        public Builder accept(ConfigurationNodeVisitor visitor) {
+            for (Field field : this.getClass().getDeclaredFields()) {
+                visitor.visit(this, field);
+            }
+            return this;
+        }
 
         public BuilderIo build() {
             return new BuilderIo(stdin, stdout, stderr);
