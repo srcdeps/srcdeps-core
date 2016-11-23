@@ -22,7 +22,7 @@
 
   <groupId>org.srcdeps.core</groupId>
   <artifactId>srcdeps-core-parent</artifactId>
-  <version>2.1.0</version>
+  <version>2.1.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Srcdeps Core Parent</name>
@@ -54,7 +54,7 @@
     <connection>scm:git:git@github.com:srcdeps/srcdeps-core.git</connection>
     <developerConnection>scm:git:git@github.com:srcdeps/srcdeps-core.git</developerConnection>
     <url>https://github.com/srcdeps/srcdeps-core</url>
-    <tag>2.1.0</tag>
+    <tag>head</tag>
   </scm>
   <issueManagement>
     <system>GitHub Issues</system>
@@ -195,7 +195,7 @@
       <dependency>
         <groupId>org.srcdeps.core</groupId>
         <artifactId>srcdeps-core</artifactId>
-        <version>2.1.0</version>
+        <version>2.1.1-SNAPSHOT</version>
       </dependency>
 
       <dependency>
