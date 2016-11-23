@@ -16,6 +16,7 @@
  */
 package org.srcdeps.core.config;
 
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ import java.util.StringTokenizer;
  */
 public class ScmRepository {
 
-    public static class Builder {
+    public static class Builder implements TraversableConfigurationNode<Builder>, IdProvider {
 
         private boolean addDefaultBuildArguments = true;
         private List<String> buildArguments = new ArrayList<>();
@@ -40,6 +41,20 @@ public class ScmRepository {
         private List<String> urls = new ArrayList<String>();
 
         public Builder() {
+        }
+
+        /**
+         * Used to override the configuration by values coming from some higher-ranking source
+         *
+         * @param visitor the {@link ConfigurationNodeVisitor} to accept
+         * @return this builder
+         */
+        @Override
+        public Builder accept(ConfigurationNodeVisitor visitor) {
+            for (Field field : this.getClass().getDeclaredFields()) {
+                visitor.visit(this, field);
+            }
+            return this;
         }
 
         public Builder addDefaultBuildArguments(boolean addDefaultBuildArguments) {
@@ -65,6 +80,11 @@ public class ScmRepository {
         public Builder buildArguments(List<String> buildArguments) {
             this.buildArguments.addAll(buildArguments);
             return this;
+        }
+
+        @Override
+        public String getId() {
+            return id;
         }
 
         /**

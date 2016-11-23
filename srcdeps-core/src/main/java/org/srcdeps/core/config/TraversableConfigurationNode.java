@@ -14,29 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.config.yaml;
-
-import java.io.Reader;
-
-import org.srcdeps.config.yaml.internal.SrcdepsConstructor;
-import org.srcdeps.core.config.Configuration;
-import org.srcdeps.core.config.ConfigurationException;
-import org.srcdeps.core.config.ConfigurationIo;
-import org.yaml.snakeyaml.Yaml;
+package org.srcdeps.core.config;
 
 /**
- * Reads {@link Configuration} from a YAML file.
+ * An interface to allow traversal through the fields of configuration builders.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
+ *
+ * @param <B> the builder to return from {@link #accept(ConfigurationNodeVisitor)}
  */
-public class YamlConfigurationIo implements ConfigurationIo {
+public interface TraversableConfigurationNode<B> {
 
-    @Override
-    public Configuration.Builder read(Reader in) throws ConfigurationException {
-        Yaml yaml = new Yaml(new SrcdepsConstructor());
-        Configuration.Builder builder = yaml.loadAs(in, Configuration.Builder.class);
-        return builder;
-
-    }
-
+    /**
+     * Used to override the configuration by values coming from some higher-ranking source
+     *
+     * @param visitor the {@link ConfigurationNodeVisitor} to accept
+     * @return this builder
+     */
+    B accept(ConfigurationNodeVisitor visitor);
 }

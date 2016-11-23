@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-configModelVersion: 1.0
+configModelVersion: 1.1
 
 forwardProperties:
 - myProp1
@@ -42,8 +42,8 @@ repositories:
 
   repo1:
     selectors:
-    - sel1
-    - sel2
+    - group1
+    - group2:artifact2:*
     urls:
     - url1
     - url2
@@ -55,8 +55,8 @@ repositories:
 
   repo2:
     selectors:
-    - sel3
-    - sel4
+    - group3:artifact3
+    - group4:artifact4:1.2.3
     urls:
     - url3
     - url4

@@ -16,20 +16,9 @@
  */
 package org.srcdeps.core.config;
 
-import java.io.Reader;
-
 /**
- * An interface for loading a {@link Configuration}.
- *
- * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
+ * A minimalistic interface to signal that the implementor has a {@code getId()} method.
  */
-public interface ConfigurationIo {
-    /**
-     * Read the {@link Configuration} from the given stream.
-     *
-     * @param reader the stream to read from
-     * @return {@link Configuration.Builder} as read from the given stream that can be further customized
-     * @throws ConfigurationException on configuration consistency checks
-     */
-    Configuration.Builder read(Reader reader) throws ConfigurationException;
+public interface IdProvider {
+    String getId();
 }

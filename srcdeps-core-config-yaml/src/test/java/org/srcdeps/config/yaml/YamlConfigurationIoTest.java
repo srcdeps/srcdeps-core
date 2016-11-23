@@ -36,7 +36,7 @@ import org.yaml.snakeyaml.constructor.ConstructorException;
  */
 public class YamlConfigurationIoTest {
 
-    @Test(expected=ConstructorException.class)
+    @Test(expected = ConstructorException.class)
     public void readBadVersion() throws ConfigurationException, UnsupportedEncodingException, IOException {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-bad-version.yaml"), "utf-8")) {
             new YamlConfigurationIo().read(in);
@@ -46,10 +46,11 @@ public class YamlConfigurationIoTest {
     @Test
     public void readMinimal() throws ConfigurationException, UnsupportedEncodingException, IOException {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-minimal.yaml"), "utf-8")) {
-            Configuration actual = new YamlConfigurationIo().read(in);
-            Configuration expected = Configuration.builder()
-                    .sourcesDirectory(Paths.get("/home/me/.m2/srcdeps"))
-                    .repository(ScmRepository.builder().id("srcdepsTestArtifact").selector("org.l2x6.maven.srcdeps.itest").url("git:https://github.com/srcdeps/srcdeps-test-artifact.git").build())
+            Configuration actual = new YamlConfigurationIo().read(in).build();
+            Configuration expected = Configuration.builder().sourcesDirectory(Paths.get("/home/me/.m2/srcdeps"))
+                    .repository(
+                            ScmRepository.builder().id("srcdepsTestArtifact").selector("org.l2x6.maven.srcdeps.itest")
+                                    .url("git:https://github.com/srcdeps/srcdeps-test-artifact.git"))
                     .build();
             Assert.assertEquals(expected, actual);
         }
@@ -58,20 +59,20 @@ public class YamlConfigurationIoTest {
     @Test
     public void readFull() throws ConfigurationException, UnsupportedEncodingException, IOException {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full.yaml"), "utf-8")) {
-            Configuration actual = new YamlConfigurationIo().read(in);
-            Configuration expected = Configuration.builder()
-                    .configModelVersion("1.0")
-                    .forwardProperty("myProp1")
+            Configuration actual = new YamlConfigurationIo().read(in).build();
+            Configuration expected = Configuration.builder().configModelVersion("1.0").forwardProperty("myProp1")
                     .forwardProperty("myProp2")
-                    .builderIo(BuilderIo.builder().stdin("read:/path/to/input/file").stdout("write:/path/to/output/file").stderr("err2out"))
-                    .skip(true)
-                    .sourcesDirectory(Paths.get("/home/me/.m2/srcdeps"))
-                    .verbosity(Verbosity.debug)
-                    .repository(ScmRepository.builder().id("repo1").selector("sel1").selector("sel2").url("url1").url("url2").buildArgument("-arg1").buildArgument("-arg2").addDefaultBuildArguments(false).skipTests(false).build())
-                    .repository(ScmRepository.builder().id("repo2").selector("sel3").selector("sel4").url("url3").url("url4").buildArgument("arg3").addDefaultBuildArguments(false).skipTests(false).build())
+                    .builderIo(BuilderIo.builder().stdin("read:/path/to/input/file")
+                            .stdout("write:/path/to/output/file").stderr("err2out"))
+                    .skip(true).sourcesDirectory(Paths.get("/home/me/.m2/srcdeps")).verbosity(Verbosity.debug)
+                    .repository(ScmRepository.builder().id("repo1").selector("group1").selector("group2:artifact2:*")
+                            .url("url1").url("url2").buildArgument("-arg1").buildArgument("-arg2")
+                            .addDefaultBuildArguments(false).skipTests(false))
+                    .repository(ScmRepository.builder().id("repo2").selector("group3:artifact3")
+                            .selector("group4:artifact4:1.2.3").url("url3").url("url4").buildArgument("arg3")
+                            .addDefaultBuildArguments(false).skipTests(false))
                     .failWithAnyOfArgument("failArg1").failWithAnyOfArgument("failArg2")
-                    .addDefaultFailWithAnyOfArguments(false)
-                    .build();
+                    .addDefaultFailWithAnyOfArguments(false).build();
             Assert.assertEquals(expected, actual);
         }
     }
