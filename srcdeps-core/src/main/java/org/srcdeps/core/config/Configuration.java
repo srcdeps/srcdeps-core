@@ -240,9 +240,7 @@ public class Configuration {
     /**
      * To be used to prevent building with srcdeps when any of the returned build arguments is present in the top level
      * build. Note that this list is appended to the default {@code failWithAnyOfArguments} list of the given Build
-     * Tool. Maven's default {@code failWithAnyOfArguments} are <code>{"release:prepare",
-     * "org.apache.maven.plugins:maven-release-plugin:prepare", "release:perform",
-     * "org.apache.maven.plugins:maven-release-plugin:perform"}</code>.
+     * Tool. Maven's default {@code failWithAnyOfArguments} are <code>{"release:prepare", "release:perform"}</code>.
      *
      * @return a {@link Set} of build arguments that make the top level build fail if they are present.
      */
@@ -310,8 +308,8 @@ public class Configuration {
     }
 
     /**
-     * @return if true the {@link Set} returned by {@link #getFailWithAnyOfArguments()} will be added to the default
-     *         list of {@code failWithAnyOfArguments} of the given build tool. Otherwise, the default list of
+     * @return if {@code true} the {@link Set} returned by {@link #getFailWithAnyOfArguments()} will be added to the
+     *         default list of {@code failWithAnyOfArguments} of the given build tool. Otherwise, the default list of
      *         {@code failWithAnyOfArguments} of the given build tool will be disregared and only the {@link Set}
      *         returned by {@link #getFailWithAnyOfArguments()} will be effective.
      */
