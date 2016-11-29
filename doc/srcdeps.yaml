@@ -18,6 +18,9 @@
 # `.mvn/srcdeps.yaml` - the srcdeps configuration file.
 #
 # The full srcdeps.yaml reference can be found under https://github.com/srcdeps/srcdeps-core/tree/master/doc/srcdeps.yaml
+#
+# Note that the options set here can be overriden on the command line,
+# see https://github.com/srcdeps/srcdeps-maven/blob/master/README.adoc#override-mvnsrcdepsyaml-options-on-the-command-line
 
 
 # `configModelVersion` exists to track the changes in the schema of of the srcdeps.yaml file.
