@@ -64,12 +64,36 @@ public class Maven {
     /** Keep in sync with doc/srcdeps.yaml */
     private static final String DEFAULT_VERSIONS_MAVEN_PLUGIN_VERSION = "2.3";
 
+    private static final String SRCDEPS_MAVEN_PROPERTIES_PATTERN = "srcdeps.maven.*";
+
+    private static final String SRCDEPS_MAVEN_SETTINGS_PROPERTY = "srcdeps.maven.settings";
+
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * @return the default version of {@code versions-maven-plugin} to use when
+     *         {@code srcdeps.maven.versionsMavenPluginVersion} is neither set in {@code srcdeps.yaml} nor on the
+     *         command line. The current value is {@value #DEFAULT_VERSIONS_MAVEN_PLUGIN_VERSION}
+     */
     public static String getDefaultVersionsMavenPluginVersion() {
         return DEFAULT_VERSIONS_MAVEN_PLUGIN_VERSION;
+    }
+
+    /**
+     * @return {@value #SRCDEPS_MAVEN_PROPERTIES_PATTERN}
+     */
+    public static String getSrcdepsMavenPropertiesPattern() {
+        return SRCDEPS_MAVEN_PROPERTIES_PATTERN;
+    }
+
+    /**
+     * @return the name of the system property to pass the path to settings.xml file that should be used in the builds
+     *         of source dependencies. The value is {@value #SRCDEPS_MAVEN_SETTINGS_PROPERTY}
+     */
+    public static String getSrcdepsMavenSettingsProperty() {
+        return SRCDEPS_MAVEN_SETTINGS_PROPERTY;
     }
 
     private final MavenFailWith failWith;

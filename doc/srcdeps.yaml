@@ -47,7 +47,7 @@ configModelVersion: 2.0
 # asterisk should be forwared. E.g. `my.prop.*` would forward both `my.prop.foo` and
 # `my.prop.bar`.
 #
-# Optional, no default
+# Optional, default: srcdeps.maven.*
 # Since 1.0
 forwardProperties:
 - myForwardProperty

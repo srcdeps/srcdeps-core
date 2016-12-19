@@ -130,7 +130,7 @@ public class ScmRepository {
     }
 
     /** The period character that delimits the segments of {@link #id} values */
-    public static final char ID_DELIMITER = '.';
+    private static final char ID_DELIMITER = '.';
 
     /**
      * Checks that the given {@code id} is a valid id. If no violation is found the given {@code id} is returned.
@@ -200,6 +200,13 @@ public class ScmRepository {
             pathElements.add(st.nextToken());
         }
         return Paths.get(first, pathElements.toArray(new String[0]));
+    }
+
+    /**
+     * @return the period character that delimits segments of a {@link ScmRepository#getId()}
+     */
+    public static char getIdDelimiter() {
+        return ID_DELIMITER;
     }
 
     private final boolean addDefaultBuildArguments;

@@ -35,7 +35,7 @@ public final class Scalars {
     /**
      * {@link Map} from types we consider primitive to their respective {@link ScalarDeserializer}s.
      */
-    private static final Map<Type, ScalarDeserializer> scalarTypes;
+    private static final Map<Type, ScalarDeserializer> SCALAR_TYPES;
 
     static {
 
@@ -152,7 +152,7 @@ public final class Scalars {
                 return Paths.get(value);
             }
         });
-        scalarTypes = Collections.unmodifiableMap(primitives);
+        SCALAR_TYPES = Collections.unmodifiableMap(primitives);
 
     }
 
@@ -163,7 +163,7 @@ public final class Scalars {
      *         type
      */
     public static ScalarDeserializer getDeserializer(Class<?> type) {
-        return scalarTypes.get(type);
+        return SCALAR_TYPES.get(type);
     }
 
     /**
@@ -174,7 +174,7 @@ public final class Scalars {
      * @return {@code true} if the given {@code type} is not a scalar type or {@code false} otherwise
      */
     public static boolean isScalarType(Class<?> type) {
-        return scalarTypes.containsKey(type);
+        return SCALAR_TYPES.containsKey(type);
     }
 
     private Scalars() {

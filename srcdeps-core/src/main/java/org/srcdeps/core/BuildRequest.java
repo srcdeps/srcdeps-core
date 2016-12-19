@@ -275,13 +275,20 @@ public class BuildRequest {
     }
 
     /** 5 minutes */
-    public static final long DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
+    private static final long DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
 
     /**
      * @return a new {@link BuildRequestBuilder}
      */
     public static BuildRequestBuilder builder() {
         return new BuildRequestBuilder();
+    }
+
+    /**
+     * @return the default timeout in milliseconds for source dependency builds
+     */
+    public static long getDefaultTimeoutMs() {
+        return DEFAULT_TIMEOUT_MS;
     }
 
     private final boolean addDefaultBuildArguments;

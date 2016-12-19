@@ -33,7 +33,6 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 
@@ -62,7 +61,7 @@ public class BuildServiceTest extends InjectedTest {
 
         SrcdepsCoreUtils.ensureDirectoryExistsAndEmpty(mvnLocalRepo);
 
-        System.setProperty(Configuration.SRCDEPS_MVN_SETTINGS_PROP, mrmSettingsXmlPath);
+        System.setProperty(Maven.getSrcdepsMavenSettingsProperty(), mrmSettingsXmlPath);
 
     }
 

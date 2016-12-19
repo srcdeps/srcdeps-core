@@ -82,14 +82,17 @@ public class BuilderIo {
         append, err2out, inherit, read, write
     }
 
-    public static final BuilderIo INHERIT_ALL = new BuilderIo(BuilderIoScheme.inherit.name(),
+    private static final BuilderIo INHERIT_ALL = new BuilderIo(BuilderIoScheme.inherit.name(),
             BuilderIoScheme.inherit.name(), BuilderIoScheme.inherit.name());
 
     public static final Builder builder() {
         return new Builder();
     }
 
-    public static final BuilderIo inheritAll() {
+    /**
+     * @return a singleton with all streams set to {@code inherit}.
+     */
+    public static BuilderIo inheritAll() {
         return INHERIT_ALL;
     }
 

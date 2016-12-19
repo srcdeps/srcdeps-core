@@ -176,25 +176,46 @@ public class Configuration {
     }
 
     private static final Set<String> DEFAULT_FORWARD_PROPERTIES = Collections
-            .unmodifiableSet(new LinkedHashSet<>(Arrays.asList("srcdeps.mvn.*")));
+            .unmodifiableSet(new LinkedHashSet<>(Arrays.asList(Maven.getSrcdepsMavenPropertiesPattern())));
 
     private static final String LATEST_CONFIG_MODEL_VERSION = "2.0";
 
-    public static final String SRCDEPS_MVN_SETTINGS_PROP = "srcdeps.mvn.settings";
+    private static final String SRCDEPS_ENCODING_PROPERTY = "srcdeps.encoding";
 
-    public static final Set<String> SUPPORTED_CONFIG_MODEL_VERSIONS = Collections
+    private static final Set<String> SUPPORTED_CONFIG_MODEL_VERSIONS = Collections
             .unmodifiableSet(new LinkedHashSet<>(Arrays.asList(LATEST_CONFIG_MODEL_VERSION)));
 
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * @return the {@link Set} of system property names to use as {@code forwardProperties}
+     */
     public static Set<String> getDefaultForwardProperties() {
         return DEFAULT_FORWARD_PROPERTIES;
     }
 
+    /**
+     * @return the latest and default {@code configModelVersion}
+     */
     public static String getLatestConfigModelVersion() {
         return LATEST_CONFIG_MODEL_VERSION;
+    }
+
+    /**
+     * @return the name of the system property that can be used to set an encoding other than the default {@code utf-8}
+     *         for reading any srcdeps related content, esp. the {@code .mvn/srcdeps.yaml} file.
+     */
+    public static String getSrcdepsEncodingProperty() {
+        return SRCDEPS_ENCODING_PROPERTY;
+    }
+
+    /**
+     * @return a {@link Set} of supported {@code configModelVersion}s
+     */
+    public static Set<String> getSupportedConfigModelVersions() {
+        return SUPPORTED_CONFIG_MODEL_VERSIONS;
     }
 
     private final BuilderIo builderIo;
