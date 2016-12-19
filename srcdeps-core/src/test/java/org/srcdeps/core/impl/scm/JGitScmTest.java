@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.ScmException;
 import org.srcdeps.core.SrcVersion;
+import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 
 /**
@@ -39,14 +40,28 @@ public class JGitScmTest {
     private static final Path targetDir = Paths.get(System.getProperty("project.build.directory", "target"))
             .toAbsolutePath();
 
+    private void assertCommit(Path dir, String expectedSha1) throws IOException, NoHeadException, GitAPIException {
+        try (Git git = Git.open(dir.toFile())) {
+            Iterable<RevCommit> history = git.log().call();
+            String foundSha1 = history.iterator().next().getName();
+            Assert.assertEquals(String.format("Git repository in [%s] not at the expected revision", dir), expectedSha1,
+                    foundSha1);
+        }
+
+    }
+
     @Test
     public void testCheckout() throws IOException, ScmException, NoHeadException, GitAPIException {
         Path dir = targetDir.resolve("test-repo");
         SrcdepsCoreUtils.ensureDirectoryExistsAndEmpty(dir);
 
         /* first clone */
-        BuildRequest cloningRequest = BuildRequest.builder().srcVersion(SrcVersion.parse("0.0.1-SRC-tag-0.0.1"))
-                .projectRootDirectory(dir).scmUrl("git:https://github.com/srcdeps/srcdeps-test-artifact.git").build();
+        BuildRequest cloningRequest = BuildRequest.builder() //
+                .srcVersion(SrcVersion.parse("0.0.1-SRC-tag-0.0.1")) //
+                .projectRootDirectory(dir) //
+                .scmUrl("git:https://github.com/srcdeps/srcdeps-test-artifact.git") //
+                .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
+                .build();
         JGitScm jGitScm = new JGitScm();
 
         jGitScm.checkout(cloningRequest);
@@ -56,24 +71,17 @@ public class JGitScmTest {
         assertCommit(dir, "19ef91ed30fd8b1a459803ee0c279dcf8e236184");
 
         /* try if the fetch works after we have cloned already */
-        BuildRequest fetchingRequest = BuildRequest.builder()
-                .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-0a5ab902099b24c2b13ed1dad8c5f537458bcc89"))
-                .projectRootDirectory(dir).scmUrl("git:https://github.com/srcdeps/srcdeps-test-artifact.git").build();
+        BuildRequest fetchingRequest = BuildRequest.builder() //
+                .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-0a5ab902099b24c2b13ed1dad8c5f537458bcc89")) //
+                .projectRootDirectory(dir) //
+                .scmUrl("git:https://github.com/srcdeps/srcdeps-test-artifact.git") //
+                .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
+                .build();
 
         jGitScm.fetchAndReset(fetchingRequest);
 
         /* ensure that the WC's HEAD has the known commit hash */
         assertCommit(dir, "0a5ab902099b24c2b13ed1dad8c5f537458bcc89");
-
-    }
-
-    private void assertCommit(Path dir, String expectedSha1) throws IOException, NoHeadException, GitAPIException {
-        try (Git git = Git.open(dir.toFile())) {
-            Iterable<RevCommit> history = git.log().call();
-            String foundSha1 = history.iterator().next().getName();
-            Assert.assertEquals(String.format("Git repository in [%s] not at the expected revision", dir), expectedSha1,
-                    foundSha1);
-        }
 
     }
 }

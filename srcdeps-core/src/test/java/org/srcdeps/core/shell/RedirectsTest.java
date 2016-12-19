@@ -31,15 +31,18 @@ public class RedirectsTest {
     private static final File file3 = new File("file3").getAbsoluteFile();
 
     @Test
-    public void parseFrom() {
-        Assert.assertEquals(Redirect.from(file1), IoRedirects.parseUri("read:" + file1.getPath()));
-        Assert.assertEquals(Redirect.from(file1), IoRedirects.parseUri("READ:" + file1.getPath()));
-        Assert.assertEquals(Redirect.from(file1), IoRedirects.parseUri("rEAD:" + file1.getPath()));
+    public void equals() {
+        Assert.assertEquals(IoRedirects.inheritAll(), IoRedirects.inheritAll());
+        Assert.assertEquals(new IoRedirects(Redirect.from(file1), Redirect.to(file2), Redirect.to(file3)),
+                new IoRedirects(Redirect.from(file1), Redirect.to(file2), Redirect.to(file3)));
     }
 
     @Test
-    public void parseTo() {
-        Assert.assertEquals(Redirect.to(file1), IoRedirects.parseUri("write:" + file1.getPath()));
+    public void err2out() {
+        IoRedirects rs = new IoRedirects(Redirect.from(file1), Redirect.to(file2), null);
+        Assert.assertTrue(rs.isErr2Out());
+        IoRedirects rs2 = new IoRedirects(Redirect.from(file1), Redirect.to(file2), Redirect.to(file3));
+        Assert.assertFalse(rs2.isErr2Out());
     }
 
     @Test
@@ -58,6 +61,13 @@ public class RedirectsTest {
     }
 
     @Test
+    public void parseFrom() {
+        Assert.assertEquals(Redirect.from(file1), IoRedirects.parseUri("read:" + file1.getPath()));
+        Assert.assertEquals(Redirect.from(file1), IoRedirects.parseUri("READ:" + file1.getPath()));
+        Assert.assertEquals(Redirect.from(file1), IoRedirects.parseUri("rEAD:" + file1.getPath()));
+    }
+
+    @Test
     public void parseInherit() {
         Assert.assertEquals(Redirect.INHERIT, IoRedirects.parseUri("inherit"));
     }
@@ -67,22 +77,13 @@ public class RedirectsTest {
         IoRedirects.parseUri("inherit:" + file1.getPath());
     }
 
+    @Test
+    public void parseTo() {
+        Assert.assertEquals(Redirect.to(file1), IoRedirects.parseUri("write:" + file1.getPath()));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void parseUnsupportedScheme() {
         IoRedirects.parseUri("foo:" + file1.getPath());
-    }
-
-    @Test
-    public void equals() {
-        Assert.assertEquals(IoRedirects.inheritAll(), IoRedirects.inheritAll());
-        Assert.assertEquals(new IoRedirects(Redirect.from(file1), Redirect.to(file2), Redirect.to(file3)), new IoRedirects(Redirect.from(file1), Redirect.to(file2), Redirect.to(file3)));
-    }
-
-    @Test
-    public void err2out() {
-        IoRedirects rs = new IoRedirects(Redirect.from(file1), Redirect.to(file2), null);
-        Assert.assertTrue(rs.isErr2Out());
-        IoRedirects rs2 = new IoRedirects(Redirect.from(file1), Redirect.to(file2), Redirect.to(file3));
-        Assert.assertFalse(rs2.isErr2Out());
     }
 }

@@ -27,26 +27,39 @@ import org.junit.Test;
 public class ScmRepositoryTest {
 
     @Test
-    public void idValid() {
-        ScmRepository.assertValidId("simple");
-        ScmRepository.assertValidId("one.two.three");
-    }
-
-    @Test
     public void idAsPathValid() {
-        Assert.assertEquals(Paths.get("simple"), ScmRepository.builder().id("simple").build().getIdAsPath());
-        Assert.assertEquals(Paths.get("one", "two", "three"),
-                ScmRepository.builder().id("one.two.three").build().getIdAsPath());
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void idNull() {
-        ScmRepository.assertValidId(null);
+        Assert.assertEquals(Paths.get("simple"), ScmRepository.getIdAsPath("simple"));
+        Assert.assertEquals(Paths.get("one", "two", "three"), ScmRepository.getIdAsPath("one.two.three"));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void idEmpty() {
         ScmRepository.assertValidId("");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void idEndsWithPeriod() {
+        ScmRepository.assertValidId("foo.");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void idInvalidSegmentPart() {
+        ScmRepository.assertValidId("foo.b ar");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void idInvalidSegmentStart() {
+        ScmRepository.assertValidId("foo. bar");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void idInvalidStart() {
+        ScmRepository.assertValidId(" foo");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void idNull() {
+        ScmRepository.assertValidId(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -59,29 +72,15 @@ public class ScmRepositoryTest {
         ScmRepository.assertValidId(".foo");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void idEndsWithPeriod() {
-        ScmRepository.assertValidId("foo.");
+    @Test
+    public void idValid() {
+        ScmRepository.assertValidId("simple");
+        ScmRepository.assertValidId("one.two.three");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void idWithMultipleSubsequentPeriod() {
         ScmRepository.assertValidId("foo..bar");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void idInvalidStart() {
-        ScmRepository.assertValidId(" foo");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void idInvalidSegmentStart() {
-        ScmRepository.assertValidId("foo. bar");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void idInvalidSegmentPart() {
-        ScmRepository.assertValidId("foo.b ar");
     }
 
 }

@@ -14,24 +14,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.core.config;
-
-import java.io.Reader;
+package org.srcdeps.core.config.tree;
 
 /**
- * An interface for loading a {@link Configuration}.
+ * A {@link Node} that stores a scalar value.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
+ *
+ * @param <T>
+ *            the type of the value stored in this {@link ScalarNode}.
+ *
+ * @see Scalars
  */
-public interface ConfigurationIo {
+public interface ScalarNode<T> extends Node {
     /**
-     * Read the {@link Configuration} from the given stream.
-     *
-     * @param reader
-     *            the stream to read from
-     * @return {@link Configuration.Builder} as read from the given stream that can be further customized
-     * @throws ConfigurationException
-     *             on configuration consistency checks
+     * @return the default value to be used if the value of this {@link ScalarNode} is not set explicitly
      */
-    Configuration.Builder read(Reader reader) throws ConfigurationException;
+    T getDefaultValue();
+
+    /**
+     * @return the type of the value
+     */
+    Class<T> getType();
+
+    /**
+     * @return the value stored in this {@link ScalarNode}
+     */
+    T getValue();
+
+    /**
+     * Sets the value stored in this {@link ScalarNode}.
+     *
+     * @param value
+     *            the value to set
+     */
+    void setValue(T value);
 }

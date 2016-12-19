@@ -14,22 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.core.config;
+package org.srcdeps.core.config.tree;
+
+import java.util.Map;
 
 /**
- * An interface to allow traversal through the fields of configuration builders.
+ * A {@link Node} that has child nodes.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  *
- * @param <B> the builder to return from {@link #accept(ConfigurationNodeVisitor)}
+ * @param <C>
+ *            the type of child nodes
  */
-public interface TraversableConfigurationNode<B> {
-
+public interface ContainerNode<C extends Node> extends Node {
     /**
-     * Used to override the configuration by values coming from some higher-ranking source
-     *
-     * @param visitor the {@link ConfigurationNodeVisitor} to accept
-     * @return this builder
+     * @return a map of child nodes
      */
-    B accept(ConfigurationNodeVisitor visitor);
+    Map<String, C> getChildren();
+
 }

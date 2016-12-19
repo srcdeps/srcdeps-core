@@ -14,22 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.core.config;
+package org.srcdeps.core.config.tree;
 
-import java.lang.reflect.Field;
+import java.util.List;
 
 /**
- * A visitor that gets called for every field of the node object that is being traversed.
+ * The list node.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
+ *
+ * @param <E>
+ *            the type of this list's elements
  */
-public interface ConfigurationNodeVisitor {
-
+public interface ListNode<E extends Node> extends Node {
     /**
-     * Visit the given field of the given node object.
-     *
-     * @param node the object the given {@code field} belongs to
-     * @param field the field to traverse
+     * @return the elements of this {@link ListNode}
      */
-    void visit(Object node, Field field);
+    List<E> getElements();
 }

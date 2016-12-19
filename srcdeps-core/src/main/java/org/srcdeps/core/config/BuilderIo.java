@@ -17,8 +17,12 @@
 package org.srcdeps.core.config;
 
 import java.lang.ProcessBuilder.Redirect;
-import java.lang.reflect.Field;
+import java.util.Map;
 
+import org.srcdeps.core.config.tree.Node;
+import org.srcdeps.core.config.tree.ScalarNode;
+import org.srcdeps.core.config.tree.impl.DefaultContainerNode;
+import org.srcdeps.core.config.tree.impl.DefaultScalarNode;
 import org.srcdeps.core.shell.IoRedirects;
 
 /**
@@ -31,44 +35,40 @@ import org.srcdeps.core.shell.IoRedirects;
  */
 public class BuilderIo {
 
-    public static class Builder implements TraversableConfigurationNode<Builder> {
+    public static class Builder extends DefaultContainerNode<Node> {
 
-        private String stderr = BuilderIoScheme.inherit.name();
+        private final ScalarNode<String> stderr = new DefaultScalarNode<>("stderr", BuilderIoScheme.inherit.name());
 
-        private String stdin = BuilderIoScheme.inherit.name();
+        private final ScalarNode<String> stdin = new DefaultScalarNode<>("stdin", BuilderIoScheme.inherit.name());
 
-        private String stdout = BuilderIoScheme.inherit.name();
+        private final ScalarNode<String> stdout = new DefaultScalarNode<>("stdout", BuilderIoScheme.inherit.name());
 
-        /**
-         * Used to override the configuration by values coming from some higher-ranking source
-         *
-         * @param visitor the {@link ConfigurationNodeVisitor} to accept
-         * @return this builder
-         */
-        @Override
-        public Builder accept(ConfigurationNodeVisitor visitor) {
-            for (Field field : this.getClass().getDeclaredFields()) {
-                visitor.visit(this, field);
-            }
-            return this;
+        public Builder() {
+            super("builderIo");
+            addChildren(stdin, stdout, stderr);
         }
 
         public BuilderIo build() {
-            return new BuilderIo(stdin, stdout, stderr);
+            return new BuilderIo(stdin.getValue(), stdout.getValue(), stderr.getValue());
+        }
+
+        @Override
+        public Map<String, Node> getChildren() {
+            return children;
         }
 
         public Builder stderr(String stderr) {
-            this.stderr = stderr;
+            this.stderr.setValue(stderr);
             return this;
         }
 
         public Builder stdin(String stdin) {
-            this.stdin = stdin;
+            this.stdin.setValue(stdin);
             return this;
         }
 
         public Builder stdout(String stdout) {
-            this.stdout = stdout;
+            this.stdout.setValue(stdout);
             return this;
         }
     }

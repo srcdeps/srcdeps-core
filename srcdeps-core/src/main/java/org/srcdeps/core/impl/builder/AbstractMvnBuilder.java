@@ -102,8 +102,11 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     @Override
     public void setVersions(BuildRequest request) throws BuildException {
         final List<String> args = new ArrayList<>();
-        args.add("versions:set");
+        args.add("org.codehaus.mojo:versions-maven-plugin:"+ request.getVersionsMavenPluginVersion() +":set");
         args.add("-DnewVersion=" + request.getSrcVersion().toString());
+        args.add("-DartifactId=*");
+        args.add("-DgroupId=*");
+        args.add("-DoldVersion=*");
         args.add("-DgenerateBackupPoms=false");
         args.addAll(getVerbosityArguments(request.getVerbosity()));
 

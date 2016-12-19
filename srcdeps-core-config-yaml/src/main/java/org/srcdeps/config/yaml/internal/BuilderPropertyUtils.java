@@ -33,6 +33,20 @@ import org.yaml.snakeyaml.introspector.PropertyUtils;
  */
 public class BuilderPropertyUtils extends PropertyUtils {
 
+    private static Map<String, Property> buildMap(Class<?> builderClass) {
+        HashMap<String, Property> m = new HashMap<>();
+        for (Method builderMethod : builderClass.getDeclaredMethods()) {
+            if (builderMethod.getReturnType() == builderClass && builderMethod.getParameterTypes().length == 1) {
+                Property old = m.put(builderMethod.getName(), new BuilderProperty(builderMethod));
+                if (old != null) {
+                    throw new IllegalStateException(
+                            String.format("Cannot handle overloads of method [%s].", builderMethod.getName()));
+                }
+            }
+        }
+        return Collections.unmodifiableMap(m);
+    }
+
     private final Map<Class<?>, Map<String, Property>> propertyMaps;
 
     public BuilderPropertyUtils(Class<?>... builders) {
@@ -44,22 +58,8 @@ public class BuilderPropertyUtils extends PropertyUtils {
         this.propertyMaps = Collections.unmodifiableMap(m);
     }
 
-    private static Map<String, Property> buildMap(Class<?> builderClass) {
-        HashMap<String, Property> m = new HashMap<>();
-        for (Method builderMethod : builderClass.getDeclaredMethods()) {
-            if (builderMethod.getReturnType() == builderClass && builderMethod.getParameterTypes().length == 1) {
-                Property old = m.put(builderMethod.getName(), new BuilderProperty(builderMethod));
-                if (old != null) {
-                    throw new IllegalStateException(String.format("Cannot handle overloads of method [%s].", builderMethod.getName()));
-                }
-            }
-        }
-        return Collections.unmodifiableMap(m);
-    }
-
     @Override
-    protected Map<String, Property> getPropertiesMap(Class<?> type, BeanAccess bAccess)
-            throws IntrospectionException {
+    protected Map<String, Property> getPropertiesMap(Class<?> type, BeanAccess bAccess) throws IntrospectionException {
         Map<String, Property> result = propertyMaps.get(type);
         return result != null ? result : super.getPropertiesMap(type, bAccess);
     }

@@ -16,13 +16,19 @@
  */
 package org.srcdeps.core.config;
 
-import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
+
+import org.srcdeps.core.config.tree.ListOfScalarsNode;
+import org.srcdeps.core.config.tree.Node;
+import org.srcdeps.core.config.tree.ScalarNode;
+import org.srcdeps.core.config.tree.impl.DefaultContainerNode;
+import org.srcdeps.core.config.tree.impl.DefaultListOfScalarsNode;
+import org.srcdeps.core.config.tree.impl.DefaultScalarNode;
 
 /**
  * A SCM repository entry of a {@link Configuration}.
@@ -31,44 +37,36 @@ import java.util.StringTokenizer;
  */
 public class ScmRepository {
 
-    public static class Builder implements TraversableConfigurationNode<Builder>, IdProvider {
+    public static class Builder extends DefaultContainerNode<Node> {
 
-        private boolean addDefaultBuildArguments = true;
-        private List<String> buildArguments = new ArrayList<>();
-        private String id;
-        private List<String> selectors = new ArrayList<>();
-        private boolean skipTests = true;
-        private List<String> urls = new ArrayList<String>();
+        final ScalarNode<Boolean> addDefaultBuildArguments = new DefaultScalarNode<>("addDefaultBuildArguments",
+                Boolean.TRUE);
+        final ListOfScalarsNode<String> buildArguments = new DefaultListOfScalarsNode<>("buildArguments", String.class);
+        final ScmRepositoryMaven.Builder maven = ScmRepositoryMaven.builder();
+        final ListOfScalarsNode<String> selectors = new DefaultListOfScalarsNode<>("selectors", String.class);
+        final ScalarNode<Boolean> skipTests = new DefaultScalarNode<>("skipTests", Boolean.TRUE);
+        final ListOfScalarsNode<String> urls = new DefaultListOfScalarsNode<>("urls", String.class);
 
         public Builder() {
-        }
-
-        /**
-         * Used to override the configuration by values coming from some higher-ranking source
-         *
-         * @param visitor the {@link ConfigurationNodeVisitor} to accept
-         * @return this builder
-         */
-        @Override
-        public Builder accept(ConfigurationNodeVisitor visitor) {
-            for (Field field : this.getClass().getDeclaredFields()) {
-                visitor.visit(this, field);
-            }
-            return this;
+            super("repository", true);
+            addChildren(selectors, urls, buildArguments, addDefaultBuildArguments, skipTests, maven);
         }
 
         public Builder addDefaultBuildArguments(boolean addDefaultBuildArguments) {
-            this.addDefaultBuildArguments = addDefaultBuildArguments;
+            this.addDefaultBuildArguments.setValue(addDefaultBuildArguments);
             return this;
         }
 
         public ScmRepository build() {
-            ScmRepository result = new ScmRepository(id, Collections.unmodifiableList(selectors),
-                    Collections.unmodifiableList(urls), Collections.unmodifiableList(buildArguments), skipTests,
-                    addDefaultBuildArguments);
-            selectors = null;
-            urls = null;
-            buildArguments = null;
+            ScmRepository result = new ScmRepository( //
+                    name, //
+                    selectors.asListOfValues(), //
+                    urls.asListOfValues(), //
+                    buildArguments.asListOfValues(), //
+                    skipTests.getValue(), //
+                    addDefaultBuildArguments.getValue(), //
+                    maven.build() //
+            );
             return result;
         }
 
@@ -83,8 +81,8 @@ public class ScmRepository {
         }
 
         @Override
-        public String getId() {
-            return id;
+        public Map<String, Node> getChildren() {
+            return children;
         }
 
         /**
@@ -95,7 +93,12 @@ public class ScmRepository {
          * @return this {@link Builder}
          */
         public Builder id(String id) {
-            this.id = assertValidId(id);
+            this.name = assertValidId(id);
+            return this;
+        }
+
+        public Builder maven(ScmRepositoryMaven.Builder maven) {
+            this.maven.init(maven);
             return this;
         }
 
@@ -110,7 +113,7 @@ public class ScmRepository {
         }
 
         public Builder skipTests(boolean skipTests) {
-            this.skipTests = skipTests;
+            this.skipTests.setValue(skipTests);
             return this;
         }
 
@@ -189,15 +192,27 @@ public class ScmRepository {
         return new Builder();
     }
 
+    public static Path getIdAsPath(String id) {
+        List<String> pathElements = new ArrayList<>();
+        StringTokenizer st = new StringTokenizer(id, String.valueOf(ID_DELIMITER));
+        String first = st.nextToken();
+        while (st.hasMoreTokens()) {
+            pathElements.add(st.nextToken());
+        }
+        return Paths.get(first, pathElements.toArray(new String[0]));
+    }
+
     private final boolean addDefaultBuildArguments;
     private final List<String> buildArguments;
     private final String id;
+    private final ScmRepositoryMaven maven;
     private final List<String> selectors;
     private final boolean skipTests;
+
     private final List<String> urls;
 
     private ScmRepository(String id, List<String> selectors, List<String> urls, List<String> buildArgs,
-            boolean skipTests, boolean addDefaultBuildArguments) {
+            boolean skipTests, boolean addDefaultBuildArguments, ScmRepositoryMaven maven) {
         super();
         this.id = id;
         this.selectors = selectors;
@@ -205,6 +220,7 @@ public class ScmRepository {
         this.buildArguments = buildArgs;
         this.skipTests = skipTests;
         this.addDefaultBuildArguments = addDefaultBuildArguments;
+        this.maven = maven;
     }
 
     @Override
@@ -227,6 +243,11 @@ public class ScmRepository {
             if (other.id != null)
                 return false;
         } else if (!id.equals(other.id))
+            return false;
+        if (maven == null) {
+            if (other.maven != null)
+                return false;
+        } else if (!maven.equals(other.maven))
             return false;
         if (selectors == null) {
             if (other.selectors != null)
@@ -265,13 +286,14 @@ public class ScmRepository {
      *         {@code "org/project/component"}
      */
     public Path getIdAsPath() {
-        List<String> pathElements = new ArrayList<>();
-        StringTokenizer st = new StringTokenizer(id, String.valueOf(ID_DELIMITER));
-        String first = st.nextToken();
-        while (st.hasMoreTokens()) {
-            pathElements.add(st.nextToken());
-        }
-        return Paths.get(first, pathElements.toArray(new String[0]));
+        return getIdAsPath(this.id);
+    }
+
+    /**
+     * @return the Maven specific settings for this source repository.
+     */
+    public ScmRepositoryMaven getMaven() {
+        return maven;
     }
 
     /**
@@ -302,6 +324,7 @@ public class ScmRepository {
         result = prime * result + (addDefaultBuildArguments ? 1231 : 1237);
         result = prime * result + ((buildArguments == null) ? 0 : buildArguments.hashCode());
         result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((maven == null) ? 0 : maven.hashCode());
         result = prime * result + ((selectors == null) ? 0 : selectors.hashCode());
         result = prime * result + (skipTests ? 1231 : 1237);
         result = prime * result + ((urls == null) ? 0 : urls.hashCode());
@@ -331,8 +354,9 @@ public class ScmRepository {
 
     @Override
     public String toString() {
-        return "ScmRepository [id=" + id + ", urls=" + urls + ", selectors=" + selectors + ", buildArguments="
-                + buildArguments + "]";
+        return "ScmRepository [addDefaultBuildArguments=" + addDefaultBuildArguments + ", buildArguments="
+                + buildArguments + ", id=" + id + ", maven=" + maven + ", selectors=" + selectors + ", skipTests="
+                + skipTests + ", urls=" + urls + "]";
     }
 
 }

@@ -21,7 +21,10 @@ import java.nio.file.Paths;
 
 import org.srcdeps.core.config.BuilderIo;
 import org.srcdeps.core.config.Configuration;
+import org.srcdeps.core.config.Maven;
+import org.srcdeps.core.config.MavenFailWith;
 import org.srcdeps.core.config.ScmRepository;
+import org.srcdeps.core.config.ScmRepositoryMaven;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeId;
@@ -48,8 +51,9 @@ public class SrcdepsConstructor extends Constructor {
     public SrcdepsConstructor() {
         super();
         this.yamlClassConstructors.put(NodeId.scalar, new PathConstruct());
-        this.setPropertyUtils(new BuilderPropertyUtils(Configuration.Builder.class, BuilderIo.Builder.class,
-                ScmRepository.Builder.class));
+        this.setPropertyUtils(
+                new BuilderPropertyUtils(Configuration.Builder.class, BuilderIo.Builder.class, Maven.Builder.class,
+                        MavenFailWith.Builder.class, ScmRepository.Builder.class, ScmRepositoryMaven.Builder.class));
 
     }
 

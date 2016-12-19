@@ -22,55 +22,58 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.srcdeps.core.BuildRequest.Verbosity;
 import org.srcdeps.core.config.ScmRepository.Builder;
+import org.srcdeps.core.config.tree.walk.DefaultsAndInheritanceVisitor;
 
 public class ScmRepositoryFinderTest {
 
     @Test
     public void find() {
 
-        Configuration config = Configuration.builder().configModelVersion("1.0").forwardProperty("myProp1")
-                .forwardProperty("myProp2")
-                .builderIo(BuilderIo.builder().stdin("read:/path/to/input/file")
-                        .stdout("write:/path/to/output/file").stderr("err2out"))
-                .skip(true).sourcesDirectory(Paths.get("/home/me/.m2/srcdeps")).verbosity(Verbosity.debug)
-                .repository(repo1())
-                .repository(repo2())
-                .failWithAnyOfArgument("failArg1").failWithAnyOfArgument("failArg2")
-                .addDefaultFailWithAnyOfArguments(false).build();
-
-        ScmRepository repo1 = repo1().build();
-        ScmRepository repo2 = repo2().build();
+        Configuration config = Configuration.builder() //
+                .configModelVersion("2.0").forwardProperty("myProp1") //
+                .forwardProperty("myProp2") //
+                .builderIo( //
+                        BuilderIo.builder() //
+                                .stdin("read:/path/to/input/file") //
+                                .stdout("write:/path/to/output/file") //
+                                .stderr("err2out") //
+                ) //
+                .skip(true) //
+                .sourcesDirectory(Paths.get("/home/me/.m2/srcdeps")) //
+                .verbosity(Verbosity.debug) //
+                .repository(repo1()) //
+                .repository(repo2()) //
+                .accept(new DefaultsAndInheritanceVisitor()) //
+                .build();
 
         ScmRepositoryFinder finder = new ScmRepositoryFinder(config);
 
-        Assert.assertEquals(repo1, finder.findRepository("group1", "whatever", "whatever"));
+        Assert.assertEquals("repo1", finder.findRepository("group1", "whatever", "whatever").getId());
         try {
             finder.findRepository("group2", "whatever", "whatever");
-            Assert.fail(RuntimeException.class.getName() +" expected");
+            Assert.fail(RuntimeException.class.getName() + " expected");
         } catch (RuntimeException expected) {
         }
-        Assert.assertEquals(repo1, finder.findRepository("group2", "artifact2", "whatever"));
-
-        Assert.assertEquals(repo2, finder.findRepository("group3", "artifact3", "whatever"));
-        Assert.assertEquals(repo2, finder.findRepository("group4", "artifact4", "1.2.3"));
+        Assert.assertEquals("repo1", finder.findRepository("group2", "artifact2", "whatever").getId());
+        Assert.assertEquals("repo2", finder.findRepository("group3", "artifact3", "whatever").getId());
+        Assert.assertEquals("repo2", finder.findRepository("group4", "artifact4", "1.2.3").getId());
 
         try {
             finder.findRepository("group4", "artifact4", "1.2");
-            Assert.fail(RuntimeException.class.getName() +" expected");
+            Assert.fail(RuntimeException.class.getName() + " expected");
         } catch (RuntimeException expected) {
         }
 
     }
 
     private Builder repo1() {
-        return ScmRepository.builder().id("repo1").selector("group1").selector("group2:artifact2:*")
-                .url("url1").url("url2").buildArgument("-arg1").buildArgument("-arg2")
-                .addDefaultBuildArguments(false).skipTests(false);
+        return ScmRepository.builder().id("repo1").selector("group1").selector("group2:artifact2:*").url("url1")
+                .url("url2").buildArgument("-arg1").buildArgument("-arg2").addDefaultBuildArguments(false)
+                .skipTests(false);
     }
 
     private Builder repo2() {
-        return ScmRepository.builder().id("repo2").selector("group3:artifact3")
-                .selector("group4:artifact4:1.2.3").url("url3").url("url4").buildArgument("arg3")
-                .addDefaultBuildArguments(false).skipTests(false);
+        return ScmRepository.builder().id("repo2").selector("group3:artifact3").selector("group4:artifact4:1.2.3")
+                .url("url3").url("url4").buildArgument("arg3").addDefaultBuildArguments(false).skipTests(false);
     }
 }
