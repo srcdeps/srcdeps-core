@@ -280,6 +280,14 @@ repositories:
       stdout: inherit
       stderr: inherit
 
+    # `verbosity` - the verbosity level the appropriate dependency build tool (such as Maven) should use
+    # during the build of a dependency from this repository. See `builderIo` at the top level of this file
+    # for syntax and other details.
+    #
+    # Optional, default: inherited from the top level `verbosity`
+    # Since 2.0
+    verbosity: warn
+
     # `maven` - Maven specific settings for this source repository.
     #
     # Optional, with defaults for the individual attributes of `maven`

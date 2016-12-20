@@ -63,6 +63,7 @@ repositories:
     addDefaultBuildArguments: false
     skipTests: false
     buildTimeout: 64s
+    verbosity: trace
     maven:
       versionsMavenPluginVersion: 2.2
 

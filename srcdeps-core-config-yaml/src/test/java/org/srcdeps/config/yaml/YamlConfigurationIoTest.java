@@ -80,6 +80,7 @@ public class YamlConfigurationIoTest {
                     .repository( //
                             ScmRepository.builder() //
                                     .id("org.repo1") //
+                                    .verbosity(Verbosity.trace) //
                                     .selector("group1") //
                                     .selector("group2:artifact2:*") //
                                     .url("url1") //

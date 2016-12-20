@@ -48,7 +48,8 @@ public class Configuration {
 
         final BuilderIo.Builder builderIo = BuilderIo.builder();
         final ScalarNode<Duration> buildTimeout = new DefaultScalarNode<>("buildTimeout", Duration.maxValue());
-        final ScalarNode<String> configModelVersion = new DefaultScalarNode<>("configModelVersion", LATEST_CONFIG_MODEL_VERSION);
+        final ScalarNode<String> configModelVersion = new DefaultScalarNode<>("configModelVersion",
+                LATEST_CONFIG_MODEL_VERSION);
         final ListOfScalarsNode<String> forwardProperties = new DefaultListOfScalarsNode<String>("forwardProperties",
                 String.class) {
 
@@ -103,7 +104,6 @@ public class Configuration {
                     Collections.unmodifiableList(repos), //
                     sourcesDirectory.getValue(), //
                     skip.getValue(), //
-                    verbosity.getValue(), //
                     builderIo.build(), //
                     forwardProperties.asSetOfValues(), //
                     maven.build() //
@@ -235,16 +235,13 @@ public class Configuration {
 
     private final Path sourcesDirectory;
 
-    private final Verbosity verbosity;
-
     private Configuration(String configModelVersion, List<ScmRepository> repositories, Path sourcesDirectory,
-            boolean skip, Verbosity verbosity, BuilderIo redirects, Set<String> forwardProperties, Maven maven) {
+            boolean skip, BuilderIo redirects, Set<String> forwardProperties, Maven maven) {
         super();
         this.configModelVersion = configModelVersion;
         this.repositories = repositories;
         this.sourcesDirectory = sourcesDirectory;
         this.skip = skip;
-        this.verbosity = verbosity;
         this.forwardProperties = forwardProperties;
         this.maven = maven;
     }
@@ -284,8 +281,6 @@ public class Configuration {
             if (other.sourcesDirectory != null)
                 return false;
         } else if (!sourcesDirectory.equals(other.sourcesDirectory))
-            return false;
-        if (verbosity != other.verbosity)
             return false;
         return true;
     }
@@ -335,17 +330,6 @@ public class Configuration {
         return sourcesDirectory;
     }
 
-    /**
-     * Returns the verbosity level the appropriate dependency build tool (such as Maven) should use during the build of
-     * a dependency. The interpretation of the individual levels is up to the given build tool. Some build tools may map
-     * the levels listed here to a distinct set of levels they support internally.
-     *
-     * @return the verbosity level
-     */
-    public Verbosity getVerbosity() {
-        return verbosity;
-    }
-
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -356,7 +340,6 @@ public class Configuration {
         result = prime * result + ((repositories == null) ? 0 : repositories.hashCode());
         result = prime * result + (skip ? 1231 : 1237);
         result = prime * result + ((sourcesDirectory == null) ? 0 : sourcesDirectory.hashCode());
-        result = prime * result + ((verbosity == null) ? 0 : verbosity.hashCode());
         return result;
     }
 
@@ -371,7 +354,7 @@ public class Configuration {
     public String toString() {
         return "Configuration [configModelVersion=" + configModelVersion + ", forwardProperties=" + forwardProperties
                 + ", maven=" + maven + ", repositories=" + repositories + ", skip=" + skip + ", sourcesDirectory="
-                + sourcesDirectory + ", verbosity=" + verbosity + "]";
+                + sourcesDirectory + "]";
     }
 
 }

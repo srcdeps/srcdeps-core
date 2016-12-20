@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.StringTokenizer;
 
+import org.srcdeps.core.BuildRequest.Verbosity;
 import org.srcdeps.core.config.scalar.Duration;
 import org.srcdeps.core.config.tree.ListOfScalarsNode;
 import org.srcdeps.core.config.tree.Node;
@@ -45,7 +46,7 @@ public class ScmRepository {
                 Boolean.TRUE);
         final ListOfScalarsNode<String> buildArguments = new DefaultListOfScalarsNode<>("buildArguments", String.class);
         final BuilderIo.Builder builderIo = BuilderIo.builder();
-        final ScalarNode<Duration> buildTimeout = new DefaultScalarNode<Duration>("buildTimeout", Duration.maxValue()) {
+        final ScalarNode<Duration> buildTimeout = new DefaultScalarNode<Duration>("buildTimeout", Duration.class) {
 
             @Override
             public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
@@ -64,6 +65,21 @@ public class ScmRepository {
         final ListOfScalarsNode<String> selectors = new DefaultListOfScalarsNode<>("selectors", String.class);
         final ScalarNode<Boolean> skipTests = new DefaultScalarNode<>("skipTests", Boolean.TRUE);
         final ListOfScalarsNode<String> urls = new DefaultListOfScalarsNode<>("urls", String.class);
+        final ScalarNode<Verbosity> verbosity = new DefaultScalarNode<Verbosity>("verbosity", Verbosity.class) {
+
+            @Override
+            public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                inheritFrom(configuratioBuilder.verbosity, configurationStack);
+            }
+
+            @Override
+            public boolean isInDefaultState(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                return isInDefaultState(configuratioBuilder.verbosity, configurationStack);
+            }
+
+        };
 
         public Builder() {
             super("repository", true);
@@ -75,6 +91,7 @@ public class ScmRepository {
                     skipTests, //
                     buildTimeout, //
                     builderIo, //
+                    verbosity, //
                     maven //
             );
         }
@@ -94,8 +111,8 @@ public class ScmRepository {
                     addDefaultBuildArguments.getValue(), //
                     maven.build(), //
                     buildTimeout.getValue(), //
-                    builderIo.build() //
-            );
+                    builderIo.build(), //
+                    verbosity.getValue());
             return result;
         }
 
@@ -158,6 +175,11 @@ public class ScmRepository {
 
         public Builder urls(List<String> urls) {
             this.urls.addAll(urls);
+            return this;
+        }
+
+        public Builder verbosity(Verbosity verbosity) {
+            this.verbosity.setValue(verbosity);
             return this;
         }
 
@@ -253,9 +275,11 @@ public class ScmRepository {
 
     private final boolean skipTests;
     private final List<String> urls;
+    private final Verbosity verbosity;
+
     private ScmRepository(String id, List<String> selectors, List<String> urls, List<String> buildArgs,
             boolean skipTests, boolean addDefaultBuildArguments, ScmRepositoryMaven maven, Duration buildTimeout,
-            BuilderIo builderIo) {
+            BuilderIo builderIo, Verbosity verbosity) {
         super();
         this.id = id;
         this.selectors = selectors;
@@ -266,6 +290,7 @@ public class ScmRepository {
         this.maven = maven;
         this.buildTimeout = buildTimeout;
         this.builderIo = builderIo;
+        this.verbosity = verbosity;
     }
 
     @Override
@@ -315,6 +340,8 @@ public class ScmRepository {
             if (other.urls != null)
                 return false;
         } else if (!urls.equals(other.urls))
+            return false;
+        if (verbosity != other.verbosity)
             return false;
         return true;
     }
@@ -386,6 +413,17 @@ public class ScmRepository {
         return urls;
     }
 
+    /**
+     * Returns the verbosity level the appropriate dependency build tool (such as Maven) should use during the build of
+     * a dependency from this {@link ScmRepository}. The interpretation of the individual levels is up to the given
+     * build tool. Some build tools may map the levels listed here to a distinct set of levels they support internally.
+     *
+     * @return the verbosity level
+     */
+    public Verbosity getVerbosity() {
+        return verbosity;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -399,6 +437,7 @@ public class ScmRepository {
         result = prime * result + ((selectors == null) ? 0 : selectors.hashCode());
         result = prime * result + (skipTests ? 1231 : 1237);
         result = prime * result + ((urls == null) ? 0 : urls.hashCode());
+        result = prime * result + ((verbosity == null) ? 0 : verbosity.hashCode());
         return result;
     }
 
@@ -427,7 +466,8 @@ public class ScmRepository {
     public String toString() {
         return "ScmRepository [addDefaultBuildArguments=" + addDefaultBuildArguments + ", buildArguments="
                 + buildArguments + ", builderIo=" + builderIo + ", buildTimeout=" + buildTimeout + ", id=" + id
-                + ", maven=" + maven + ", selectors=" + selectors + ", skipTests=" + skipTests + ", urls=" + urls + "]";
+                + ", maven=" + maven + ", selectors=" + selectors + ", skipTests=" + skipTests + ", urls=" + urls
+                + ", verbosity=" + verbosity + "]";
     }
 
 }

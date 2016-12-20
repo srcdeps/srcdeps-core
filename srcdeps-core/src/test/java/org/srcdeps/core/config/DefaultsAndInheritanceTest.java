@@ -68,6 +68,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(repo1Builder.builderIo.stdin.getValue());
         Assert.assertNull(repo1Builder.builderIo.stdout.getValue());
         Assert.assertNull(repo1Builder.builderIo.stderr.getValue());
+        Assert.assertNull(repo1Builder.verbosity.getValue());
 
         configBuilder.accept(new DefaultsAndInheritanceVisitor());
 
@@ -76,7 +77,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals(Configuration.getDefaultForwardProperties(), config.getForwardProperties());
         Assert.assertEquals(false, config.isSkip());
         Assert.assertNull(config.getSourcesDirectory());
-        Assert.assertEquals(Verbosity.warn, config.getVerbosity());
+        Assert.assertEquals(Verbosity.warn, configBuilder.verbosity.getValue());
         Assert.assertEquals(Duration.maxValue(), configBuilder.buildTimeout.getValue());
 
         Assert.assertEquals(BuilderIoScheme.inherit.name(), configBuilder.builderIo.stdin.getValue());
@@ -104,6 +105,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals(BuilderIoScheme.inherit.name(), repo1.getBuilderIo().getStdin());
         Assert.assertEquals(BuilderIoScheme.inherit.name(), repo1.getBuilderIo().getStdout());
         Assert.assertEquals(BuilderIoScheme.inherit.name(), repo1.getBuilderIo().getStderr());
+        Assert.assertEquals(Verbosity.warn, repo1.getVerbosity());
 
     }
 
@@ -121,6 +123,7 @@ public class DefaultsAndInheritanceTest {
 
         Configuration.Builder config = Configuration.builder() //
                 .buildTimeout(Duration.of("32m")) //
+                .verbosity(Verbosity.trace)
                 .builderIo( //
                         BuilderIo.builder() //
                                 .stdin("read:/path/to/input-file.txt") //
@@ -138,6 +141,7 @@ public class DefaultsAndInheritanceTest {
         );
 
         Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), config.buildTimeout.getValue());
+        Assert.assertEquals(Verbosity.trace, config.verbosity.getValue());
         Assert.assertEquals("0.1", config.maven.versionsMavenPluginVersion.getValue());
         Assert.assertEquals("read:/path/to/input-file.txt", config.builderIo.stdin.getValue());
         Assert.assertEquals("write:/path/to/log.txt", config.builderIo.stdout.getValue());
@@ -149,16 +153,19 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(repo1.builderIo.stdin.getValue());
         Assert.assertNull(repo1.builderIo.stdout.getValue());
         Assert.assertNull(repo1.builderIo.stderr.getValue());
+        Assert.assertNull(repo1.verbosity.getValue());
 
         config.accept(new DefaultsAndInheritanceVisitor());
 
         Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), config.buildTimeout.getValue());
+        Assert.assertEquals(Verbosity.trace, config.verbosity.getValue());
         Assert.assertEquals("0.1", config.maven.versionsMavenPluginVersion.getValue());
         Assert.assertEquals("read:/path/to/input-file.txt", config.builderIo.stdin.getValue());
         Assert.assertEquals("write:/path/to/log.txt", config.builderIo.stdout.getValue());
         Assert.assertEquals("write:/path/to/err.txt", config.builderIo.stderr.getValue());
 
         Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), repo1.buildTimeout.getValue());
+        Assert.assertEquals(Verbosity.trace, repo1.verbosity.getValue());
         Assert.assertEquals("0.1", repo1.maven.versionsMavenPluginVersion.getValue());
         Assert.assertEquals("read:/path/to/input-file.txt", repo1.builderIo.stdin.getValue());
         Assert.assertEquals("write:/path/to/log.txt", repo1.builderIo.stdout.getValue());
