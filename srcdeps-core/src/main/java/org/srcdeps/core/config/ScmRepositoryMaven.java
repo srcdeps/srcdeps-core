@@ -36,30 +36,14 @@ public class ScmRepositoryMaven {
 
             @Override
             public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
-                if (getValue() == null) {
-                    Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
-                    ScalarNode<String> ancestorPluginVersion = configuratioBuilder.maven.versionsMavenPluginVersion;
-                    ancestorPluginVersion.applyDefaultsAndInheritance(configurationStack);
-                    setValue(ancestorPluginVersion.getValue());
-                }
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                inheritFrom(configuratioBuilder.maven.versionsMavenPluginVersion, configurationStack);
             }
 
             @Override
             public boolean isInDefaultState(Stack<Node> configurationStack) {
-                if (getValue() == null) {
-                    return true;
-                } else {
-                    Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
-                    ScalarNode<String> ancestorPluginVersion = configuratioBuilder.maven.versionsMavenPluginVersion;
-                    String inheritedVersion = ancestorPluginVersion.getValue();
-                    if (inheritedVersion != null && inheritedVersion.equals(getValue())) {
-                        return true;
-                    } else if (inheritedVersion == null
-                            && Maven.getDefaultVersionsMavenPluginVersion().equals(getValue())) {
-                        return true;
-                    }
-                }
-                return false;
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                return isInDefaultState(configuratioBuilder.maven.versionsMavenPluginVersion, configurationStack);
             }
 
         };

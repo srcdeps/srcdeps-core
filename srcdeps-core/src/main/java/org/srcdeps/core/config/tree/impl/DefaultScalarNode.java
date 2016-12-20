@@ -91,6 +91,13 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
         return value;
     }
 
+    public void inheritFrom(ScalarNode<T> inheritFrom, Stack<Node> configurationStack) {
+        if (this.value == null) {
+            inheritFrom.applyDefaultsAndInheritance(configurationStack);
+            this.value = inheritFrom.getValue();
+        }
+    }
+
     /** {@inheritDoc} */
     @Override
     public void init(Node source) {
@@ -101,6 +108,21 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
         @SuppressWarnings("unchecked")
         ScalarNode<T> sourceScalar = (DefaultScalarNode<T>) source;
         this.value = sourceScalar.getValue();
+    }
+
+    public boolean isInDefaultState(ScalarNode<T> inheritFrom, Stack<Node> configurationStack) {
+        if (value == null) {
+            return true;
+        } else {
+            T inheritedValue = inheritFrom.getValue();
+            if (inheritedValue != null && inheritedValue.equals(this.value)) {
+                return true;
+            } else if (inheritedValue == null) {
+                T inheritedDefault = inheritFrom.getDefaultValue();
+                return inheritedDefault == this.value || (inheritedDefault != null && inheritedDefault.equals(this.value));
+            }
+        }
+        return false;
     }
 
     /** {@inheritDoc} */
@@ -114,6 +136,7 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
     public void setValue(T value) {
         this.value = value;
     }
+
 
     /** {@inheritDoc} */
     @Override
@@ -130,4 +153,5 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
                 .append('\n') //
                 .toString();
     }
+
 }

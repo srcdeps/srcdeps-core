@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.core.config.tree;
+package org.srcdeps.core.config.scalar;
 
 import java.lang.reflect.Type;
 import java.nio.file.Path;
@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.config.tree.ScalarDeserializer;
 
 /**
  * Hosts scalar types related helper methods.
@@ -150,6 +151,12 @@ public final class Scalars {
             @Override
             public Object deserialize(String value) {
                 return Paths.get(value);
+            }
+        });
+        primitives.put(Duration.class, new ScalarDeserializer() {
+            @Override
+            public Object deserialize(String value) {
+                return Duration.of(value);
             }
         });
         SCALAR_TYPES = Collections.unmodifiableMap(primitives);

@@ -274,8 +274,8 @@ public class BuildRequest {
 
     }
 
-    /** 5 minutes */
-    private static final long DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
+    /** {@link Long#MAX_VALUE} */
+    private static final long DEFAULT_TIMEOUT_MS = Long.MAX_VALUE;
 
     /**
      * @return a new {@link BuildRequestBuilder}
@@ -285,7 +285,7 @@ public class BuildRequest {
     }
 
     /**
-     * @return the default timeout in milliseconds for source dependency builds
+     * @return the default timeout in milliseconds for source dependency builds. The value is {@link Long#MAX_VALUE}.
      */
     public static long getDefaultTimeoutMs() {
         return DEFAULT_TIMEOUT_MS;

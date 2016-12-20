@@ -94,6 +94,25 @@ sourcesDirectory: ~/.m2/srcdeps
 # Since 1.0
 verbosity: warn
 
+# `buildTimeout` - the maximal time duration a build of a source dependency can take. When this value is
+# overrun, the build is terminated forcibly and the outer build fails too. Note that this value can be
+# overriden at the repository level - see below.
+#
+# Valid values consist of a number followed by a time unit abbreviation. Valid time unit abbreviations are:
+# * ns - nanoseconds
+# * us - microseconds
+# * ms - milliseconds
+# * s  - seconds
+# * m  - minutes
+# * h  - hours
+# * d  - days
+#
+# Examples: 10s, 15m, 2h
+#
+# Optional, default: 0x8000000000000000ms which is Long.MAX_VALUE milliseconds
+# Since 2.0
+buildTimeout: 14d
+
 # `maven` - Maven specific settings that apply both on the top level and for each source repository
 # (unless they are overriden at the repository level).
 #
@@ -239,6 +258,17 @@ repositories:
     # Optional, default: true
     # Since 1.0
     skipTests: true
+
+    # `buildTimeout` - the maximal time duration a build of the source tree checked out from this repository
+    #  can take. When this value is overrun, the build is terminatet forcibly and the outer build fails too.
+    # This value overrides the `buildTimeout` set at the top level of this file - see above for valid duration
+    # formats.
+    #
+    # Examples: 10s, 15m, 2h
+    #
+    # Optional, default: inherited from the top level `buildTimeout`
+    # Since 2.0
+    buildTimeout: 14d
 
     # `maven` - Maven specific settings for this source repository.
     #

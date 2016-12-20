@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.config.scalar.Duration;
 import org.srcdeps.core.config.tree.ListOfScalarsNode;
 import org.srcdeps.core.config.tree.Node;
 import org.srcdeps.core.config.tree.ScalarNode;
@@ -46,6 +47,7 @@ public class Configuration {
     public static class Builder extends DefaultContainerNode<Node> {
 
         final BuilderIo.Builder builderIo = BuilderIo.builder();
+        final ScalarNode<Duration> buildTimeout = new DefaultScalarNode<>("buildTimeout", Duration.maxValue());
         final ScalarNode<String> configModelVersion = new DefaultScalarNode<>("configModelVersion",
                 LATEST_CONFIG_MODEL_VERSION);
         final ListOfScalarsNode<String> forwardProperties = new DefaultListOfScalarsNode<String>("forwardProperties",
@@ -79,6 +81,7 @@ public class Configuration {
                     skip, //
                     sourcesDirectory, //
                     verbosity, //
+                    buildTimeout, //
                     maven, //
                     repositories //
             );
@@ -111,6 +114,11 @@ public class Configuration {
 
         public Builder builderIo(BuilderIo.Builder builderIo) {
             this.builderIo.init(builderIo);
+            return this;
+        }
+
+        public Builder buildTimeout(Duration buildTimeout) {
+            this.buildTimeout.setValue(buildTimeout);
             return this;
         }
 
@@ -220,6 +228,7 @@ public class Configuration {
 
     private final BuilderIo builderIo;
     private final String configModelVersion;
+
     private final Set<String> forwardProperties;
     private final Maven maven;
     private final List<ScmRepository> repositories;

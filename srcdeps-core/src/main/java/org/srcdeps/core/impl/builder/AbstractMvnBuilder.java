@@ -27,6 +27,7 @@ import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.BuildRequest.Verbosity;
 import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.shell.Shell;
+import org.srcdeps.core.shell.Shell.CommandResult;
 import org.srcdeps.core.shell.ShellCommand;
 
 /**
@@ -147,7 +148,8 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
                 .ioRedirects(request.getIoRedirects()) //
                 .timeoutMs(request.getTimeoutMs()) //
                 .build();
-        Shell.execute(cliRequest).assertSuccess();
+        CommandResult result = Shell.execute(cliRequest).assertSuccess();
+        this.restTimeoutMs = request.getTimeoutMs() - result.getRuntimeMs();
     }
 
 }

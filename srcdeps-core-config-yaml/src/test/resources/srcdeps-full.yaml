@@ -32,6 +32,8 @@ sourcesDirectory: /home/me/.m2/srcdeps
 
 verbosity: debug
 
+buildTimeout: 35m
+
 maven:
   versionsMavenPluginVersion: 1.2
   failWith:
@@ -60,6 +62,7 @@ repositories:
     - -arg2
     addDefaultBuildArguments: false
     skipTests: false
+    buildTimeout: 64s
     maven:
       versionsMavenPluginVersion: 2.2
 

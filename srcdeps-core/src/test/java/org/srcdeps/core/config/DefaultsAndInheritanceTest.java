@@ -17,10 +17,13 @@
 package org.srcdeps.core.config;
 
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.config.ScmRepository.Builder;
+import org.srcdeps.core.config.scalar.Duration;
 import org.srcdeps.core.config.tree.walk.DefaultsAndInheritanceVisitor;
 
 public class DefaultsAndInheritanceTest {
@@ -40,6 +43,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(configBuilder.skip.getValue());
         Assert.assertNull(configBuilder.sourcesDirectory.getValue());
         Assert.assertNull(configBuilder.verbosity.getValue());
+        Assert.assertNull(configBuilder.buildTimeout.getValue());
 
         Assert.assertNull(configBuilder.maven.versionsMavenPluginVersion.getValue());
         MavenFailWith.Builder failWithBuilder = configBuilder.maven.failWith;
@@ -56,6 +60,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals(Collections.singletonList("org.example"), repo1Builder.selectors.asListOfValues());
         Assert.assertNull(repo1Builder.skipTests.getValue());
         Assert.assertEquals(Collections.singletonList("file:///whereever"), repo1Builder.urls.asListOfValues());
+        Assert.assertNull(repo1Builder.buildTimeout.getValue());
 
         configBuilder.accept(new DefaultsAndInheritanceVisitor());
 
@@ -65,6 +70,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals(false, config.isSkip());
         Assert.assertNull(config.getSourcesDirectory());
         Assert.assertEquals(Verbosity.warn, config.getVerbosity());
+        Assert.assertEquals(Duration.maxValue(), configBuilder.buildTimeout.getValue());
 
         Assert.assertEquals(Maven.getDefaultVersionsMavenPluginVersion(),
                 configBuilder.maven.versionsMavenPluginVersion.getValue());
@@ -83,6 +89,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals(Collections.singletonList("file:///whereever"), repo1.getUrls());
         Assert.assertEquals(Maven.getDefaultVersionsMavenPluginVersion(),
                 repo1.getMaven().getVersionsMavenPluginVersion());
+        Assert.assertEquals(Duration.maxValue(), repo1.getBuildTimeout());
 
     }
 
@@ -99,20 +106,31 @@ public class DefaultsAndInheritanceTest {
     public void inheritance() {
 
         Configuration.Builder config = Configuration.builder() //
-                .maven(Maven.builder().versionsMavenPluginVersion("0.1")).repository(//
+                .buildTimeout(Duration.of("32m")) //
+                .maven( //
+                        Maven.builder() //
+                                .versionsMavenPluginVersion("0.1")) //
+                .repository(//
                         ScmRepository.builder() //
                                 .id("repo1") //
                                 .selector("org.example") //
                                 .url("file:///whereever") //
         );
 
+        Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), config.buildTimeout.getValue());
         Assert.assertEquals("0.1", config.maven.versionsMavenPluginVersion.getValue());
-        Assert.assertNull(config.repositories.getChildren().get("repo1").maven.versionsMavenPluginVersion.getValue());
+
+        Builder repo1 = config.repositories.getChildren().get("repo1");
+        Assert.assertNull(repo1.buildTimeout.getValue());
+        Assert.assertNull(repo1.maven.versionsMavenPluginVersion.getValue());
 
         config.accept(new DefaultsAndInheritanceVisitor());
+
+        Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), config.buildTimeout.getValue());
         Assert.assertEquals("0.1", config.maven.versionsMavenPluginVersion.getValue());
+        Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), repo1.buildTimeout.getValue());
         Assert.assertEquals("0.1",
-                config.repositories.getChildren().get("repo1").maven.versionsMavenPluginVersion.getValue());
+                repo1.maven.versionsMavenPluginVersion.getValue());
 
     }
 

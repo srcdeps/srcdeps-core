@@ -16,6 +16,8 @@
  */
 package org.srcdeps.core.config.tree;
 
+import org.srcdeps.core.config.scalar.Scalars;
+
 /**
  * A {@link Node} that stores a scalar value.
  *

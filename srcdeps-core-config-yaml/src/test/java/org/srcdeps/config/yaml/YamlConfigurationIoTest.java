@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,6 +33,7 @@ import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.config.MavenFailWith;
 import org.srcdeps.core.config.ScmRepository;
 import org.srcdeps.core.config.ScmRepositoryMaven;
+import org.srcdeps.core.config.scalar.Duration;
 import org.srcdeps.core.config.tree.walk.DefaultsAndInheritanceVisitor;
 import org.yaml.snakeyaml.constructor.ConstructorException;
 
@@ -60,6 +62,7 @@ public class YamlConfigurationIoTest {
                     .skip(true) //
                     .sourcesDirectory(Paths.get("/home/me/.m2/srcdeps")) //
                     .verbosity(Verbosity.debug) //
+                    .buildTimeout(new Duration(35, TimeUnit.MINUTES)) //
                     .maven( //
                             Maven.builder() //
                                     .versionsMavenPluginVersion("1.2") //
@@ -85,6 +88,7 @@ public class YamlConfigurationIoTest {
                                     .buildArgument("-arg2") //
                                     .addDefaultBuildArguments(false) //
                                     .skipTests(false) //
+                                    .buildTimeout(new Duration(64, TimeUnit.SECONDS)) //
                                     .maven( //
                                             ScmRepositoryMaven.builder() //
                                                     .versionsMavenPluginVersion("2.2") //

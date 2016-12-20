@@ -22,13 +22,13 @@ import java.util.StringTokenizer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.srcdeps.core.config.scalar.Scalars;
 import org.srcdeps.core.config.tree.ContainerNode;
 import org.srcdeps.core.config.tree.ListNode;
 import org.srcdeps.core.config.tree.ListOfScalarsNode;
 import org.srcdeps.core.config.tree.Node;
 import org.srcdeps.core.config.tree.ScalarDeserializer;
 import org.srcdeps.core.config.tree.ScalarNode;
-import org.srcdeps.core.config.tree.Scalars;
 import org.srcdeps.core.config.tree.Visitor;
 import org.srcdeps.core.config.tree.impl.DefaultScalarNode;
 
