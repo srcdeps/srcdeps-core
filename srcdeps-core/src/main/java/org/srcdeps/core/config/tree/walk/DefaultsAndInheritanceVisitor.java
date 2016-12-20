@@ -39,17 +39,9 @@ public class DefaultsAndInheritanceVisitor extends AbstractVisitor {
     }
 
     @Override
-    public void containerEnd() {
-    }
-
-    @Override
     public void listBegin(ListNode<? extends Node> node) {
         super.listBegin(node);
         node.applyDefaultsAndInheritance(stack);
-    }
-
-    @Override
-    public void listEnd() {
     }
 
     @Override

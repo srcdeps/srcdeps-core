@@ -91,10 +91,11 @@ public class DefaultListNode<E extends Node> implements ListNode<E> {
     public boolean isInDefaultState(Stack<Node> configurationStack) {
         for (Node child : elements) {
             configurationStack.push(child);
-            if (!child.isInDefaultState(configurationStack)) {
+            final boolean result = child.isInDefaultState(configurationStack);
+            configurationStack.pop();
+            if (!result) {
                 return false;
             }
-            configurationStack.pop();
         }
         return true;
     }

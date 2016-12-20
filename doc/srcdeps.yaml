@@ -270,6 +270,16 @@ repositories:
     # Since 2.0
     buildTimeout: 14d
 
+    # `builderIo` - a triple of definitions how to handle the three standard I/O steams of the child builder
+    # process. See `builderIo` at the top level of this file for syntax and other details.
+    #
+    # Optional, default: inherited from the top level `builderIo`
+    # Since 2.0
+    builderIo:
+      stdin: inherit
+      stdout: inherit
+      stderr: inherit
+
     # `maven` - Maven specific settings for this source repository.
     #
     # Optional, with defaults for the individual attributes of `maven`

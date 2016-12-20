@@ -110,10 +110,11 @@ public class DefaultContainerNode<C extends Node> implements ContainerNode<C> {
     public boolean isInDefaultState(Stack<Node> configurationStack) {
         for (Node child : children.values()) {
             configurationStack.push(child);
-            if (!child.isInDefaultState(configurationStack)) {
+            final boolean result = child.isInDefaultState(configurationStack);
+            configurationStack.pop();
+            if (!result) {
                 return false;
             }
-            configurationStack.pop();
         }
         return true;
     }

@@ -119,7 +119,9 @@ public class YamlWriterVisitor extends AbstractVisitor implements Closeable {
     @Override
     public void scalar(ScalarNode<Object> node) {
         try {
-            if (!node.isInDefaultState(stack) && node.getValue() != null) {
+            if ("configModelVersion"
+                    .equals(node.getName()) /* We want configModelVersion always to be present in the output */
+                    || (!node.isInDefaultState(stack) && node.getValue() != null)) {
                 if (hasListAncestor(0)) {
                     indent();
                     out.write("- ");

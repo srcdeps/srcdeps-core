@@ -44,6 +44,7 @@ public class ScmRepository {
         final ScalarNode<Boolean> addDefaultBuildArguments = new DefaultScalarNode<>("addDefaultBuildArguments",
                 Boolean.TRUE);
         final ListOfScalarsNode<String> buildArguments = new DefaultListOfScalarsNode<>("buildArguments", String.class);
+        final BuilderIo.Builder builderIo = BuilderIo.builder();
         final ScalarNode<Duration> buildTimeout = new DefaultScalarNode<Duration>("buildTimeout", Duration.maxValue()) {
 
             @Override
@@ -73,6 +74,7 @@ public class ScmRepository {
                     addDefaultBuildArguments, //
                     skipTests, //
                     buildTimeout, //
+                    builderIo, //
                     maven //
             );
         }
@@ -91,7 +93,9 @@ public class ScmRepository {
                     skipTests.getValue(), //
                     addDefaultBuildArguments.getValue(), //
                     maven.build(), //
-                    buildTimeout.getValue());
+                    buildTimeout.getValue(), //
+                    builderIo.build() //
+            );
             return result;
         }
 
@@ -241,6 +245,7 @@ public class ScmRepository {
 
     private final boolean addDefaultBuildArguments;
     private final List<String> buildArguments;
+    private final BuilderIo builderIo;
     private final Duration buildTimeout;
     private final String id;
     private final ScmRepositoryMaven maven;
@@ -248,9 +253,9 @@ public class ScmRepository {
 
     private final boolean skipTests;
     private final List<String> urls;
-
     private ScmRepository(String id, List<String> selectors, List<String> urls, List<String> buildArgs,
-            boolean skipTests, boolean addDefaultBuildArguments, ScmRepositoryMaven maven, Duration buildTimeout) {
+            boolean skipTests, boolean addDefaultBuildArguments, ScmRepositoryMaven maven, Duration buildTimeout,
+            BuilderIo builderIo) {
         super();
         this.id = id;
         this.selectors = selectors;
@@ -260,6 +265,7 @@ public class ScmRepository {
         this.addDefaultBuildArguments = addDefaultBuildArguments;
         this.maven = maven;
         this.buildTimeout = buildTimeout;
+        this.builderIo = builderIo;
     }
 
     @Override
@@ -282,6 +288,11 @@ public class ScmRepository {
             if (other.buildTimeout != null)
                 return false;
         } else if (!buildTimeout.equals(other.buildTimeout))
+            return false;
+        if (builderIo == null) {
+            if (other.builderIo != null)
+                return false;
+        } else if (!builderIo.equals(other.builderIo))
             return false;
         if (id == null) {
             if (other.id != null)
@@ -316,6 +327,16 @@ public class ScmRepository {
         return buildArguments;
     }
 
+    /**
+     * @return the {@link BuilderIo} to use when building source from this repository
+     */
+    public BuilderIo getBuilderIo() {
+        return builderIo;
+    }
+
+    /**
+     * @return the timeout to use when building source from this repository
+     */
     public Duration getBuildTimeout() {
         return buildTimeout;
     }
@@ -372,6 +393,7 @@ public class ScmRepository {
         result = prime * result + (addDefaultBuildArguments ? 1231 : 1237);
         result = prime * result + ((buildArguments == null) ? 0 : buildArguments.hashCode());
         result = prime * result + ((buildTimeout == null) ? 0 : buildTimeout.hashCode());
+        result = prime * result + ((builderIo == null) ? 0 : builderIo.hashCode());
         result = prime * result + ((id == null) ? 0 : id.hashCode());
         result = prime * result + ((maven == null) ? 0 : maven.hashCode());
         result = prime * result + ((selectors == null) ? 0 : selectors.hashCode());
@@ -404,8 +426,8 @@ public class ScmRepository {
     @Override
     public String toString() {
         return "ScmRepository [addDefaultBuildArguments=" + addDefaultBuildArguments + ", buildArguments="
-                + buildArguments + ", buildTimeout=" + buildTimeout + ", id=" + id + ", maven=" + maven + ", selectors="
-                + selectors + ", skipTests=" + skipTests + ", urls=" + urls + "]";
+                + buildArguments + ", builderIo=" + builderIo + ", buildTimeout=" + buildTimeout + ", id=" + id
+                + ", maven=" + maven + ", selectors=" + selectors + ", skipTests=" + skipTests + ", urls=" + urls + "]";
     }
 
 }

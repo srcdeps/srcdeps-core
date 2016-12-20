@@ -48,8 +48,7 @@ public class Configuration {
 
         final BuilderIo.Builder builderIo = BuilderIo.builder();
         final ScalarNode<Duration> buildTimeout = new DefaultScalarNode<>("buildTimeout", Duration.maxValue());
-        final ScalarNode<String> configModelVersion = new DefaultScalarNode<>("configModelVersion",
-                LATEST_CONFIG_MODEL_VERSION);
+        final ScalarNode<String> configModelVersion = new DefaultScalarNode<>("configModelVersion", LATEST_CONFIG_MODEL_VERSION);
         final ListOfScalarsNode<String> forwardProperties = new DefaultListOfScalarsNode<String>("forwardProperties",
                 String.class) {
 
@@ -226,7 +225,6 @@ public class Configuration {
         return SUPPORTED_CONFIG_MODEL_VERSIONS;
     }
 
-    private final BuilderIo builderIo;
     private final String configModelVersion;
 
     private final Set<String> forwardProperties;
@@ -248,7 +246,6 @@ public class Configuration {
         this.skip = skip;
         this.verbosity = verbosity;
         this.forwardProperties = forwardProperties;
-        this.builderIo = redirects;
         this.maven = maven;
     }
 
@@ -261,10 +258,10 @@ public class Configuration {
         if (getClass() != obj.getClass())
             return false;
         Configuration other = (Configuration) obj;
-        if (builderIo == null) {
-            if (other.builderIo != null)
+        if (configModelVersion == null) {
+            if (other.configModelVersion != null)
                 return false;
-        } else if (!builderIo.equals(other.builderIo))
+        } else if (!configModelVersion.equals(other.configModelVersion))
             return false;
         if (forwardProperties == null) {
             if (other.forwardProperties != null)
@@ -291,13 +288,6 @@ public class Configuration {
         if (verbosity != other.verbosity)
             return false;
         return true;
-    }
-
-    /**
-     * @return a {@link BuilderIo} to use for the child builders
-     */
-    public BuilderIo getBuilderIo() {
-        return builderIo;
     }
 
     public String getConfigModelVersion() {
@@ -360,7 +350,7 @@ public class Configuration {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((builderIo == null) ? 0 : builderIo.hashCode());
+        result = prime * result + ((configModelVersion == null) ? 0 : configModelVersion.hashCode());
         result = prime * result + ((forwardProperties == null) ? 0 : forwardProperties.hashCode());
         result = prime * result + ((maven == null) ? 0 : maven.hashCode());
         result = prime * result + ((repositories == null) ? 0 : repositories.hashCode());
@@ -379,9 +369,9 @@ public class Configuration {
 
     @Override
     public String toString() {
-        return "Configuration [builderIo=" + builderIo + ", forwardProperties=" + forwardProperties + ", repositories="
-                + repositories + ", skip=" + skip + ", maven=" + maven + ", sourcesDirectory=" + sourcesDirectory
-                + ", verbosity=" + verbosity + "]";
+        return "Configuration [configModelVersion=" + configModelVersion + ", forwardProperties=" + forwardProperties
+                + ", maven=" + maven + ", repositories=" + repositories + ", skip=" + skip + ", sourcesDirectory="
+                + sourcesDirectory + ", verbosity=" + verbosity + "]";
     }
 
 }
