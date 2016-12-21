@@ -14,22 +14,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.core.config;
+package org.srcdeps.core.config.tree;
+
+import org.srcdeps.core.config.scalar.Scalars;
 
 /**
- * An interface to allow traversal through the fields of configuration builders.
+ * A {@link Node} that stores a scalar value.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  *
- * @param <B> the builder to return from {@link #accept(ConfigurationNodeVisitor)}
+ * @param <T>
+ *            the type of the value stored in this {@link ScalarNode}.
+ *
+ * @see Scalars
  */
-public interface TraversableConfigurationNode<B> {
+public interface ScalarNode<T> extends Node {
+    /**
+     * @return the default value to be used if the value of this {@link ScalarNode} is not set explicitly
+     */
+    T getDefaultValue();
 
     /**
-     * Used to override the configuration by values coming from some higher-ranking source
-     *
-     * @param visitor the {@link ConfigurationNodeVisitor} to accept
-     * @return this builder
+     * @return the type of the value
      */
-    B accept(ConfigurationNodeVisitor visitor);
+    Class<T> getType();
+
+    /**
+     * @return the value stored in this {@link ScalarNode}
+     */
+    T getValue();
+
+    /**
+     * Sets the value stored in this {@link ScalarNode}.
+     *
+     * @param value
+     *            the value to set
+     */
+    void setValue(T value);
 }

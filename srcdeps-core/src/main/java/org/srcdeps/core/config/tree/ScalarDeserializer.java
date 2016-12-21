@@ -14,11 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.core.config;
+package org.srcdeps.core.config.tree;
 
 /**
- * A minimalistic interface to signal that the implementor has a {@code getId()} method.
+ * To deserialize from String to an object of another type such as int, Integer, boolean, Boolean, etc.
  */
-public interface IdProvider {
-    String getId();
+public interface ScalarDeserializer {
+    /**
+     * Deserialize the given {@link String} value to an object of another type such as int, Integer, boolean, Boolean,
+     * etc.
+     *
+     * @param value
+     *            the {@link String} value to deserialize.
+     * @return the deserialized value
+     */
+    Object deserialize(String value);
 }

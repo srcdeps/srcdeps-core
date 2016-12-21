@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-configModelVersion: 1.1
+configModelVersion: 2.0
 
 forwardProperties:
 - myProp1
@@ -32,15 +32,25 @@ sourcesDirectory: /home/me/.m2/srcdeps
 
 verbosity: debug
 
-failWithAnyOfArguments:
-- failArg1
-- failArg2
+buildTimeout: 35m
 
-addDefaultFailWithAnyOfArguments: false
+maven:
+  versionsMavenPluginVersion: 1.2
+  failWith:
+    addDefaults: false
+    goals:
+    - goal1
+    - goal2
+    profiles:
+    - profile1
+    - profile2
+    properties:
+    - property1
+    - property2
 
 repositories:
 
-  repo1:
+  org.repo1:
     selectors:
     - group1
     - group2:artifact2:*
@@ -52,8 +62,12 @@ repositories:
     - -arg2
     addDefaultBuildArguments: false
     skipTests: false
+    buildTimeout: 64s
+    verbosity: trace
+    maven:
+      versionsMavenPluginVersion: 2.2
 
-  repo2:
+  org.repo2:
     selectors:
     - group3:artifact3
     - group4:artifact4:1.2.3

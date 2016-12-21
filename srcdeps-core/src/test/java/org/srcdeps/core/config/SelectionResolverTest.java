@@ -57,7 +57,6 @@ public class SelectionResolverTest {
 
     }
 
-
     @Test
     public void resolveAnyVersion() {
         SelectionResolver resolver = new SelectionResolver("group:artifact:*", null);
@@ -75,7 +74,6 @@ public class SelectionResolverTest {
         Assert.assertTrue(resolver.matches("group", "artifact", "1.2.4"));
 
     }
-
 
     @Test
     public void resolveLiteral() {

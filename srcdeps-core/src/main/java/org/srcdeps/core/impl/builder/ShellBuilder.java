@@ -37,6 +37,12 @@ public abstract class ShellBuilder implements Builder {
     protected final String executable;
 
     /**
+     * Set by {@link #setVersions(BuildRequest)}, tells in how many milliseconds must {@link #build(BuildRequest)}
+     * finish
+     */
+    protected long restTimeoutMs = Long.MIN_VALUE;
+
+    /**
      * @param executable
      *            the executable such as {@code mvn}
      */
@@ -48,6 +54,12 @@ public abstract class ShellBuilder implements Builder {
     @Override
     public void build(BuildRequest request) throws BuildException {
 
+        /*
+         * restTimeoutMs == Long.MIN_VALUE means that the restTimeoutMs was not set by setVersions() and it will
+         * therefore be ignored
+         */
+        long timeoutMs = restTimeoutMs == Long.MIN_VALUE ? request.getTimeoutMs() : restTimeoutMs;
+
         List<String> args = mergeArguments(request);
         ShellCommand command = ShellCommand.builder() //
                 .executable(locateExecutable(request)) //
@@ -55,7 +67,7 @@ public abstract class ShellBuilder implements Builder {
                 .workingDirectory(request.getProjectRootDirectory()) //
                 .environment(request.getBuildEnvironment()) //
                 .ioRedirects(request.getIoRedirects()) //
-                .timeoutMs(request.getTimeoutMs()) //
+                .timeoutMs(timeoutMs) //
                 .build();
         Shell.execute(command).assertSuccess();
     }
@@ -102,7 +114,8 @@ public abstract class ShellBuilder implements Builder {
      * Always returns {@link #executable}. Subclasses may choose to return some thing else depending on the given
      * {@code request}.
      *
-     * @param request the request to build
+     * @param request
+     *            the request to build
      * @return the path to the executable
      */
     protected String locateExecutable(BuildRequest request) {

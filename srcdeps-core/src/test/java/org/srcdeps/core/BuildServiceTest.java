@@ -33,7 +33,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.srcdeps.core.config.Configuration;
+import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 
 /**
@@ -41,8 +41,8 @@ import org.srcdeps.core.util.SrcdepsCoreUtils;
  */
 public class BuildServiceTest extends InjectedTest {
     private static final Logger log = LoggerFactory.getLogger(BuildServiceTest.class);
-    private static final Path mvnLocalRepo;
     private static final String mrmSettingsXmlPath = System.getProperty("mrm.settings.xml");
+    private static final Path mvnLocalRepo;
     private static final Path projectsDirectory;
     private static final Path targetDirectory = Paths.get(System.getProperty("project.build.directory", "target"))
             .toAbsolutePath();
@@ -56,6 +56,18 @@ public class BuildServiceTest extends InjectedTest {
         Assert.assertTrue(String.format("File or directory does not exist [%s]", path.toString()), Files.exists(path));
     }
 
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+
+        SrcdepsCoreUtils.ensureDirectoryExistsAndEmpty(mvnLocalRepo);
+
+        System.setProperty(Maven.getSrcdepsMavenSettingsProperty(), mrmSettingsXmlPath);
+
+    }
+
+    @Inject
+    private BuildService buildService;
+
     protected String currentTestName;
 
     @Rule
@@ -67,18 +79,6 @@ public class BuildServiceTest extends InjectedTest {
         }
 
     };
-
-    @BeforeClass
-    public static void beforeClass() throws IOException {
-
-        SrcdepsCoreUtils.ensureDirectoryExistsAndEmpty(mvnLocalRepo);
-
-        System.setProperty(Configuration.SRCDEPS_MVN_SETTINGS_PROP, mrmSettingsXmlPath);
-
-    }
-
-    @Inject
-    private BuildService buildService;
 
     public void assertBuild(String srcVersion) throws IOException, BuildException {
         Assert.assertNotNull("buildService not injected", buildService);
@@ -95,7 +95,7 @@ public class BuildServiceTest extends InjectedTest {
                 .scmUrl("git:https://github.com/srcdeps/srcdeps-test-artifact.git")
                 .srcVersion(SrcVersion.parse(srcVersion)).projectRootDirectory(projectBuildDirectory) //
                 .buildArgument("-Dmaven.repo.local=" + mvnLocalRepo.toString()) //
-                .build();
+                .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()).build();
 
         buildService.build(request);
 

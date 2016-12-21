@@ -25,8 +25,9 @@ import java.util.List;
 import org.srcdeps.core.BuildException;
 import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.BuildRequest.Verbosity;
-import org.srcdeps.core.config.Configuration;
+import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.shell.Shell;
+import org.srcdeps.core.shell.Shell.CommandResult;
 import org.srcdeps.core.shell.ShellCommand;
 
 /**
@@ -35,15 +36,45 @@ import org.srcdeps.core.shell.ShellCommand;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public abstract class AbstractMvnBuilder extends ShellBuilder {
-    public static final List<String> mvnDefaultArgs = Collections.unmodifiableList(Arrays.asList("clean", "install"));
-    public static final List<String> mvnwFileNames = Collections.unmodifiableList(Arrays.asList("mvnw", "mvnw.cmd"));
+    protected static final List<String> MVN_DEFAULT_ARGS = Collections
+            .unmodifiableList(Arrays.asList("clean", "install"));
+    protected static final List<String> MVNW_FILE_NAMES = Collections
+            .unmodifiableList(Arrays.asList("mvnw", "mvnw.cmd"));
 
-    public static final List<String> pomFileNames = Collections.unmodifiableList(
+    protected static final List<String> POM_FILE_NAMES = Collections.unmodifiableList(
             Arrays.asList("pom.xml", "pom.atom", "pom.clj", "pom.groovy", "pom.rb", "pom.scala", "pom.yml"));
-    public static final List<String> skipTestsArgs = Collections.singletonList("-DskipTests");
+    protected static final List<String> SKIP_TESTS_ARGS = Collections.singletonList("-DskipTests");
+
+    /**
+     * @return the default build arguments used in Maven builds of source dependencies
+     */
+    public static List<String> getMvnDefaultArgs() {
+        return MVN_DEFAULT_ARGS;
+    }
+
+    /**
+     * @return the list of file names whose presence signals that the project can be built with {@link MvnwBuilder}
+     */
+    public static List<String> getMvnwFileNames() {
+        return MVNW_FILE_NAMES;
+    }
+
+    /**
+     * @return the list of file names that can store Maven Project Object Model. NB: there is not only {@code pom.xml}
+     */
+    public static List<String> getPomFileNames() {
+        return POM_FILE_NAMES;
+    }
+
+    /**
+     * @return the {@link List} of arguments to use when no tests should be run during the build of a source dependency
+     */
+    public static List<String> getSkipTestsArgs() {
+        return SKIP_TESTS_ARGS;
+    }
 
     public static boolean hasMvnwFile(Path directory) {
-        for (String fileName : mvnwFileNames) {
+        for (String fileName : MVNW_FILE_NAMES) {
             if (directory.resolve(fileName).toFile().exists()) {
                 return true;
             }
@@ -52,7 +83,7 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     }
 
     public static boolean hasPomFile(Path directory) {
-        for (String fileName : pomFileNames) {
+        for (String fileName : POM_FILE_NAMES) {
             if (directory.resolve(fileName).toFile().exists()) {
                 return true;
             }
@@ -66,21 +97,21 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
 
     @Override
     protected List<String> getDefaultBuildArguments() {
-        String settingsPath = System.getProperty(Configuration.SRCDEPS_MVN_SETTINGS_PROP);
+        String settingsPath = System.getProperty(Maven.getSrcdepsMavenSettingsProperty());
         if (settingsPath != null) {
-            List<String> result = new ArrayList<>(mvnDefaultArgs.size() + 2);
-            result.addAll(mvnDefaultArgs);
+            List<String> result = new ArrayList<>(MVN_DEFAULT_ARGS.size() + 2);
+            result.addAll(MVN_DEFAULT_ARGS);
             result.add("-s");
             result.add(settingsPath);
             return Collections.unmodifiableList(result);
         } else {
-            return mvnDefaultArgs;
+            return MVN_DEFAULT_ARGS;
         }
     }
 
     @Override
     protected List<String> getSkipTestsArguments(boolean skipTests) {
-        return skipTests ? skipTestsArgs : Collections.<String> emptyList();
+        return skipTests ? SKIP_TESTS_ARGS : Collections.<String> emptyList();
     }
 
     @Override
@@ -102,8 +133,11 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     @Override
     public void setVersions(BuildRequest request) throws BuildException {
         final List<String> args = new ArrayList<>();
-        args.add("versions:set");
+        args.add("org.codehaus.mojo:versions-maven-plugin:" + request.getVersionsMavenPluginVersion() + ":set");
         args.add("-DnewVersion=" + request.getSrcVersion().toString());
+        args.add("-DartifactId=*");
+        args.add("-DgroupId=*");
+        args.add("-DoldVersion=*");
         args.add("-DgenerateBackupPoms=false");
         args.addAll(getVerbosityArguments(request.getVerbosity()));
 
@@ -114,7 +148,8 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
                 .ioRedirects(request.getIoRedirects()) //
                 .timeoutMs(request.getTimeoutMs()) //
                 .build();
-        Shell.execute(cliRequest).assertSuccess();
+        CommandResult result = Shell.execute(cliRequest).assertSuccess();
+        this.restTimeoutMs = request.getTimeoutMs() - result.getRuntimeMs();
     }
 
 }

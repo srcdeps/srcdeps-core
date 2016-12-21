@@ -16,13 +16,22 @@
  */
 package org.srcdeps.core.config;
 
-import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 import java.util.StringTokenizer;
+
+import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.config.scalar.Duration;
+import org.srcdeps.core.config.tree.ListOfScalarsNode;
+import org.srcdeps.core.config.tree.Node;
+import org.srcdeps.core.config.tree.ScalarNode;
+import org.srcdeps.core.config.tree.impl.DefaultContainerNode;
+import org.srcdeps.core.config.tree.impl.DefaultListOfScalarsNode;
+import org.srcdeps.core.config.tree.impl.DefaultScalarNode;
 
 /**
  * A SCM repository entry of a {@link Configuration}.
@@ -31,44 +40,79 @@ import java.util.StringTokenizer;
  */
 public class ScmRepository {
 
-    public static class Builder implements TraversableConfigurationNode<Builder>, IdProvider {
+    public static class Builder extends DefaultContainerNode<Node> {
 
-        private boolean addDefaultBuildArguments = true;
-        private List<String> buildArguments = new ArrayList<>();
-        private String id;
-        private List<String> selectors = new ArrayList<>();
-        private boolean skipTests = true;
-        private List<String> urls = new ArrayList<String>();
+        final ScalarNode<Boolean> addDefaultBuildArguments = new DefaultScalarNode<>("addDefaultBuildArguments",
+                Boolean.TRUE);
+        final ListOfScalarsNode<String> buildArguments = new DefaultListOfScalarsNode<>("buildArguments", String.class);
+        final BuilderIo.Builder builderIo = BuilderIo.builder();
+        final ScalarNode<Duration> buildTimeout = new DefaultScalarNode<Duration>("buildTimeout", Duration.class) {
+
+            @Override
+            public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                inheritFrom(configuratioBuilder.buildTimeout, configurationStack);
+            }
+
+            @Override
+            public boolean isInDefaultState(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                return isInDefaultState(configuratioBuilder.buildTimeout, configurationStack);
+            }
+
+        };
+        final ScmRepositoryMaven.Builder maven = ScmRepositoryMaven.builder();
+        final ListOfScalarsNode<String> selectors = new DefaultListOfScalarsNode<>("selectors", String.class);
+        final ScalarNode<Boolean> skipTests = new DefaultScalarNode<>("skipTests", Boolean.TRUE);
+        final ListOfScalarsNode<String> urls = new DefaultListOfScalarsNode<>("urls", String.class);
+        final ScalarNode<Verbosity> verbosity = new DefaultScalarNode<Verbosity>("verbosity", Verbosity.class) {
+
+            @Override
+            public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                inheritFrom(configuratioBuilder.verbosity, configurationStack);
+            }
+
+            @Override
+            public boolean isInDefaultState(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                return isInDefaultState(configuratioBuilder.verbosity, configurationStack);
+            }
+
+        };
 
         public Builder() {
-        }
-
-        /**
-         * Used to override the configuration by values coming from some higher-ranking source
-         *
-         * @param visitor the {@link ConfigurationNodeVisitor} to accept
-         * @return this builder
-         */
-        @Override
-        public Builder accept(ConfigurationNodeVisitor visitor) {
-            for (Field field : this.getClass().getDeclaredFields()) {
-                visitor.visit(this, field);
-            }
-            return this;
+            super("repository", true);
+            addChildren( //
+                    selectors, //
+                    urls, //
+                    buildArguments, //
+                    addDefaultBuildArguments, //
+                    skipTests, //
+                    buildTimeout, //
+                    builderIo, //
+                    verbosity, //
+                    maven //
+            );
         }
 
         public Builder addDefaultBuildArguments(boolean addDefaultBuildArguments) {
-            this.addDefaultBuildArguments = addDefaultBuildArguments;
+            this.addDefaultBuildArguments.setValue(addDefaultBuildArguments);
             return this;
         }
 
         public ScmRepository build() {
-            ScmRepository result = new ScmRepository(id, Collections.unmodifiableList(selectors),
-                    Collections.unmodifiableList(urls), Collections.unmodifiableList(buildArguments), skipTests,
-                    addDefaultBuildArguments);
-            selectors = null;
-            urls = null;
-            buildArguments = null;
+            ScmRepository result = new ScmRepository( //
+                    name, //
+                    selectors.asListOfValues(), //
+                    urls.asListOfValues(), //
+                    buildArguments.asListOfValues(), //
+                    skipTests.getValue(), //
+                    addDefaultBuildArguments.getValue(), //
+                    maven.build(), //
+                    buildTimeout.getValue(), //
+                    builderIo.build(), //
+                    verbosity.getValue());
             return result;
         }
 
@@ -82,9 +126,14 @@ public class ScmRepository {
             return this;
         }
 
+        public Builder buildTimeout(Duration buildTimeout) {
+            this.buildTimeout.setValue(buildTimeout);
+            return this;
+        }
+
         @Override
-        public String getId() {
-            return id;
+        public Map<String, Node> getChildren() {
+            return children;
         }
 
         /**
@@ -95,7 +144,12 @@ public class ScmRepository {
          * @return this {@link Builder}
          */
         public Builder id(String id) {
-            this.id = assertValidId(id);
+            this.name = assertValidId(id);
+            return this;
+        }
+
+        public Builder maven(ScmRepositoryMaven.Builder maven) {
+            this.maven.init(maven);
             return this;
         }
 
@@ -110,7 +164,7 @@ public class ScmRepository {
         }
 
         public Builder skipTests(boolean skipTests) {
-            this.skipTests = skipTests;
+            this.skipTests.setValue(skipTests);
             return this;
         }
 
@@ -124,10 +178,15 @@ public class ScmRepository {
             return this;
         }
 
+        public Builder verbosity(Verbosity verbosity) {
+            this.verbosity.setValue(verbosity);
+            return this;
+        }
+
     }
 
     /** The period character that delimits the segments of {@link #id} values */
-    public static final char ID_DELIMITER = '.';
+    private static final char ID_DELIMITER = '.';
 
     /**
      * Checks that the given {@code id} is a valid id. If no violation is found the given {@code id} is returned.
@@ -189,15 +248,38 @@ public class ScmRepository {
         return new Builder();
     }
 
+    public static Path getIdAsPath(String id) {
+        List<String> pathElements = new ArrayList<>();
+        StringTokenizer st = new StringTokenizer(id, String.valueOf(ID_DELIMITER));
+        String first = st.nextToken();
+        while (st.hasMoreTokens()) {
+            pathElements.add(st.nextToken());
+        }
+        return Paths.get(first, pathElements.toArray(new String[0]));
+    }
+
+    /**
+     * @return the period character that delimits segments of a {@link ScmRepository#getId()}
+     */
+    public static char getIdDelimiter() {
+        return ID_DELIMITER;
+    }
+
     private final boolean addDefaultBuildArguments;
     private final List<String> buildArguments;
+    private final BuilderIo builderIo;
+    private final Duration buildTimeout;
     private final String id;
+    private final ScmRepositoryMaven maven;
     private final List<String> selectors;
+
     private final boolean skipTests;
     private final List<String> urls;
+    private final Verbosity verbosity;
 
     private ScmRepository(String id, List<String> selectors, List<String> urls, List<String> buildArgs,
-            boolean skipTests, boolean addDefaultBuildArguments) {
+            boolean skipTests, boolean addDefaultBuildArguments, ScmRepositoryMaven maven, Duration buildTimeout,
+            BuilderIo builderIo, Verbosity verbosity) {
         super();
         this.id = id;
         this.selectors = selectors;
@@ -205,6 +287,10 @@ public class ScmRepository {
         this.buildArguments = buildArgs;
         this.skipTests = skipTests;
         this.addDefaultBuildArguments = addDefaultBuildArguments;
+        this.maven = maven;
+        this.buildTimeout = buildTimeout;
+        this.builderIo = builderIo;
+        this.verbosity = verbosity;
     }
 
     @Override
@@ -223,10 +309,25 @@ public class ScmRepository {
                 return false;
         } else if (!buildArguments.equals(other.buildArguments))
             return false;
+        if (buildTimeout == null) {
+            if (other.buildTimeout != null)
+                return false;
+        } else if (!buildTimeout.equals(other.buildTimeout))
+            return false;
+        if (builderIo == null) {
+            if (other.builderIo != null)
+                return false;
+        } else if (!builderIo.equals(other.builderIo))
+            return false;
         if (id == null) {
             if (other.id != null)
                 return false;
         } else if (!id.equals(other.id))
+            return false;
+        if (maven == null) {
+            if (other.maven != null)
+                return false;
+        } else if (!maven.equals(other.maven))
             return false;
         if (selectors == null) {
             if (other.selectors != null)
@@ -240,6 +341,8 @@ public class ScmRepository {
                 return false;
         } else if (!urls.equals(other.urls))
             return false;
+        if (verbosity != other.verbosity)
+            return false;
         return true;
     }
 
@@ -249,6 +352,20 @@ public class ScmRepository {
      */
     public List<String> getBuildArguments() {
         return buildArguments;
+    }
+
+    /**
+     * @return the {@link BuilderIo} to use when building source from this repository
+     */
+    public BuilderIo getBuilderIo() {
+        return builderIo;
+    }
+
+    /**
+     * @return the timeout to use when building source from this repository
+     */
+    public Duration getBuildTimeout() {
+        return buildTimeout;
     }
 
     /**
@@ -265,13 +382,14 @@ public class ScmRepository {
      *         {@code "org/project/component"}
      */
     public Path getIdAsPath() {
-        List<String> pathElements = new ArrayList<>();
-        StringTokenizer st = new StringTokenizer(id, String.valueOf(ID_DELIMITER));
-        String first = st.nextToken();
-        while (st.hasMoreTokens()) {
-            pathElements.add(st.nextToken());
-        }
-        return Paths.get(first, pathElements.toArray(new String[0]));
+        return getIdAsPath(this.id);
+    }
+
+    /**
+     * @return the Maven specific settings for this source repository.
+     */
+    public ScmRepositoryMaven getMaven() {
+        return maven;
     }
 
     /**
@@ -295,16 +413,31 @@ public class ScmRepository {
         return urls;
     }
 
+    /**
+     * Returns the verbosity level the appropriate dependency build tool (such as Maven) should use during the build of
+     * a dependency from this {@link ScmRepository}. The interpretation of the individual levels is up to the given
+     * build tool. Some build tools may map the levels listed here to a distinct set of levels they support internally.
+     *
+     * @return the verbosity level
+     */
+    public Verbosity getVerbosity() {
+        return verbosity;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + (addDefaultBuildArguments ? 1231 : 1237);
         result = prime * result + ((buildArguments == null) ? 0 : buildArguments.hashCode());
+        result = prime * result + ((buildTimeout == null) ? 0 : buildTimeout.hashCode());
+        result = prime * result + ((builderIo == null) ? 0 : builderIo.hashCode());
         result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((maven == null) ? 0 : maven.hashCode());
         result = prime * result + ((selectors == null) ? 0 : selectors.hashCode());
         result = prime * result + (skipTests ? 1231 : 1237);
         result = prime * result + ((urls == null) ? 0 : urls.hashCode());
+        result = prime * result + ((verbosity == null) ? 0 : verbosity.hashCode());
         return result;
     }
 
@@ -331,8 +464,10 @@ public class ScmRepository {
 
     @Override
     public String toString() {
-        return "ScmRepository [id=" + id + ", urls=" + urls + ", selectors=" + selectors + ", buildArguments="
-                + buildArguments + "]";
+        return "ScmRepository [addDefaultBuildArguments=" + addDefaultBuildArguments + ", buildArguments="
+                + buildArguments + ", builderIo=" + builderIo + ", buildTimeout=" + buildTimeout + ", id=" + id
+                + ", maven=" + maven + ", selectors=" + selectors + ", skipTests=" + skipTests + ", urls=" + urls
+                + ", verbosity=" + verbosity + "]";
     }
 
 }

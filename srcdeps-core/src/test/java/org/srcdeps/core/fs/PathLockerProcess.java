@@ -39,7 +39,8 @@ public class PathLockerProcess {
     public static void main(String[] args) {
         try {
             int i = 0;
-            new PathLockerProcess(Paths.get(args[i++]), SrcVersion.parse(args[i++]), Paths.get(args[i++]), Paths.get(args[i++])).run();
+            new PathLockerProcess(Paths.get(args[i++]), SrcVersion.parse(args[i++]), Paths.get(args[i++]),
+                    Paths.get(args[i++])).run();
         } catch (Throwable e) {
             e.printStackTrace();
             log.info(pid + " PathLockerProcess exiting");
@@ -48,8 +49,8 @@ public class PathLockerProcess {
     }
 
     private final Path keepRunnigFile;
-    private final Path lockSuccessFile;
     private final Path lockedDirectory;
+    private final Path lockSuccessFile;
     private final SrcVersion srcVersion;
 
     public PathLockerProcess(Path lockedDirectory, SrcVersion srcVersion, Path keepRunnigFile, Path lockSuccessFile) {

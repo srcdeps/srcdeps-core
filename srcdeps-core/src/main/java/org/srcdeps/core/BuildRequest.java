@@ -51,14 +51,15 @@ public class BuildRequest {
         private boolean addDefaultBuildArguments = true;
         private List<String> buildArguments = new ArrayList<>();
         private Map<String, String> buildEnvironment = new LinkedHashMap<>();
+        private Set<String> forwardProperties = new LinkedHashSet<>();
         private IoRedirects ioRedirects = IoRedirects.inheritAll();
         private Path projectRootDirectory;
         private List<String> scmUrls = new ArrayList<>();
+        private boolean skipTests = true;
         private SrcVersion srcVersion;
         private long timeoutMs = DEFAULT_TIMEOUT_MS;
         private Verbosity verbosity = Verbosity.info;
-        private boolean skipTests = true;
-        private Set<String> forwardProperties = new LinkedHashSet<>();
+        private String versionsMavenPluginVersion;
 
         /**
          * @param addDefaultBuildArguments
@@ -70,11 +71,6 @@ public class BuildRequest {
             return this;
         }
 
-        public BuildRequestBuilder skipTests(boolean skipTests) {
-            this.skipTests = skipTests;
-            return this;
-        }
-
         /**
          * @return a new {@link BuildRequest} based on the values stored in fields of this {@link BuildRequestBuilder}
          */
@@ -82,7 +78,7 @@ public class BuildRequest {
             return new BuildRequest(projectRootDirectory, srcVersion, Collections.unmodifiableList(scmUrls),
                     Collections.unmodifiableList(buildArguments), skipTests, addDefaultBuildArguments,
                     Collections.unmodifiableSet(forwardProperties), Collections.unmodifiableMap(buildEnvironment),
-                    verbosity, ioRedirects, timeoutMs);
+                    verbosity, ioRedirects, timeoutMs, versionsMavenPluginVersion);
         }
 
         /**
@@ -144,6 +140,28 @@ public class BuildRequest {
         }
 
         /**
+         * @see BuildRequest#getForwardProperties()
+         * @param values
+         *            the property names or patterns to forward
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder forwardProperties(Collection<String> values) {
+            forwardProperties.addAll(values);
+            return this;
+        }
+
+        /**
+         * @see BuildRequest#getForwardProperties()
+         * @param value
+         *            the property name or pattern to forward
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder forwardProperty(String value) {
+            forwardProperties.add(value);
+            return this;
+        }
+
+        /**
          * @param ioRedirects
          *            see {@link BuildRequest#getIoRedirects()}
          * @return this {@link BuildRequestBuilder}
@@ -184,6 +202,15 @@ public class BuildRequest {
         }
 
         /**
+         * @param skipTests see {@link BuildRequest#isSkipTests()}
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder skipTests(boolean skipTests) {
+            this.skipTests = skipTests;
+            return this;
+        }
+
+        /**
          * @param srcVersion
          *            see {@link BuildRequest#getSrcVersion()}
          * @return this {@link BuildRequestBuilder}
@@ -213,8 +240,8 @@ public class BuildRequest {
             return this;
         }
 
-        public BuildRequestBuilder forwardProperties(Collection<String> values) {
-            forwardProperties.addAll(values);
+        public BuildRequestBuilder versionsMavenPluginVersion(String versionsMavenPluginVersion) {
+            this.versionsMavenPluginVersion = versionsMavenPluginVersion;
             return this;
         }
     };
@@ -247,8 +274,8 @@ public class BuildRequest {
 
     }
 
-    /** 5 minutes */
-    public static final long DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
+    /** {@link Long#MAX_VALUE} */
+    private static final long DEFAULT_TIMEOUT_MS = Long.MAX_VALUE;
 
     /**
      * @return a new {@link BuildRequestBuilder}
@@ -257,9 +284,17 @@ public class BuildRequest {
         return new BuildRequestBuilder();
     }
 
+    /**
+     * @return the default timeout in milliseconds for source dependency builds. The value is {@link Long#MAX_VALUE}.
+     */
+    public static long getDefaultTimeoutMs() {
+        return DEFAULT_TIMEOUT_MS;
+    }
+
     private final boolean addDefaultBuildArguments;
     private final List<String> buildArguments;
     private final Map<String, String> buildEnvironment;
+    private final Set<String> forwardProperties;
     private final IoRedirects ioRedirects;
     private final Path projectRootDirectory;
     private final List<String> scmUrls;
@@ -267,12 +302,12 @@ public class BuildRequest {
     private final SrcVersion srcVersion;
     private final long timeoutMs;
     private final Verbosity verbosity;
-    private final Set<String> forwardProperties;
+    private final String versionsMavenPluginVersion;
 
     private BuildRequest(Path projectRootDirectory, SrcVersion srcVersion, List<String> scmUrls,
             List<String> buildArguments, boolean skipTests, boolean addDefaultBuildArguments,
             Set<String> forwardProperties, Map<String, String> buildEnvironment, Verbosity verbosity,
-            IoRedirects ioRedirects, long timeoutMs) {
+            IoRedirects ioRedirects, long timeoutMs, String versionsMavenPluginVersion) {
         super();
 
         SrcdepsCoreUtils.assertArgNotNull(projectRootDirectory, "projectRootDirectory");
@@ -283,6 +318,7 @@ public class BuildRequest {
         SrcdepsCoreUtils.assertArgNotNull(forwardProperties, "forwardProperties");
         SrcdepsCoreUtils.assertArgNotNull(buildEnvironment, "buildEnvironment");
         SrcdepsCoreUtils.assertArgNotNull(ioRedirects, "ioRedirects");
+        SrcdepsCoreUtils.assertArgNotNull(versionsMavenPluginVersion, "versionsMavenPluginVersion");
 
         this.projectRootDirectory = projectRootDirectory;
         this.srcVersion = srcVersion;
@@ -295,6 +331,7 @@ public class BuildRequest {
         this.addDefaultBuildArguments = addDefaultBuildArguments;
         this.forwardProperties = forwardProperties;
         this.ioRedirects = ioRedirects;
+        this.versionsMavenPluginVersion = versionsMavenPluginVersion;
     }
 
     /**
@@ -314,6 +351,22 @@ public class BuildRequest {
      */
     public Map<String, String> getBuildEnvironment() {
         return buildEnvironment;
+    }
+
+    /**
+     * Used rarely, mostly for debugging. A list of property names that the top level builder A should pass as java
+     * system properties to every dependency builder B using {@code -DmyProperty=myValue} style command line arguments.
+     * Further, in case a child builder B spawns its own new child builder C, B must pass all these properties to C in
+     * the very same manner as A did to B.
+     *
+     * A property name may end with asterisk {@code *} to denote that all properties starting with the part before the
+     * asterisk should be forwared. E.g. {@code my.prop.*} would forward both {@code my.prop.foo} and
+     * {@code my.prop.bar}.
+     *
+     * @return a {@link Set} of properties to forward
+     */
+    public Set<String> getForwardProperties() {
+        return forwardProperties;
     }
 
     /**
@@ -362,6 +415,10 @@ public class BuildRequest {
         return verbosity;
     }
 
+    public String getVersionsMavenPluginVersion() {
+        return versionsMavenPluginVersion;
+    }
+
     /**
      * @return {@code true} if the given {@link Builder}'s default arguments should be combined with the arguments
      *         returned by {@link #getBuildArguments()}; {@code false} otherwise
@@ -370,23 +427,20 @@ public class BuildRequest {
         return addDefaultBuildArguments;
     }
 
+    /**
+     * @return {@code true} if no tests should be run when building the dependency. For dependencies built with Maven,
+     *         this accounts to adding {@code -DskipTests} to the {@code mvn} arguments.
+     */
     public boolean isSkipTests() {
         return skipTests;
     }
 
     @Override
     public String toString() {
-        return "BuildRequest [projectRootDirectory=" + projectRootDirectory + ", srcVersion=" + srcVersion
-                + ", scmUrls=" + scmUrls + ", buildArguments=" + buildArguments + ", addDefaultBuildArguments="
-                + addDefaultBuildArguments + ", buildEnvironment=" + buildEnvironment + ", verbosity=" + verbosity
-                + ", timeoutMs=" + timeoutMs + "]";
+        return "BuildRequest [addDefaultBuildArguments=" + addDefaultBuildArguments + ", buildArguments="
+                + buildArguments + ", buildEnvironment=" + buildEnvironment + ", forwardProperties=" + forwardProperties
+                + ", ioRedirects=" + ioRedirects + ", projectRootDirectory=" + projectRootDirectory + ", scmUrls="
+                + scmUrls + ", skipTests=" + skipTests + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs
+                + ", verbosity=" + verbosity + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + "]";
     }
-
-    /**
-     * @return
-     */
-    public Set<String> getForwardProperties() {
-        return forwardProperties;
-    }
-
 }

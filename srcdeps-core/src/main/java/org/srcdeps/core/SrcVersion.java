@@ -33,9 +33,29 @@ public class SrcVersion {
         branch, revision, tag
     }
 
-    public static final char SRC_VERSION_DELIMITER = '-';
-    public static final String SRC_VERSION_INFIX = "-SRC-";
+    private static final char SRC_VERSION_DELIMITER = '-';
+    private static final String SRC_VERSION_INFIX = "-SRC-";
 
+    /**
+     * @return the dash character that delimits the {@link #scmVersionType} from the {@link #scmVersion} in a raw
+     *         srcdeps version string
+     */
+    public static char getSrcVersionDelimiter() {
+        return SRC_VERSION_DELIMITER;
+    }
+
+    /**
+     * @return the {@code -SRC-} infix that marks out a srcdeps version string
+     */
+    public static String getSrcVersionInfix() {
+        return SRC_VERSION_INFIX;
+    };
+
+    /**
+     * @param rawVersion the version string to decide about
+     * @return {@code true} if the given {@code rawVersion} is a srcdeps version string (i.e. when it contains the
+     *         {@code -SRC-} infix); otherwise {@code false}
+     */
     public static boolean isSrcVersion(String rawVersion) {
         return rawVersion.indexOf(SRC_VERSION_INFIX) >= 0;
     }
@@ -60,7 +80,7 @@ public class SrcVersion {
         } else {
             return null;
         }
-    };
+    }
 
     /** What we parsed from, this is also returned by {@link #toString()} */
     private final String rawString;

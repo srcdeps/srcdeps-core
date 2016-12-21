@@ -14,24 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.core.config;
+package org.srcdeps.core.config.tree;
 
-import java.io.Reader;
+import java.util.Map;
 
 /**
- * An interface for loading a {@link Configuration}.
+ * A {@link Node} that has child nodes.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
+ *
+ * @param <C>
+ *            the type of child nodes
  */
-public interface ConfigurationIo {
+public interface ContainerNode<C extends Node> extends Node {
     /**
-     * Read the {@link Configuration} from the given stream.
-     *
-     * @param reader
-     *            the stream to read from
-     * @return {@link Configuration.Builder} as read from the given stream that can be further customized
-     * @throws ConfigurationException
-     *             on configuration consistency checks
+     * @return a map of child nodes
      */
-    Configuration.Builder read(Reader reader) throws ConfigurationException;
+    Map<String, C> getChildren();
+
 }

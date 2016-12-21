@@ -27,13 +27,15 @@
 #
 # = configModelVersion compatibility matrix
 #
-# configModelVersion | srcdeps-core | srcdeps-maven
-# -------------------+--------------+--------------
-# 1.0                | 2.0.0        | 2.0.0
-# 1.1                | 2.1.0        | 2.1.0
+#  srcdeps-core | srcdeps-maven | Compatible configModelVersions
+# --------------+---------------+--------------------------------
+#  2.0.0        | 2.0.0         | 1.0
+#  2.1.0        | 2.1.0         | 1.1, 1.0
+#  3.0.0        | 3.0.0         | 2.0
 #
 # Required, no default
-configModelVersion: 1.1
+# Since 1.0
+configModelVersion: 2.0
 
 # `forwardProperties` - used rarely, mostly for debugging.
 # A list of property names that the top level builder A should pass as java system properties to every
@@ -41,11 +43,12 @@ configModelVersion: 1.1
 # builder B spawns its own new child builder C, B must pass all these properties to C in the very same
 # manner as A did to B.
 #
-# A property name may end with asterisk {@code *} to denote that all properties starting with the part before the
-# asterisk should be forwared. E.g. {@code my.prop.*} would forward both {@code my.prop.foo} and
-# {@code my.prop.bar}.
+# A property name may end with asterisk `*` to denote that all properties starting with the part before the
+# asterisk should be forwared. E.g. `my.prop.*` would forward both `my.prop.foo` and
+# `my.prop.bar`.
 #
-# Optional, default: srcdeps.mvn.*
+# Optional, default: srcdeps.maven.*
+# Since 1.0
 forwardProperties:
 - myForwardProperty
 
@@ -61,6 +64,7 @@ forwardProperties:
 # * `err2out` - redirect `stderr` to `stdout`; applicable to stderr
 #
 # Optional, default is inherit all.
+# Since 1.0
 builderIo:
   stdin: inherit
   stdout: inherit
@@ -69,12 +73,14 @@ builderIo:
 # `skip` - skip the srcdeps processing altogether
 #
 # Optional, default: false
+# Since 1.0
 skip: false
 
 # `sourcesDirectory` - A directory where the dependency sources should be checked out. Each SCM repository
 # will have a subdirectory named after its `id` there.
 #
 # Optional, default: `${maven.repo.local}/../srcdeps/` - i.e. usually `~/.m2/srcdeps`
+# Since 1.0
 sourcesDirectory: ~/.m2/srcdeps
 
 # `verbosity` - the verbosity level the appropriate dependency build tool (such as Maven) should use
@@ -85,12 +91,103 @@ sourcesDirectory: ~/.m2/srcdeps
 # Possible values: error, warn, info, debug, trace
 #
 # Optional, default: warn
+# Since 1.0
 verbosity: warn
+
+# `buildTimeout` - the maximal time duration a build of a source dependency can take. When this value is
+# overrun, the build is terminated forcibly and the outer build fails too. Note that this value can be
+# overriden at the repository level - see below.
+#
+# Valid values consist of a number followed by a time unit abbreviation. Valid time unit abbreviations are:
+# * ns - nanoseconds
+# * us - microseconds
+# * ms - milliseconds
+# * s  - seconds
+# * m  - minutes
+# * h  - hours
+# * d  - days
+#
+# Examples: 10s, 15m, 2h
+#
+# Optional, default: 0x8000000000000000ms which is Long.MAX_VALUE milliseconds
+# Since 2.0
+buildTimeout: 14d
+
+# `maven` - Maven specific settings that apply both on the top level and for each source repository
+# (unless they are overriden at the repository level).
+#
+# Optional, see the individual attributes for their respective defaults
+# Since 2.0
+maven:
+
+  # `versionsMavenPluginVersion` - the version of `org.codehaus.mojo:versions-maven-plugin` to use
+  # when setting versions in source trees to prepare them for the building of a dependency.
+  #
+  # Optional, default: 2.3
+  # Since 2.0
+  versionsMavenPluginVersion: 2.3
+
+  # `failWith` - a configuration node to define conditions under which the outer Maven build should fail
+  # as long as it has source dependencies.
+  #
+  # The introduction of `failWith` settings was motivated by the need to avoid releases with source
+  # dependencies - that is why the default failWith goals are `release:prepare` and `release:perform`.
+  #
+  # Note that for Maven, you need to add the `srcdeps-maven-enforcer` to `.mvn/extensions.xml` - see the
+  # link:https://github.com/srcdeps/srcdeps-maven/blob/master/srcdeps-maven-quickstarts/srcdeps-mvn-git-revision-quickstart/.mvn/extensions.xml#L31-L35[Srcdeps Git Revision Quickstart].
+  #
+  # We emphasize, that these settings are effective only if source dependencies exist in the outer
+  # project. In case there are no source dependencies there, the build will not fail even if any of
+  # the configured goals, profiles or properties are present.
+  #
+  # Note that the goals, profiles and properties set below are combined with with the logical `OR` - i.e.
+  # the build will fail if one or more of the goals, profiles or properties are present in the outer build.
+  #
+  # Optional, see the individual attributes for their respective defaults
+  # Since 2.0
+  failWith:
+
+    # `addDefaults` - if `true`, the default failWith goals (`release:prepare` and `release:perform`) will
+    # be prepended to goals configured in the `goals` attribute below. Otherwise, the default failWith goals
+    # will be disregared and only the list present in `goals` attribute  will will be effective.
+    #
+    # Optional, default: true
+    # Since 2.0
+    addDefaults: true
+
+    # `goals` - a list of Maven goals that should make the outer build fail if they are present and the outer
+    # build has source dependencies. The goals can be either in the short form, e.g. `release:prepare`, or
+    # in the fully qualified form, e.g. `org.my-group:my-plugin:my-mojo`
+    #
+    # Optional, see `addDefaults` above for defaults
+    # Since 2.0
+    goals:
+    - my-breaker-goal
+
+    # `profiles` - a list of Maven profile IDs that should make the outer build fail if they are present and
+    # the outer build has source dependencies.
+    #
+    # Optional, no default
+    # Since 2.0
+    profiles:
+    - my-breaker-profile
+
+    # `properties` - a list of Maven properties that should make the outer build fail if they are present
+    # and the outer build has source dependencies. The list can contain either bare property names (in which
+    # case a mere property presence will make the build fail) or name=value pairs (in which case the build
+    # will only fail if the named property has the given value).
+    #
+    # Optional, no default
+    # Since 2.0
+    properties:
+    - my-bare-breaker-property
+    - my-breaker-property=my-breaker-value
 
 
 # `repositories` - a map of source repositories to checkout and build from
 #
 # Required, no default
+# Since 1.0
 repositories:
 
   # the `id` of the source repository, typically the `groupId` of its artifacts,
@@ -123,6 +220,7 @@ repositories:
     # the 1.1 selectors are backward compatible with 1.0 selectors.
     #
     # At least one selector is required
+    # Since 1.0, but the syntax changed in 1.1 - see aboev
     selectors:
     - org.l2x6.maven.srcdeps.itest # This SCM repository entry will be used for building artifacts
                                    # with groupId org.l2x6.maven.srcdeps.itest
@@ -131,6 +229,7 @@ repositories:
     # repositories here then only the first successful checkout will count.
     #
     # At least one URL is required
+    # Since 1.0
     urls:
     - git:https://github.com/srcdeps/srcdeps-test-artifact.git
 
@@ -138,6 +237,7 @@ repositories:
     # build tool's defaults, see addDefaultBuildArguments
     #
     # Optional, defaults for maven: `clean install`
+    # Since 1.0
     buildArguments:
     - -Dcheckstyle.skip=true
     - -Dlicense.skip=true # for skipping the tests, see `skipTests` below, that is BTW `true` by default
@@ -149,41 +249,55 @@ repositories:
     # For Maven, the default build arguments are `clean install`.
     #
     # Optional, default: true
+    # Since 1.0
     addDefaultBuildArguments: true
 
     # `skipTests` - if set to `true` no tests will be run when building a dependency. For dependencies built
     # with Maven, this accounts to adding `-DskipTests` to the `mvn` arguments.
     #
     # Optional, default: true
+    # Since 1.0
     skipTests: true
 
-    # `failWithAnyOfArguments` - a handy way to e.g. prevent releasing with source dependencies when any of the listed
-    # build arguments is present in the top level build.
+    # `buildTimeout` - the maximal time duration a build of the source tree checked out from this repository
+    #  can take. When this value is overrun, the build is terminatet forcibly and the outer build fails too.
+    # This value overrides the `buildTimeout` set at the top level of this file - see above for valid duration
+    # formats.
     #
-    # For Maven, you can list:
-    # * Mojo executions, such as `deploy:deploy` or `org.my-group:my-plugin:my-mojo`
-    # * Profiles prefixed with `-P`, e.g. `-Pmy-breaker-profile`
-    # * Properties prefixed with `-D`, e.g. `-Dmy-breaker-property`
-    # * Property=value pairs prefixed with `-D`, e.g. `-Dmy-breaker-property=my-breaker-value`
+    # Examples: 10s, 15m, 2h
     #
-    # Note that this list is appended to the default list of "fail with arguments" of the given build
-    # tool. Maven's default "fail with arguments" are `release:prepare release:perform`.
-    #
-    # Note that for Maven, you need to add the `srcdeps-maven-enforcer` to `.mvn/extensions.xml` - see the
-    # link:https://github.com/srcdeps/srcdeps-maven/blob/master/srcdeps-maven-quickstarts/srcdeps-mvn-git-revision-quickstart/.mvn/extensions.xml#L31-L35[Srcdeps Git Revision Quickstart].
-    #
-    # Optional, with build tool specific defaults
-    failWithAnyOfArguments:
-    - deploy:deploy
-    - -Pmy-breaker-profile
-    - -Dmy-breaker-property
+    # Optional, default: inherited from the top level `buildTimeout`
+    # Since 2.0
+    buildTimeout: 14d
 
-    # `addDefaultFailWithAnyOfArguments` - if `true`, the build tool's default "fail with arguments" will be prepended to
-    # failWithAnyOfArguments of the top level build. Otherwise, the default list of "fail with arguments" of the given
-    # build tool will be disregared and only the list explicitly present in `failWithAnyOfArguments` will will be
-    # effective.
+    # `builderIo` - a triple of definitions how to handle the three standard I/O steams of the child builder
+    # process. See `builderIo` at the top level of this file for syntax and other details.
     #
-    # Maven's default "fail with arguments" are `release:prepare release:perform`.
+    # Optional, default: inherited from the top level `builderIo`
+    # Since 2.0
+    builderIo:
+      stdin: inherit
+      stdout: inherit
+      stderr: inherit
+
+    # `verbosity` - the verbosity level the appropriate dependency build tool (such as Maven) should use
+    # during the build of a dependency from this repository. See `builderIo` at the top level of this file
+    # for syntax and other details.
     #
-    # Optional, default: true
-    addDefaultFailWithAnyOfArguments: true
+    # Optional, default: inherited from the top level `verbosity`
+    # Since 2.0
+    verbosity: warn
+
+    # `maven` - Maven specific settings for this source repository.
+    #
+    # Optional, with defaults for the individual attributes of `maven`
+    # Since 2.0
+    maven:
+
+      # `versionsMavenPluginVersion` - the version of `org.codehaus.mojo:versions-maven-plugin` to use when
+      # setting versions in this source repository.
+      #
+      # Optional, if not set, the value is looked up first in maven.versionsMavenPluginVersion above or the
+      # hard coded default 2.3 is used
+      # Since 2.0
+      versionsMavenPluginVersion: 2.3

@@ -92,11 +92,15 @@ public class ScmRepositoryFinder {
      * Finds the {@link ScmRepository} that has a selector matching the given {@code groupId}, {@code artifactId} and
      * {@code version}. Returns the matching {@link ScmRepository} or throws an {@link IllegalStateException}.
      *
-     * @param groupId the groupId of the artifact for which we seek a matching {@link ScmRepository}
-     * @param artifactId the artifactId of the artifact for which we seek a matching {@link ScmRepository}
-     * @param version the version of the artifact for which we seek a matching {@link ScmRepository}
+     * @param groupId
+     *            the groupId of the artifact for which we seek a matching {@link ScmRepository}
+     * @param artifactId
+     *            the artifactId of the artifact for which we seek a matching {@link ScmRepository}
+     * @param version
+     *            the version of the artifact for which we seek a matching {@link ScmRepository}
      * @return the matching {@link ScmRepository} or throws an {@link IllegalStateException}
-     * @throws IllegalStateException if no matching {@link ScmRepository} was found
+     * @throws IllegalStateException
+     *             if no matching {@link ScmRepository} was found
      */
     public ScmRepository findRepository(String groupId, String artifactId, String version) {
         for (SelectionResolver resolver : resolvers) {

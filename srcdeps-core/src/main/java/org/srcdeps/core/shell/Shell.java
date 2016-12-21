@@ -60,7 +60,8 @@ public class Shell {
 
         public CommandResult waitFor(long timeout, TimeUnit unit, String[] cmdArray)
                 throws CommandTimeoutException, InterruptedException {
-            long startTime = System.nanoTime();
+            final long startMillisTime = System.currentTimeMillis();
+            final long startNanoTime = System.nanoTime();
             long rem = unit.toNanos(timeout);
 
             do {
@@ -70,13 +71,13 @@ public class Shell {
                         Runtime.getRuntime().removeShutdownHook(shutDownHook);
                     } catch (Exception ignored) {
                     }
-                    return new CommandResult(cmdArray, exitCode);
+                    return new CommandResult(cmdArray, exitCode, System.currentTimeMillis() - startMillisTime);
                 } catch (IllegalThreadStateException ex) {
                     if (rem > 0) {
                         Thread.sleep(Math.min(TimeUnit.NANOSECONDS.toMillis(rem) + 1, 100));
                     }
                 }
-                rem = unit.toNanos(timeout) - (System.nanoTime() - startTime);
+                rem = unit.toNanos(timeout) - (System.nanoTime() - startNanoTime);
             } while (rem > 0);
             throw new CommandTimeoutException(
                     String.format("Command has not finished within [%d] ms: %s", timeout, Arrays.toString(cmdArray)));
@@ -90,11 +91,13 @@ public class Shell {
     public static class CommandResult {
         private final String[] cmdArray;
         private final int exitCode;
+        private final long runtimeMs;
 
-        public CommandResult(String[] cmdArray, int exitCode) {
+        public CommandResult(String[] cmdArray, int exitCode, long runtimeMs) {
             super();
             this.cmdArray = cmdArray;
             this.exitCode = exitCode;
+            this.runtimeMs = runtimeMs;
         }
 
         /**
@@ -114,6 +117,10 @@ public class Shell {
          */
         public int getExitCode() {
             return exitCode;
+        }
+
+        public long getRuntimeMs() {
+            return runtimeMs;
         }
     }
 

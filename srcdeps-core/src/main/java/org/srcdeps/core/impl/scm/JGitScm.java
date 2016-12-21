@@ -56,8 +56,19 @@ import org.srcdeps.core.util.SrcdepsCoreUtils;
 @Singleton
 public class JGitScm implements Scm {
     private static final Logger log = LoggerFactory.getLogger(JGitScm.class);
-    public static final String SCM_GIT_PREFIX = "git:";
-    public static final String SRCDEPS_WORKING_BRANCH = "srcdeps-working-branch";
+    private static final String SCM_GIT_PREFIX = "git:";
+    public static String getScmGitPrefix() {
+        return SCM_GIT_PREFIX;
+    }
+
+    private static final String SRCDEPS_WORKING_BRANCH = "srcdeps-working-branch";
+
+    /**
+     * @return srcdeps will use this branch to perform its magic
+     */
+    public static String getSrcdepsWorkingBranch() {
+        return SRCDEPS_WORKING_BRANCH;
+    }
 
     /**
      * Tells if the given filesystem directory contains a valid git repository.

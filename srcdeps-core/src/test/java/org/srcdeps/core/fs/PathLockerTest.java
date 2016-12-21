@@ -44,12 +44,12 @@ import org.srcdeps.core.util.SrcdepsCoreUtils;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class PathLockerTest {
+    private static final Path lockerDirectory;
     private static final Logger log = LoggerFactory.getLogger(PathLockerTest.class);
-    private static final String pid = ManagementFactory.getRuntimeMXBean().getName();
 
+    private static final String pid = ManagementFactory.getRuntimeMXBean().getName();
     private static final Path targetDirectory = Paths.get(System.getProperty("project.build.directory", "target"))
             .toAbsolutePath();
-    private static final Path lockerDirectory;
 
     static {
         lockerDirectory = targetDirectory.resolve("pathLocker");
@@ -91,8 +91,8 @@ public class PathLockerTest {
                 + targetDirectory.resolve("test-classes").toString() + File.pathSeparator + slfApiJar
                 + File.pathSeparator + slfSimpleJar;
         final ShellCommand command = ShellCommand.builder().executable(SrcdepsCoreUtils.getCurrentJavaExecutable())
-                .arguments("-cp", classPath, PathLockerProcess.class.getName(), dirToLock.toString(), srcVersion.toString(),
-                        keepRunnigFile.toString(), lockSuccessFile.toString())
+                .arguments("-cp", classPath, PathLockerProcess.class.getName(), dirToLock.toString(),
+                        srcVersion.toString(), keepRunnigFile.toString(), lockSuccessFile.toString())
                 .workingDirectory(lockerDirectory).build();
         final ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executor.submit(new Callable<Boolean>() {
@@ -131,50 +131,24 @@ public class PathLockerTest {
             future.get(5, TimeUnit.SECONDS);
         }
 
-        /* PathLockerProcess must have unlocked at this point
-         * and we must succeed in locking from here now */
+        /*
+         * PathLockerProcess must have unlocked at this point and we must succeed in locking from here now
+         */
         try (PathLock lock1 = pathLocker.lockDirectory(dirToLock, srcVersion)) {
             Assert.assertTrue(lock1 != null);
         }
 
     }
 
-    /**
-     * Makes sure that multiple threads of the same Java process cannot lock the same directory at once.
-     *
-     * @throws Exception
-     */
-    @Test
-    public void multipleThreadsOfCurrentJvmSameVersion() throws Exception {
-
-        final PathLocker<SrcVersion> pathLocker = new PathLocker<>();
-
-        final Path dir1 = lockerDirectory.resolve(UUID.randomUUID().toString());
-        final SrcVersion srcVersion = SrcVersion.parse("1.2.3-SRC-revision-deadbeef");
-
-        Future<PathLock> concurrLockFuture = null;
-        try (PathLock lock1 = pathLocker.lockDirectory(dir1, srcVersion)) {
-            /* locked for the current thread */
-
-            /* now try to lock from another thread which should fail with a TimeoutException
-             * because we have locked above */
-            try {
-                concurrLockFuture = lockConcurrently(pathLocker, dir1, srcVersion);
-                concurrLockFuture.get(1, TimeUnit.SECONDS);
-                Assert.fail("TimeoutException expected");
-            } catch (InterruptedException e) {
-                throw e;
-            } catch (ExecutionException e) {
-                throw e;
-            } catch (TimeoutException e) {
-                /* expected */
+    private Future<PathLock> lockConcurrently(final PathLocker<SrcVersion> pathLocker, final Path path,
+            final SrcVersion srcVersion) {
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        return executor.submit(new Callable<PathLock>() {
+            @Override
+            public PathLock call() throws Exception {
+                return pathLocker.lockDirectory(path, srcVersion);
             }
-        }
-
-        /* unlocked again - the above attempt to lock from a concurrent thread must succeed now */
-        PathLock lock2 = concurrLockFuture.get(1, TimeUnit.SECONDS);
-        Assert.assertNotNull(lock2);
-
+        });
     }
 
     @Test
@@ -232,14 +206,44 @@ public class PathLockerTest {
 
     }
 
-    private Future<PathLock> lockConcurrently(final PathLocker<SrcVersion> pathLocker, final Path path, final SrcVersion srcVersion) {
-        final ExecutorService executor = Executors.newSingleThreadExecutor();
-        return executor.submit(new Callable<PathLock>() {
-            @Override
-            public PathLock call() throws Exception {
-                return pathLocker.lockDirectory(path, srcVersion);
+    /**
+     * Makes sure that multiple threads of the same Java process cannot lock the same directory at once.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void multipleThreadsOfCurrentJvmSameVersion() throws Exception {
+
+        final PathLocker<SrcVersion> pathLocker = new PathLocker<>();
+
+        final Path dir1 = lockerDirectory.resolve(UUID.randomUUID().toString());
+        final SrcVersion srcVersion = SrcVersion.parse("1.2.3-SRC-revision-deadbeef");
+
+        Future<PathLock> concurrLockFuture = null;
+        try (PathLock lock1 = pathLocker.lockDirectory(dir1, srcVersion)) {
+            /* locked for the current thread */
+
+            /*
+             * now try to lock from another thread which should fail with a TimeoutException because we have locked
+             * above
+             */
+            try {
+                concurrLockFuture = lockConcurrently(pathLocker, dir1, srcVersion);
+                concurrLockFuture.get(1, TimeUnit.SECONDS);
+                Assert.fail("TimeoutException expected");
+            } catch (InterruptedException e) {
+                throw e;
+            } catch (ExecutionException e) {
+                throw e;
+            } catch (TimeoutException e) {
+                /* expected */
             }
-        });
+        }
+
+        /* unlocked again - the above attempt to lock from a concurrent thread must succeed now */
+        PathLock lock2 = concurrLockFuture.get(1, TimeUnit.SECONDS);
+        Assert.assertNotNull(lock2);
+
     }
 
 }

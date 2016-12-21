@@ -199,6 +199,12 @@
       </dependency>
 
       <dependency>
+        <groupId>org.srcdeps.core</groupId>
+        <artifactId>srcdeps-core-config-yaml</artifactId>
+        <version>2.1.1-SNAPSHOT</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${version.org.slf4j}</version>

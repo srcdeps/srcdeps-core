@@ -17,8 +17,15 @@
 package org.srcdeps.core.config;
 
 import java.lang.ProcessBuilder.Redirect;
-import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
+import org.srcdeps.core.config.tree.Node;
+import org.srcdeps.core.config.tree.ScalarNode;
+import org.srcdeps.core.config.tree.impl.DefaultContainerNode;
+import org.srcdeps.core.config.tree.impl.DefaultScalarNode;
 import org.srcdeps.core.shell.IoRedirects;
 
 /**
@@ -31,44 +38,89 @@ import org.srcdeps.core.shell.IoRedirects;
  */
 public class BuilderIo {
 
-    public static class Builder implements TraversableConfigurationNode<Builder> {
+    public static class Builder extends DefaultContainerNode<Node> {
 
-        private String stderr = BuilderIoScheme.inherit.name();
+        final ScalarNode<String> stderr = new DefaultScalarNode<>("stderr", BuilderIoScheme.inherit.name());
 
-        private String stdin = BuilderIoScheme.inherit.name();
+        final ScalarNode<String> stdin = new DefaultScalarNode<>("stdin", BuilderIoScheme.inherit.name());
 
-        private String stdout = BuilderIoScheme.inherit.name();
+        final ScalarNode<String> stdout = new DefaultScalarNode<>("stdout", BuilderIoScheme.inherit.name());
 
-        /**
-         * Used to override the configuration by values coming from some higher-ranking source
-         *
-         * @param visitor the {@link ConfigurationNodeVisitor} to accept
-         * @return this builder
-         */
+        public Builder() {
+            super("builderIo");
+            addChildren(stdin, stdout, stderr);
+        }
+
         @Override
-        public Builder accept(ConfigurationNodeVisitor visitor) {
-            for (Field field : this.getClass().getDeclaredFields()) {
-                visitor.visit(this, field);
+        public void applyDefaultsAndInheritance(Stack<Node> stack) {
+            switch (stack.size()) {
+            case 2:
+                /* this is the top level builderIo node - no special treatment */
+                super.applyDefaultsAndInheritance(stack);
+                break;
+            case 4:
+                /* this is a builderIo node under a ScmRepository - inherit from the top level */
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) stack.get(0);
+                BuilderIo.Builder inheritFrom = configuratioBuilder.builderIo;
+
+                ((DefaultScalarNode<String>) stdin).inheritFrom(inheritFrom.stdin, stack);
+                ((DefaultScalarNode<String>) stdout).inheritFrom(inheritFrom.stdout, stack);
+                ((DefaultScalarNode<String>) stderr).inheritFrom(inheritFrom.stderr, stack);
+
+                break;
+            default:
+                throw cannotInherit("applyDefaultsAndInheritance()", stack);
             }
-            return this;
+        }
+
+        private IllegalStateException cannotInherit(String method, Stack<Node> stack) {
+            List<String> classNames = new ArrayList<>(stack.size());
+            for (Node n : stack) {
+                classNames.add(n.getClass().getName());
+            }
+            return new IllegalStateException(String.format("Cannot %s.%s() for stack of length [%d]: [%s]",
+                    getClass().getName(), method, stack.size(), classNames));
         }
 
         public BuilderIo build() {
-            return new BuilderIo(stdin, stdout, stderr);
+            return new BuilderIo(stdin.getValue(), stdout.getValue(), stderr.getValue());
+        }
+
+        @Override
+        public Map<String, Node> getChildren() {
+            return children;
+        }
+
+        @Override
+        public boolean isInDefaultState(Stack<Node> stack) {
+            switch (stack.size()) {
+            case 2:
+                /* this is the top level builderIo node - no special treatment */
+                return super.isInDefaultState(stack);
+            case 4:
+                /* this is a builderIo node under a ScmRepository - inherit from the top level */
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) stack.get(0);
+                BuilderIo.Builder inheritFrom = configuratioBuilder.builderIo;
+                return ((DefaultScalarNode<String>) stdin).isInDefaultState(inheritFrom.stdin, stack)
+                        && ((DefaultScalarNode<String>) stdout).isInDefaultState(inheritFrom.stdout, stack)
+                        && ((DefaultScalarNode<String>) stderr).isInDefaultState(inheritFrom.stderr, stack);
+            default:
+                throw cannotInherit("isInDefaultState()", stack);
+            }
         }
 
         public Builder stderr(String stderr) {
-            this.stderr = stderr;
+            this.stderr.setValue(stderr);
             return this;
         }
 
         public Builder stdin(String stdin) {
-            this.stdin = stdin;
+            this.stdin.setValue(stdin);
             return this;
         }
 
         public Builder stdout(String stdout) {
-            this.stdout = stdout;
+            this.stdout.setValue(stdout);
             return this;
         }
     }
@@ -82,14 +134,17 @@ public class BuilderIo {
         append, err2out, inherit, read, write
     }
 
-    public static final BuilderIo INHERIT_ALL = new BuilderIo(BuilderIoScheme.inherit.name(),
+    private static final BuilderIo INHERIT_ALL = new BuilderIo(BuilderIoScheme.inherit.name(),
             BuilderIoScheme.inherit.name(), BuilderIoScheme.inherit.name());
 
     public static final Builder builder() {
         return new Builder();
     }
 
-    public static final BuilderIo inheritAll() {
+    /**
+     * @return a singleton with all streams set to {@code inherit}.
+     */
+    public static BuilderIo inheritAll() {
         return INHERIT_ALL;
     }
 
