@@ -48,6 +48,7 @@
   <modules>
     <module>srcdeps-core</module>
     <module>srcdeps-core-config-yaml</module>
+    <module>srcdeps-core-buildconfig</module>
   </modules>
 
   <scm>
@@ -85,6 +86,12 @@
     <version.org.eclipse.sisu>0.3.2</version.org.eclipse.sisu>
     <version.org.slf4j>1.7.5</version.org.slf4j>
     <version.org.snakeyaml>1.17</version.org.snakeyaml>
+
+    <!-- The present project's version. We need a hard-coded value so that
+         it works as the dependency of the checkstyle-maven-plugin in srcdeps-maven
+         Note that the before-release-commit profile automagically replaces the value
+         during releases -->
+    <version.org.srcdeps.core>3.0.1-SNAPSHOT</version.org.srcdeps.core><!-- @srcdeps.version@ -->
 
     <!--
       Maven plugin versions
@@ -536,7 +543,7 @@ limitations under the License.</inlineHeader>
               <goal>checkstyle</goal>
             </goals>
             <configuration>
-              <configLocation>${srcdeps-parent.basedir}/checkstyle.xml</configLocation>
+              <configLocation>${srcdeps-parent.basedir}/srcdeps-core-buildconfig/src/main/resources/srcdeps-checkstyle/checkstyle.xml</configLocation>
               <consoleOutput>${checkstyle.consoleOutput}</consoleOutput>
               <failsOnError>${checkstyle.failOnError}</failsOnError>
               <excludes>${checkstyle.excludes}</excludes>
@@ -751,6 +758,7 @@ limitations under the License.</inlineHeader>
                 <configuration>
                   <basedir>${basedir}</basedir>
                   <includes>
+                    <include>pom.xml</include>
                     <include>README.adoc</include>
                     <include>srcdeps-maven-quickstarts/**/.mvn/extensions.xml</include>
                   </includes>
@@ -758,6 +766,10 @@ limitations under the License.</inlineHeader>
                     <replacement>
                       <token>&lt;version&gt;[^&lt;]*&lt;/version&gt;&lt;!-- @srcdeps.version@ --&gt;</token>
                       <value>&lt;version&gt;${project.version}&lt;/version&gt;&lt;!-- @srcdeps.version@ --&gt;</value>
+                    </replacement>
+                    <replacement>
+                      <token>&lt;version.org.srcdeps.core&gt;[^&lt;]*&lt;/version.org.srcdeps.core&gt;&lt;!-- @srcdeps.version@ --&gt;</token>
+                      <value>&lt;version.org.srcdeps.core&gt;${project.version}&lt;/version.org.srcdeps.core&gt;&lt;!-- @srcdeps.version@ --&gt;</value>
                     </replacement>
                   </replacements>
                 </configuration>
