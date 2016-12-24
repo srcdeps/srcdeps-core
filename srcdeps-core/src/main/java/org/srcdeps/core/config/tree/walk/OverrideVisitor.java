@@ -44,7 +44,7 @@ public class OverrideVisitor extends AbstractVisitor {
     private static class IndexedSegment extends StringSegment {
         private int index = 0;
 
-        public IndexedSegment(String name, boolean escape) {
+        private IndexedSegment(String name, boolean escape) {
             super(name, escape);
         }
 
@@ -63,7 +63,7 @@ public class OverrideVisitor extends AbstractVisitor {
         private final boolean escaped;
         private final String segment;
 
-        public StringSegment(String segment, boolean escaped) {
+        private StringSegment(String segment, boolean escaped) {
             super();
             this.escaped = escaped;
             this.segment = segment;

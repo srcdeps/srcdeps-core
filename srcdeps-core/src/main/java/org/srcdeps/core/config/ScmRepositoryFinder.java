@@ -42,7 +42,7 @@ public class ScmRepositoryFinder {
 
         private final Pattern versionPattern;
 
-        public SelectionResolver(String selector, ScmRepository repository) {
+        SelectionResolver(String selector, ScmRepository repository) {
             this.repository = repository;
 
             StringTokenizer st = new StringTokenizer(selector, ":");
