@@ -84,7 +84,7 @@
     <!-- keep in sync with sisuInjectVersion in maven
          around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
     <version.org.eclipse.sisu>0.3.3</version.org.eclipse.sisu>
-    <version.org.slf4j>1.7.5</version.org.slf4j>
+    <version.org.slf4j>1.7.22</version.org.slf4j>
     <version.org.snakeyaml>1.17</version.org.snakeyaml>
 
     <!-- The present project's version. We need a hard-coded value so that
