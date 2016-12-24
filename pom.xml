@@ -112,7 +112,7 @@
     <version.maven-install-plugin>2.5.2</version.maven-install-plugin>
     <version.maven-jar-plugin>2.6</version.maven-jar-plugin>
     <version.maven-javadoc-plugin>2.10.3</version.maven-javadoc-plugin>
-    <version.maven-release-plugin>2.5.2</version.maven-release-plugin>
+    <version.maven-release-plugin>2.5.3</version.maven-release-plugin>
     <version.maven-resources-plugin>2.7</version.maven-resources-plugin>
     <version.maven-scm-plugin>1.9.5</version.maven-scm-plugin>
     <version.maven-site-plugin>3.6</version.maven-site-plugin>
