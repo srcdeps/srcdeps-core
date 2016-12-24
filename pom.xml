@@ -114,7 +114,7 @@
     <version.maven-javadoc-plugin>2.10.3</version.maven-javadoc-plugin>
     <version.maven-release-plugin>2.5.2</version.maven-release-plugin>
     <version.maven-resources-plugin>2.7</version.maven-resources-plugin>
-    <version.maven-scm-plugin>1.9.4</version.maven-scm-plugin>
+    <version.maven-scm-plugin>1.9.5</version.maven-scm-plugin>
     <version.maven-site-plugin>3.4</version.maven-site-plugin>
     <version.sisu-maven-plugin>0.3.3</version.sisu-maven-plugin>
     <version.maven-source-plugin>2.4</version.maven-source-plugin>
