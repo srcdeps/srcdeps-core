@@ -38,10 +38,12 @@ public abstract class AbstractVisitor implements Visitor {
      *
      * @param node
      *            {@inheritDoc}
+     * @return {@inheritDoc}
      */
     @Override
-    public void containerBegin(ContainerNode<? extends Node> node) {
+    public boolean containerBegin(ContainerNode<? extends Node> node) {
         this.stack.push(node);
+        return true;
     }
 
     /**
@@ -74,10 +76,12 @@ public abstract class AbstractVisitor implements Visitor {
      *
      * @param node
      *            {@inheritDoc}
+     * @return {@inheritDoc}
      */
     @Override
-    public void listBegin(ListNode<? extends Node> node) {
+    public boolean listBegin(ListNode<? extends Node> node) {
         this.stack.push(node);
+        return true;
     }
 
     /**

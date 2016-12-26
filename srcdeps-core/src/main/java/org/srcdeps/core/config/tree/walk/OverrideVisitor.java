@@ -93,13 +93,14 @@ public class OverrideVisitor extends AbstractVisitor {
     }
 
     @Override
-    public void containerBegin(ContainerNode<? extends Node> node) {
+    public boolean containerBegin(ContainerNode<? extends Node> node) {
         if (hasListAncestor(0)) {
             /* do nothing this is an element of a list */
         } else {
             path.push(new StringSegment(node.getName(), node.shouldEscapeName()));
         }
         super.containerBegin(node);
+        return true;
     }
 
     @Override
@@ -171,7 +172,7 @@ public class OverrideVisitor extends AbstractVisitor {
     }
 
     @Override
-    public void listBegin(ListNode<? extends Node> node) {
+    public boolean listBegin(ListNode<? extends Node> node) {
         super.listBegin(node);
         if (node instanceof ListOfScalarsNode<?>) {
             @SuppressWarnings("unchecked")
@@ -180,6 +181,7 @@ public class OverrideVisitor extends AbstractVisitor {
             handleListOfScalars(list, deserializer);
         }
         path.push(new IndexedSegment(node.getName(), node.shouldEscapeName()));
+        return true;
     }
 
     @Override

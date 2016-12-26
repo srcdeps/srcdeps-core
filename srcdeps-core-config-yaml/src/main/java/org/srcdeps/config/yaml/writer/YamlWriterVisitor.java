@@ -63,21 +63,27 @@ public class YamlWriterVisitor extends AbstractVisitor implements Closeable {
 
     /** {@inheritDoc} */
     @Override
-    public void containerBegin(ContainerNode<? extends Node> node) {
+    public boolean containerBegin(ContainerNode<? extends Node> node) {
         boolean hasListParent = hasListAncestor(0);
         super.containerBegin(node);
         try {
-            if (!(node instanceof Configuration.Builder) && !node.isInDefaultState(stack)) {
-                indent();
-                if (hasListParent) {
-                    throw new IllegalStateException("Contributions welcome");
-                } else {
-                    out.write(node.getName());
-                    out.write(':');
-                    out.write(configuration.getNewLine());
+            if (!node.isInDefaultState(stack)) {
+                if (!(node instanceof Configuration.Builder)) {
+                    indent();
+                    if (hasListParent) {
+                        throw new IllegalStateException("Contributions welcome");
+                    } else {
+                        out.write(node.getName());
+                        out.write(':');
+                        out.write(configuration.getNewLine());
+                    }
+                    depth++;
                 }
-                depth++;
+                return true;
+            } else {
+                return false;
             }
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -90,7 +96,6 @@ public class YamlWriterVisitor extends AbstractVisitor implements Closeable {
         if (!(node instanceof Configuration.Builder) && !node.isInDefaultState(stack)) {
             depth--;
         }
-
         super.containerEnd();
     }
 
@@ -102,8 +107,9 @@ public class YamlWriterVisitor extends AbstractVisitor implements Closeable {
 
     /** {@inheritDoc} */
     @Override
-    public void listBegin(ListNode<? extends Node> node) {
-        if (!node.getElements().isEmpty()) {
+    public boolean listBegin(ListNode<? extends Node> node) {
+        super.listBegin(node);
+        if (!node.isInDefaultState(stack)) {
             try {
                 indent();
                 out.write(node.getName());
@@ -112,8 +118,10 @@ public class YamlWriterVisitor extends AbstractVisitor implements Closeable {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+            return true;
+        } else {
+            return false;
         }
-        super.listBegin(node);
     }
 
     @Override
@@ -121,7 +129,7 @@ public class YamlWriterVisitor extends AbstractVisitor implements Closeable {
         try {
             if ("configModelVersion"
                     .equals(node.getName()) /* We want configModelVersion always to be present in the output */
-                    || (!node.isInDefaultState(stack) && node.getValue() != null)) {
+                    || !node.isInDefaultState(stack)) {
                 if (hasListAncestor(0)) {
                     indent();
                     out.write("- ");
