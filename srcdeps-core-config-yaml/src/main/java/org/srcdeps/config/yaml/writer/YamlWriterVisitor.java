@@ -19,6 +19,7 @@ package org.srcdeps.config.yaml.writer;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 
 import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.tree.ContainerNode;
@@ -68,6 +69,7 @@ public class YamlWriterVisitor extends AbstractVisitor implements Closeable {
         super.containerBegin(node);
         try {
             if (!node.isInDefaultState(stack)) {
+                writeComment(node.getCommentBefore());
                 if (!(node instanceof Configuration.Builder)) {
                     indent();
                     if (hasListParent) {
@@ -86,6 +88,21 @@ public class YamlWriterVisitor extends AbstractVisitor implements Closeable {
 
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void writeComment(List<String> commentLines) throws IOException {
+        if (!commentLines.isEmpty() && depth != 0) {
+            out.write(configuration.getNewLine());
+        }
+        for (String line : commentLines) {
+            indent();
+            out.write('#');
+            if (line != null && !line.isEmpty()) {
+                out.write(' ');
+                out.write(line);
+            }
+            out.write(configuration.getNewLine());
         }
     }
 
@@ -111,6 +128,7 @@ public class YamlWriterVisitor extends AbstractVisitor implements Closeable {
         super.listBegin(node);
         if (!node.isInDefaultState(stack)) {
             try {
+                writeComment(node.getCommentBefore());
                 indent();
                 out.write(node.getName());
                 out.write(':');
@@ -130,6 +148,7 @@ public class YamlWriterVisitor extends AbstractVisitor implements Closeable {
             if ("configModelVersion"
                     .equals(node.getName()) /* We want configModelVersion always to be present in the output */
                     || !node.isInDefaultState(stack)) {
+                writeComment(node.getCommentBefore());
                 if (hasListAncestor(0)) {
                     indent();
                     out.write("- ");

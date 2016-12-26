@@ -88,6 +88,11 @@ public class MavenFailWith {
             return result;
         }
 
+        public Builder commentBefore(String value) {
+            commentBefore.add(value);
+            return this;
+        }
+
         @Override
         public Map<String, Node> getChildren() {
             return children;

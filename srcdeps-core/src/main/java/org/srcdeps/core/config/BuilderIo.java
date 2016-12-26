@@ -73,6 +73,10 @@ public class BuilderIo {
             }
         }
 
+        public BuilderIo build() {
+            return new BuilderIo(stdin.getValue(), stdout.getValue(), stderr.getValue());
+        }
+
         private IllegalStateException cannotInherit(String method, Stack<Node> stack) {
             List<String> classNames = new ArrayList<>(stack.size());
             for (Node n : stack) {
@@ -82,8 +86,9 @@ public class BuilderIo {
                     getClass().getName(), method, stack.size(), classNames));
         }
 
-        public BuilderIo build() {
-            return new BuilderIo(stdin.getValue(), stdout.getValue(), stderr.getValue());
+        public Builder commentBefore(String value) {
+            commentBefore.add(value);
+            return this;
         }
 
         @Override

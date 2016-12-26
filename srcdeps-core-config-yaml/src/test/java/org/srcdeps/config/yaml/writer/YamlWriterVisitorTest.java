@@ -28,8 +28,50 @@ import org.junit.Test;
 import org.srcdeps.config.yaml.YamlConfigurationIo;
 import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.ConfigurationException;
+import org.srcdeps.core.config.ScmRepository;
+import org.srcdeps.core.config.tree.walk.DefaultsAndInheritanceVisitor;
 
 public class YamlWriterVisitorTest {
+
+    @Test
+    public void writeComments() throws ConfigurationException, UnsupportedEncodingException, IOException {
+        Configuration.Builder config = Configuration.builder();
+        final StringWriter out = new StringWriter();
+        try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full.yaml"), "utf-8");
+                YamlWriterVisitor writerVisitor = new YamlWriterVisitor(out,
+                        YamlWriterConfiguration.builder().build());) {
+            config//
+                    .commentBefore("") //
+                    .commentBefore("srcdeps comment line 1") //
+                    .commentBefore("srcdeps comment line 2") //
+                    .repository( //
+                            ScmRepository.builder() //
+                                    .commentBefore("repo1 comment line 1") //
+                                    .commentBefore("repo1 comment line 2") //
+                                    .id("repo1") //
+                                    .selector("org.repo1") //
+                                    .url("git:url1")) //
+                    .accept(new DefaultsAndInheritanceVisitor()).accept(writerVisitor) //
+                    .build();
+        }
+
+        String expectedConfig = "#\n" //
+                        + "# srcdeps comment line 1\n" //
+                        + "# srcdeps comment line 2\n" //
+                        + "configModelVersion: 2.0\n" //
+                        + "repositories:\n" //
+                        + "\n" //
+                        + "  # repo1 comment line 1\n" //
+                        + "  # repo1 comment line 2\n" //
+                        + "  repo1:\n" //
+                        + "    selectors:\n" //
+                        + "    - org.repo1\n" //
+                        + "    urls:\n" //
+                        + "    - git:url1\n";
+
+        Assert.assertEquals(expectedConfig, out.toString());
+
+    }
 
     @Test
     public void writeFull() throws ConfigurationException, UnsupportedEncodingException, IOException {
@@ -56,4 +98,5 @@ public class YamlWriterVisitorTest {
         }
 
     }
+
 }

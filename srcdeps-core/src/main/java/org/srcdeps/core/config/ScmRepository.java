@@ -41,9 +41,9 @@ import org.srcdeps.core.config.tree.impl.DefaultScalarNode;
 public class ScmRepository {
 
     public static class Builder extends DefaultContainerNode<Node> {
-
         final ScalarNode<Boolean> addDefaultBuildArguments = new DefaultScalarNode<>("addDefaultBuildArguments",
                 Boolean.TRUE);
+
         final ListOfScalarsNode<String> buildArguments = new DefaultListOfScalarsNode<>("buildArguments", String.class);
         final BuilderIo.Builder builderIo = BuilderIo.builder();
         final ScalarNode<Duration> buildTimeout = new DefaultScalarNode<Duration>("buildTimeout", Duration.class) {
@@ -128,6 +128,11 @@ public class ScmRepository {
 
         public Builder buildTimeout(Duration buildTimeout) {
             this.buildTimeout.setValue(buildTimeout);
+            return this;
+        }
+
+        public Builder commentBefore(String value) {
+            commentBefore.add(value);
             return this;
         }
 

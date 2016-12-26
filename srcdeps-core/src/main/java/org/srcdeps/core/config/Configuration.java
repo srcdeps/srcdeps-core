@@ -121,6 +121,11 @@ public class Configuration {
             return this;
         }
 
+        public Builder commentBefore(String value) {
+            commentBefore.add(value);
+            return this;
+        }
+
         public Builder configModelVersion(String configModelVersion) {
             if (!SUPPORTED_CONFIG_MODEL_VERSIONS.contains(configModelVersion)) {
                 throw new IllegalArgumentException(

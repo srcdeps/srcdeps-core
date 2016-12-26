@@ -16,8 +16,10 @@
  */
 package org.srcdeps.core.config.tree.impl;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
@@ -36,6 +38,8 @@ import org.srcdeps.core.config.tree.walk.DefaultsAndInheritanceVisitor;
 public class DefaultContainerNode<C extends Node> implements ContainerNode<C> {
 
     protected final Map<String, C> children = new LinkedHashMap<>();
+
+    protected final List<String> commentBefore = new ArrayList<>();
 
     protected String name;
 
@@ -76,6 +80,11 @@ public class DefaultContainerNode<C extends Node> implements ContainerNode<C> {
     @Override
     public Map<String, C> getChildren() {
         return children;
+    }
+
+    @Override
+    public List<String> getCommentBefore() {
+        return commentBefore;
     }
 
     /** {@inheritDoc} */

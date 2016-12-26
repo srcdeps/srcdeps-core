@@ -16,6 +16,8 @@
  */
 package org.srcdeps.core.config.tree.impl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import org.srcdeps.core.config.tree.Node;
@@ -36,13 +38,13 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
         result.setValue(value);
         return result;
     }
+    private final List<String> commentBefore = new ArrayList<>();
 
     private T defaultValue;
-
     private final String name;
+
     private final Class<T> type;
     private T value;
-
     public DefaultScalarNode(String name, Class<T> type) {
         this(name, null, type);
     }
@@ -65,6 +67,11 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
         if (value == null) {
             value = defaultValue;
         }
+    }
+
+    @Override
+    public List<String> getCommentBefore() {
+        return commentBefore;
     }
 
     /** {@inheritDoc} */

@@ -44,6 +44,11 @@ public class Maven {
             return new Maven(failWith.build());
         }
 
+        public Builder commentBefore(String value) {
+            commentBefore.add(value);
+            return this;
+        }
+
         public Builder failWith(MavenFailWith.Builder failWith) {
             this.failWith.init(failWith);
             return this;
