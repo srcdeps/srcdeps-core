@@ -119,7 +119,8 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
                 return true;
             } else if (inheritedValue == null) {
                 T inheritedDefault = inheritFrom.getDefaultValue();
-                return inheritedDefault == this.value || (inheritedDefault != null && inheritedDefault.equals(this.value));
+                return inheritedDefault == this.value
+                        || (inheritedDefault != null && inheritedDefault.equals(this.value));
             }
         }
         return false;
@@ -128,7 +129,7 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
     /** {@inheritDoc} */
     @Override
     public boolean isInDefaultState(Stack<Node> configurationStack) {
-        return value == defaultValue || (value != null && value.equals(defaultValue));
+        return value == null || (value == defaultValue || (value != null && value.equals(defaultValue)));
     }
 
     /** {@inheritDoc} */
@@ -136,7 +137,6 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
     public void setValue(T value) {
         this.value = value;
     }
-
 
     /** {@inheritDoc} */
     @Override

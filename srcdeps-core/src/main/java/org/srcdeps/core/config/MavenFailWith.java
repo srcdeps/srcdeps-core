@@ -56,7 +56,8 @@ public class MavenFailWith {
 
             @Override
             public boolean isInDefaultState(Stack<Node> configurationStack) {
-                return getElements().isEmpty() || (Boolean.TRUE.equals(Builder.this.addDefaults.getValue())
+                Boolean addDefaultsValue = Builder.this.addDefaults.getValue();
+                return getElements().isEmpty() || ((addDefaultsValue == null || Boolean.TRUE.equals(addDefaultsValue))
                         && DEFAULT_FAIL_GOALS.equals(asSetOfValues()));
             }
 
