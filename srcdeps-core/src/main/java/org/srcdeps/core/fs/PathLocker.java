@@ -55,7 +55,7 @@ public class PathLocker<M> {
         private final ReentrantLock lock;
         private volatile M metadata;
 
-        public LockMetadataPair(ReentrantLock lock, M metadata) {
+        private LockMetadataPair(ReentrantLock lock, M metadata) {
             super();
             this.lock = lock;
             this.metadata = metadata;

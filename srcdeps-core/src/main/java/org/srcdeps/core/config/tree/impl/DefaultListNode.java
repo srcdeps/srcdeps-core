@@ -35,6 +35,7 @@ import org.srcdeps.core.config.tree.walk.DefaultsAndInheritanceVisitor;
  */
 public class DefaultListNode<E extends Node> implements ListNode<E> {
 
+    private final List<String> commentBefore = new ArrayList<>();
     protected final List<E> elements;
     private final String name;
 
@@ -53,6 +54,11 @@ public class DefaultListNode<E extends Node> implements ListNode<E> {
      */
     @Override
     public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
+    }
+
+    @Override
+    public List<String> getCommentBefore() {
+        return commentBefore;
     }
 
     /** {@inheritDoc} */

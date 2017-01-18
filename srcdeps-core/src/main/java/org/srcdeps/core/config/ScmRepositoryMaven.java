@@ -57,6 +57,11 @@ public class ScmRepositoryMaven {
             return new ScmRepositoryMaven(versionsMavenPluginVersion.getValue());
         }
 
+        public Builder commentBefore(String value) {
+            commentBefore.add(value);
+            return this;
+        }
+
         @Override
         public Map<String, Node> getChildren() {
             return children;

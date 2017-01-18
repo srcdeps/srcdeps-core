@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,11 +16,12 @@
  */
 package org.srcdeps.core.config;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.StringTokenizer;
-import java.util.regex.Pattern;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.srcdeps.core.GavPattern;
 
 /**
  * A class responsible for matching artifacts against patterns available in {@link ScmRepository#getSelectors()}.
@@ -29,63 +30,20 @@ import java.util.regex.Pattern;
  */
 public class ScmRepositoryFinder {
 
-    static class SelectionResolver {
-        private static final Pattern MATCH_ALL_PATTERN = Pattern.compile(".*");
 
-        private static Pattern toPattern(String token) {
-            return Pattern.compile(token.replace("*", ".*"));
-        }
-
-        private final Pattern artifactIdPattern;
-        private final Pattern groupIdPattern;
-        private final ScmRepository repository;
-
-        private final Pattern versionPattern;
-
-        public SelectionResolver(String selector, ScmRepository repository) {
-            this.repository = repository;
-
-            StringTokenizer st = new StringTokenizer(selector, ":");
-            if (st.hasMoreTokens()) {
-                groupIdPattern = toPattern(st.nextToken());
-            } else {
-                groupIdPattern = MATCH_ALL_PATTERN;
-            }
-            if (st.hasMoreTokens()) {
-                artifactIdPattern = toPattern(st.nextToken());
-            } else {
-                artifactIdPattern = MATCH_ALL_PATTERN;
-            }
-            if (st.hasMoreTokens()) {
-                versionPattern = toPattern(st.nextToken());
-            } else {
-                versionPattern = MATCH_ALL_PATTERN;
-            }
-        }
-
-        public ScmRepository getRepository() {
-            return repository;
-        }
-
-        public boolean matches(String groupId, String artifactId, String version) {
-            return groupIdPattern.matcher(groupId).matches() && artifactIdPattern.matcher(artifactId).matches()
-                    && versionPattern.matcher(version).matches();
-        }
-    }
-
-    private final List<SelectionResolver> resolvers;
+    private final Map<GavPattern, ScmRepository> gavPatternRepositoryMap;
 
     public ScmRepositoryFinder(Configuration configuration) {
         super();
-        List<SelectionResolver> resolvers = new ArrayList<>();
+        Map<GavPattern, ScmRepository> resolvers = new LinkedHashMap<>();
 
         for (ScmRepository repository : configuration.getRepositories()) {
             for (String selector : repository.getSelectors()) {
-                resolvers.add(new SelectionResolver(selector, repository));
+                resolvers.put(GavPattern.of(selector), repository);
             }
         }
 
-        this.resolvers = Collections.unmodifiableList(resolvers);
+        this.gavPatternRepositoryMap = Collections.unmodifiableMap(resolvers);
     }
 
     /**
@@ -103,9 +61,9 @@ public class ScmRepositoryFinder {
      *             if no matching {@link ScmRepository} was found
      */
     public ScmRepository findRepository(String groupId, String artifactId, String version) {
-        for (SelectionResolver resolver : resolvers) {
-            if (resolver.matches(groupId, artifactId, version)) {
-                return resolver.getRepository();
+        for (Entry<GavPattern, ScmRepository> en : gavPatternRepositoryMap.entrySet()) {
+            if (en.getKey().matches(groupId, artifactId, version)) {
+                return en.getValue();
             }
         }
         throw new IllegalStateException(

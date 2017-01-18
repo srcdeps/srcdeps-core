@@ -17,6 +17,7 @@
 package org.srcdeps.core.config;
 
 import java.util.Collections;
+import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
@@ -25,6 +26,7 @@ import org.srcdeps.core.BuildRequest.Verbosity;
 import org.srcdeps.core.config.BuilderIo.BuilderIoScheme;
 import org.srcdeps.core.config.ScmRepository.Builder;
 import org.srcdeps.core.config.scalar.Duration;
+import org.srcdeps.core.config.tree.Node;
 import org.srcdeps.core.config.tree.walk.DefaultsAndInheritanceVisitor;
 
 public class DefaultsAndInheritanceTest {
@@ -51,6 +53,11 @@ public class DefaultsAndInheritanceTest {
 
         Assert.assertNull(configBuilder.maven.versionsMavenPluginVersion.getValue());
         MavenFailWith.Builder failWithBuilder = configBuilder.maven.failWith;
+        Stack<Node> stack = new Stack<>();
+        stack.push(configBuilder);
+        stack.push(configBuilder.maven);
+        stack.push(configBuilder.maven.failWith);
+        Assert.assertTrue(failWithBuilder.isInDefaultState(stack));
         Assert.assertNull(failWithBuilder.addDefaults.getValue());
         Assert.assertEquals(Collections.emptySet(), failWithBuilder.goals.asSetOfValues());
         Assert.assertEquals(Collections.emptySet(), failWithBuilder.profiles.asSetOfValues());
@@ -71,6 +78,8 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(repo1Builder.verbosity.getValue());
 
         configBuilder.accept(new DefaultsAndInheritanceVisitor());
+
+        Assert.assertTrue(failWithBuilder.isInDefaultState(stack));
 
         Configuration config = configBuilder.build();
         Assert.assertEquals(Configuration.getLatestConfigModelVersion(), config.getConfigModelVersion());

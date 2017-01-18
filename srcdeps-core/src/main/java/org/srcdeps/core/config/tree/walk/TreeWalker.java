@@ -51,16 +51,18 @@ public class TreeWalker {
             visitor.scalar((ScalarNode<Object>) node);
         } else if (node instanceof ListNode) {
             ListNode<Node> list = (ListNode<Node>) node;
-            visitor.listBegin(list);
-            for (Node elem : list.getElements()) {
-                walk(elem, visitor);
+            if (visitor.listBegin(list)) {
+                for (Node elem : list.getElements()) {
+                    walk(elem, visitor);
+                }
             }
             visitor.listEnd();
         } else if (node instanceof ContainerNode) {
             ContainerNode<Node> branch = (ContainerNode<Node>) node;
-            visitor.containerBegin(branch);
-            for (Node child : branch.getChildren().values()) {
-                walk(child, visitor);
+            if (visitor.containerBegin(branch)) {
+                for (Node child : branch.getChildren().values()) {
+                    walk(child, visitor);
+                }
             }
             visitor.containerEnd();
         }

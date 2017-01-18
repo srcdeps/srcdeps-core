@@ -16,6 +16,7 @@
  */
 package org.srcdeps.core.config.tree;
 
+import java.util.List;
 import java.util.Stack;
 
 import org.srcdeps.core.config.tree.walk.DefaultsAndInheritanceVisitor;
@@ -35,6 +36,11 @@ public interface Node {
      *            the stack of ancestor configuration nodes. Can be queried to inherit values.
      */
     void applyDefaultsAndInheritance(Stack<Node> configurationStack);
+
+    /**
+     * @return a list of comment lines that should appear before this node
+     */
+    List<String> getCommentBefore();
 
     /**
      * @return the name of the present node that is supposed to be unique within the parent node. Can be {@code null} in

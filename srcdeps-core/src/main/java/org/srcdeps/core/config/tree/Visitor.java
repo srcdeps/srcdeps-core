@@ -28,28 +28,34 @@ import org.srcdeps.core.config.tree.walk.TreeWalker;
 public interface Visitor {
 
     /**
-     * Called before the children of the given {@link ContainerNode} are visited.
+     * Check whether the children of the given {@link ContainerNode} should be visited.
      *
      * @param node
      *            the current {@link ContainerNode}
+     * @return {@code true} if the calling walker should traverse the children of the given {@code node}; {@code false}
+     *         otherwise
      */
-    void containerBegin(ContainerNode<? extends Node> node);
+    boolean containerBegin(ContainerNode<? extends Node> node);
 
     /**
-     * Called after the children of a {@link ContainerNode} were visited.
+     * Called just after {@link #containerBegin(ContainerNode)} if it returned {@code true} or after the children of a
+     * {@link ContainerNode} were visited.
      */
     void containerEnd();
 
     /**
-     * Called before the elements of the given {@link ListNode} are visited.
+     * Check whether the elements of the given {@link ListNode} should be visited.
      *
      * @param node
      *            the current {@link ListNode}
+     * @return {@code true} if the calling walker should traverse the elements of the given {@code node}; {@code false}
+     *         otherwise
      */
-    void listBegin(ListNode<? extends Node> node);
+    boolean listBegin(ListNode<? extends Node> node);
 
     /**
-     * Called after the children of a {@link ListNode} were visited.
+     * Called just after {@link #containerBegin(ContainerNode)} if it returned {@code true} or after the children of a
+     * {@link ListNode} were visited.
      */
     void listEnd();
 

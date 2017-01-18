@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2015-2016 Maven Source Dependencies
+    Copyright 2015-2017 Maven Source Dependencies
     Plugin contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,6 +48,7 @@
   <modules>
     <module>srcdeps-core</module>
     <module>srcdeps-core-config-yaml</module>
+    <module>srcdeps-core-buildconfig</module>
   </modules>
 
   <scm>
@@ -79,12 +80,18 @@
          around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
     <version.com.google.inject>4.0</version.com.google.inject>
     <version.junit>4.12</version.junit>
-    <version.org.eclipse.jgit>4.4.1.201607150455-r</version.org.eclipse.jgit>
+    <version.org.eclipse.jgit>4.5.0.201609210915-r</version.org.eclipse.jgit>
     <!-- keep in sync with sisuInjectVersion in maven
          around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
-    <version.org.eclipse.sisu>0.3.2</version.org.eclipse.sisu>
-    <version.org.slf4j>1.7.5</version.org.slf4j>
+    <version.org.eclipse.sisu>0.3.3</version.org.eclipse.sisu>
+    <version.org.slf4j>1.7.22</version.org.slf4j>
     <version.org.snakeyaml>1.17</version.org.snakeyaml>
+
+    <!-- The present project's version. We need a hard-coded value so that
+         it works as the dependency of the checkstyle-maven-plugin in srcdeps-maven
+         Note that the before-release-commit profile automagically replaces the value
+         during releases -->
+    <version.org.srcdeps.core>3.0.1-SNAPSHOT</version.org.srcdeps.core><!-- @srcdeps.version@ -->
 
     <!--
       Maven plugin versions
@@ -95,25 +102,25 @@
     <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
     <version.io.takari.maven.plugins.takari-lifecycle-plugin>1.11.12</version.io.takari.maven.plugins.takari-lifecycle-plugin>
     <version.mrm-maven-plugin>1.0.0</version.mrm-maven-plugin>
-    <version.maven-antrun-plugin>1.7</version.maven-antrun-plugin>
-    <version.maven-checkstyle-plugin>2.15</version.maven-checkstyle-plugin>
+    <version.maven-antrun-plugin>1.8</version.maven-antrun-plugin>
+    <version.maven-checkstyle-plugin>2.17</version.maven-checkstyle-plugin>
     <version.maven-clean-plugin>2.6.1</version.maven-clean-plugin>
-    <version.maven-compiler-plugin>3.2</version.maven-compiler-plugin>
+    <version.maven-compiler-plugin>3.3</version.maven-compiler-plugin>
     <version.maven-deploy-plugin>2.8.2</version.maven-deploy-plugin>
-    <version.maven-enforcer-plugin>1.3.1</version.maven-enforcer-plugin>
+    <version.maven-enforcer-plugin>1.4.1</version.maven-enforcer-plugin>
     <version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
     <version.maven-install-plugin>2.5.2</version.maven-install-plugin>
-    <version.maven-jar-plugin>2.5</version.maven-jar-plugin>
+    <version.maven-jar-plugin>2.6</version.maven-jar-plugin>
     <version.maven-javadoc-plugin>2.10.3</version.maven-javadoc-plugin>
-    <version.maven-release-plugin>2.5.2</version.maven-release-plugin>
+    <version.maven-release-plugin>2.5.3</version.maven-release-plugin>
     <version.maven-resources-plugin>2.7</version.maven-resources-plugin>
-    <version.maven-scm-plugin>1.9.4</version.maven-scm-plugin>
-    <version.maven-site-plugin>3.4</version.maven-site-plugin>
+    <version.maven-scm-plugin>1.9.5</version.maven-scm-plugin>
+    <version.maven-site-plugin>3.6</version.maven-site-plugin>
     <version.sisu-maven-plugin>0.3.3</version.sisu-maven-plugin>
     <version.maven-source-plugin>2.4</version.maven-source-plugin>
     <version.maven-surefire-plugin>2.19.1</version.maven-surefire-plugin>
-    <version.nexus-staging-maven-plugin>1.6.5</version.nexus-staging-maven-plugin>
-    <version.org.codehaus.buildnumber-maven-plugin>1.3</version.org.codehaus.buildnumber-maven-plugin>
+    <version.nexus-staging-maven-plugin>1.6.6</version.nexus-staging-maven-plugin>
+    <version.org.codehaus.buildnumber-maven-plugin>1.4</version.org.codehaus.buildnumber-maven-plugin>
     <version.org.codehaus.mojo.xml-maven-plugin>1.0.1</version.org.codehaus.mojo.xml-maven-plugin>
     <version.directory-maven-plugin>0.1</version.directory-maven-plugin>
 
@@ -126,7 +133,7 @@
     <maven.compiler.showWarnings>true</maven.compiler.showWarnings>
 
     <!-- Checkstyle and maven-checkstyle-plugin -->
-    <version.com.puppycrawl.tools.checkstyle>6.8</version.com.puppycrawl.tools.checkstyle>
+    <version.com.puppycrawl.tools.checkstyle>6.13</version.com.puppycrawl.tools.checkstyle>
     <!-- checkstyle.xml location in the source tree -->
     <checkstyle.consoleOutput>true</checkstyle.consoleOutput>
     <checkstyle.failOnError>true</checkstyle.failOnError>
@@ -536,7 +543,7 @@ limitations under the License.</inlineHeader>
               <goal>checkstyle</goal>
             </goals>
             <configuration>
-              <configLocation>${srcdeps-parent.basedir}/checkstyle.xml</configLocation>
+              <configLocation>${srcdeps-parent.basedir}/srcdeps-core-buildconfig/src/main/resources/srcdeps-checkstyle/checkstyle.xml</configLocation>
               <consoleOutput>${checkstyle.consoleOutput}</consoleOutput>
               <failsOnError>${checkstyle.failOnError}</failsOnError>
               <excludes>${checkstyle.excludes}</excludes>
@@ -751,13 +758,17 @@ limitations under the License.</inlineHeader>
                 <configuration>
                   <basedir>${basedir}</basedir>
                   <includes>
+                    <include>pom.xml</include>
                     <include>README.adoc</include>
-                    <include>srcdeps-maven-quickstarts/**/.mvn/extensions.xml</include>
                   </includes>
                   <replacements>
                     <replacement>
                       <token>&lt;version&gt;[^&lt;]*&lt;/version&gt;&lt;!-- @srcdeps.version@ --&gt;</token>
                       <value>&lt;version&gt;${project.version}&lt;/version&gt;&lt;!-- @srcdeps.version@ --&gt;</value>
+                    </replacement>
+                    <replacement>
+                      <token>&lt;version.org.srcdeps.core&gt;[^&lt;]*&lt;/version.org.srcdeps.core&gt;&lt;!-- @srcdeps.version@ --&gt;</token>
+                      <value>&lt;version.org.srcdeps.core&gt;${project.version}&lt;/version.org.srcdeps.core&gt;&lt;!-- @srcdeps.version@ --&gt;</value>
                     </replacement>
                   </replacements>
                 </configuration>

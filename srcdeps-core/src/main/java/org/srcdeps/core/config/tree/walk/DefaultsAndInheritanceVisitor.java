@@ -33,15 +33,17 @@ import org.srcdeps.core.config.tree.Visitor;
 public class DefaultsAndInheritanceVisitor extends AbstractVisitor {
 
     @Override
-    public void containerBegin(ContainerNode<? extends Node> node) {
+    public boolean containerBegin(ContainerNode<? extends Node> node) {
         super.containerBegin(node);
         node.applyDefaultsAndInheritance(stack);
+        return true;
     }
 
     @Override
-    public void listBegin(ListNode<? extends Node> node) {
+    public boolean listBegin(ListNode<? extends Node> node) {
         super.listBegin(node);
         node.applyDefaultsAndInheritance(stack);
+        return true;
     }
 
     @Override

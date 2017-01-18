@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,9 +41,9 @@ import org.srcdeps.core.config.tree.impl.DefaultScalarNode;
 public class ScmRepository {
 
     public static class Builder extends DefaultContainerNode<Node> {
-
         final ScalarNode<Boolean> addDefaultBuildArguments = new DefaultScalarNode<>("addDefaultBuildArguments",
                 Boolean.TRUE);
+
         final ListOfScalarsNode<String> buildArguments = new DefaultListOfScalarsNode<>("buildArguments", String.class);
         final BuilderIo.Builder builderIo = BuilderIo.builder();
         final ScalarNode<Duration> buildTimeout = new DefaultScalarNode<Duration>("buildTimeout", Duration.class) {
@@ -128,6 +128,11 @@ public class ScmRepository {
 
         public Builder buildTimeout(Duration buildTimeout) {
             this.buildTimeout.setValue(buildTimeout);
+            return this;
+        }
+
+        public Builder commentBefore(String value) {
+            commentBefore.add(value);
             return this;
         }
 
@@ -234,7 +239,7 @@ public class ScmRepository {
                     } else {
                         subsequentDelimiterCount = 0;
                     }
-                } else if (!Character.isJavaIdentifierPart(ch)) {
+                } else if (!Character.isJavaIdentifierPart(ch) && ch != '-') {
                     throw new IllegalArgumentException(String.format(
                             "Invalid %s.id [%s]: Invalid character [%s] at position [%d]; a Java identifier part expected",
                             ScmRepository.class.getSimpleName(), id, ch, i));
