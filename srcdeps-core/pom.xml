@@ -141,7 +141,6 @@
       <plugin>
         <groupId>org.eclipse.sisu</groupId>
         <artifactId>sisu-maven-plugin</artifactId>
-        <version>${version.sisu-maven-plugin}</version>
         <executions>
           <execution>
             <id>index-project</id>

@@ -443,6 +443,12 @@
         </plugin>
 
         <plugin>
+          <groupId>org.eclipse.sisu</groupId>
+          <artifactId>sisu-maven-plugin</artifactId>
+          <version>${version.sisu-maven-plugin}</version>
+        </plugin>
+
+        <plugin>
           <groupId>org.sonatype.plugins</groupId>
           <artifactId>nexus-staging-maven-plugin</artifactId>
           <version>${version.nexus-staging-maven-plugin}</version>
