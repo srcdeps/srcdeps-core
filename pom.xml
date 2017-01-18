@@ -760,7 +760,6 @@ limitations under the License.</inlineHeader>
                   <includes>
                     <include>pom.xml</include>
                     <include>README.adoc</include>
-                    <include>srcdeps-maven-quickstarts/**/.mvn/extensions.xml</include>
                   </includes>
                   <replacements>
                     <replacement>
