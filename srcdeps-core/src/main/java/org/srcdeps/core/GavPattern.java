@@ -87,12 +87,19 @@ public class GavPattern {
 
     private static final char DELIMITER = ':';
     private static final String DELIMITER_STRING;
+    private static final GavPattern MATCH_ALL;
     private static final Pattern MATCH_ALL_PATTERN;
     private static final String MATCH_ALL_PATTERN_SOURCE = ".*";
+
+    private static final GavPattern MATCH_SNAPSHOTS;
     private static final String MULTI_WILDCARD = "*";
+    private static final String SNAPSHOT_SUFFIX = "-SNAPSHOT";
+
     static {
         MATCH_ALL_PATTERN = Pattern.compile(MATCH_ALL_PATTERN_SOURCE);
         DELIMITER_STRING = String.valueOf(DELIMITER);
+        MATCH_ALL = new GavPattern(MATCH_ALL_PATTERN, MATCH_ALL_PATTERN, MATCH_ALL_PATTERN);
+        MATCH_SNAPSHOTS = new GavPattern(MATCH_ALL_PATTERN, MATCH_ALL_PATTERN, toPattern(MULTI_WILDCARD + SNAPSHOT_SUFFIX));
     }
 
     /**
@@ -100,6 +107,20 @@ public class GavPattern {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * @return a singleton that matches all possible GAVs
+     */
+    public static GavPattern matchAll() {
+        return MATCH_ALL;
+    }
+
+    /**
+     * @return a singleton that matches any GAV that has a version ending with {@value #SNAPSHOT_SUFFIX}
+     */
+    public static GavPattern matchSnapshots() {
+        return MATCH_SNAPSHOTS;
     }
 
     /**
