@@ -366,8 +366,8 @@
           <version>${version.maven-release-plugin}</version>
           <configuration>
             <tagNameFormat>@{project.version}</tagNameFormat>
-            <preparationGoals>clean generate-sources -Psync-project-versions "-Dsrcdeps.version.commit.message=[maven-release-plugin] Prepare release ${project.version}"</preparationGoals>
-            <completionGoals>clean generate-sources -Psync-project-versions "-Dsrcdeps.version.commit.message=[maven-release-plugin] Set next development version ${project.version}"</completionGoals>
+            <preparationGoals>clean generate-sources -Psync-project-versions "-Dsrcdeps.version.commit.message.prefix=[maven-release-plugin] Prepare release"</preparationGoals>
+            <completionGoals>clean generate-sources -Psync-project-versions "-Dsrcdeps.version.commit.message.prefix=[maven-release-plugin] Set next development version"</completionGoals>
             <goals>deploy</goals>
             <releaseProfiles>release</releaseProfiles>
             <autoVersionSubmodules>true</autoVersionSubmodules>
@@ -805,7 +805,7 @@ limitations under the License.</inlineHeader>
                   <goal>checkin</goal>
                 </goals>
                 <configuration>
-                  <message>${srcdeps.version.commit.message}</message>
+                  <message>${srcdeps.version.commit.message.prefix} ${project.version}</message>
                 </configuration>
               </execution>
             </executions>
