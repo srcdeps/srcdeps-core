@@ -89,9 +89,11 @@
 
     <!-- The present project's version. We need a hard-coded value so that
          it works as the dependency of the checkstyle-maven-plugin in srcdeps-maven
-         Note that the before-release-commit profile automagically replaces the value
+         Note that the sync-project-versions profile automagically replaces the value
          during releases -->
     <version.org.srcdeps.core>3.0.1</version.org.srcdeps.core><!-- @srcdeps.version@ -->
+    <!-- Comma separated list of source files where we need to update the version literals marked by @srcdeps.version@ -->
+    <srcdeps.version.files>pom.xml</srcdeps.version.files>
 
     <!--
       Maven plugin versions
@@ -364,7 +366,8 @@
           <version>${version.maven-release-plugin}</version>
           <configuration>
             <tagNameFormat>@{project.version}</tagNameFormat>
-            <preparationGoals>clean generate-sources -Pbefore-release-commit</preparationGoals>
+            <preparationGoals>clean generate-sources -Psync-project-versions "-Dsrcdeps.version.commit.message=[maven-release-plugin] Prepare release ${project.version}"</preparationGoals>
+            <completionGoals>clean generate-sources -Psync-project-versions "-Dsrcdeps.version.commit.message=[maven-release-plugin] Set next development version ${project.version}"</completionGoals>
             <goals>deploy</goals>
             <releaseProfiles>release</releaseProfiles>
             <autoVersionSubmodules>true</autoVersionSubmodules>
@@ -746,7 +749,7 @@ limitations under the License.</inlineHeader>
 
 
     <profile>
-      <id>before-release-commit</id>
+      <id>sync-project-versions</id>
       <build>
         <plugins>
 
@@ -763,10 +766,7 @@ limitations under the License.</inlineHeader>
                 </goals>
                 <configuration>
                   <basedir>${basedir}</basedir>
-                  <includes>
-                    <include>pom.xml</include>
-                    <include>README.adoc</include>
-                  </includes>
+                  <filesToInclude>${srcdeps.version.files}</filesToInclude>
                   <replacements>
                     <replacement>
                       <token>&lt;version&gt;[^&lt;]*&lt;/version&gt;&lt;!-- @srcdeps.version@ --&gt;</token>
@@ -795,7 +795,7 @@ limitations under the License.</inlineHeader>
                 </goals>
                 <configuration>
                   <basedir>${basedir}</basedir>
-                  <includes>README.adoc,srcdeps-maven-quickstarts/**/.mvn/extensions.xml</includes>
+                  <includes>${srcdeps.version.files}</includes>
                 </configuration>
               </execution>
               <execution>
@@ -805,7 +805,7 @@ limitations under the License.</inlineHeader>
                   <goal>checkin</goal>
                 </goals>
                 <configuration>
-                  <message>[maven-release-plugin] Prepare release ${project.version}</message>
+                  <message>${srcdeps.version.commit.message}</message>
                 </configuration>
               </execution>
             </executions>
