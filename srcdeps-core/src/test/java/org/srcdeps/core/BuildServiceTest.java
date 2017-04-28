@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,7 +80,7 @@ public class BuildServiceTest extends InjectedTest {
 
     };
 
-    public void assertBuild(String srcVersion) throws IOException, BuildException {
+    public void assertBuild(String gitRepoName, String groupDir, String artifactId, String srcVersion) throws IOException, BuildException {
         Assert.assertNotNull("buildService not injected", buildService);
         log.info("Using {} as {}", buildService.getClass().getName(), BuildService.class.getName());
 
@@ -88,40 +88,45 @@ public class BuildServiceTest extends InjectedTest {
         final Path projectBuildDirectory = projectRoot.resolve("build");
 
         SrcdepsCoreUtils.deleteDirectory(projectRoot);
-        final String artifactDir = "org/l2x6/maven/srcdeps/itest/srcdeps-test-artifact";
+        final String artifactDir = groupDir + "/"+ artifactId;
         SrcdepsCoreUtils.deleteDirectory(mvnLocalRepo.resolve(artifactDir));
 
         BuildRequest request = BuildRequest.builder() //
-                .scmUrl("git:https://github.com/srcdeps/srcdeps-test-artifact.git")
+                .scmUrl("git:https://github.com/srcdeps/"+ gitRepoName +".git") //
                 .srcVersion(SrcVersion.parse(srcVersion)).projectRootDirectory(projectBuildDirectory) //
                 .buildArgument("-Dmaven.repo.local=" + mvnLocalRepo.toString()) //
-                .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()).build();
+                .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
+                .build();
 
         buildService.build(request);
 
-        final String artifactPrefix = artifactDir + "/" + srcVersion + "/srcdeps-test-artifact-" + srcVersion;
+        final String artifactPrefix = artifactDir + "/" + srcVersion + "/"+ artifactId +"-" + srcVersion;
         assertExists(mvnLocalRepo.resolve(artifactPrefix + ".jar"));
         assertExists(mvnLocalRepo.resolve(artifactPrefix + ".pom"));
     }
 
+    public void assertMvnBuild(String srcVersion) throws IOException, BuildException {
+        assertBuild("srcdeps-test-artifact", "org/l2x6/maven/srcdeps/itest", "srcdeps-test-artifact", srcVersion);
+    }
+
     @Test
     public void testMvnGitBranch() throws BuildException, IOException {
-        assertBuild("0.0.1-SRC-branch-morning-branch");
+        assertMvnBuild("0.0.1-SRC-branch-morning-branch");
     }
 
     @Test
     public void testMvnGitRevision() throws BuildException, IOException {
-        assertBuild("0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b");
+        assertMvnBuild("0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b");
     }
 
     @Test
     public void testMvnGitRevisionNonMaster() throws BuildException, IOException {
-        assertBuild("0.0.1-SRC-revision-dbad2cdc30b5bb3ff62fc89f57987689a5f3c220");
+        assertMvnBuild("0.0.1-SRC-revision-dbad2cdc30b5bb3ff62fc89f57987689a5f3c220");
     }
 
     @Test
     public void testMvnGitTag() throws BuildException, IOException {
-        assertBuild("0.0.1-SRC-tag-0.0.1");
+        assertMvnBuild("0.0.1-SRC-tag-0.0.1");
     }
 
 }
