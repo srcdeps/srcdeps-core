@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,14 +16,13 @@
  */
 package org.srcdeps.core.config;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import org.srcdeps.core.config.scalar.Negatable.NegatableProperty;
+import org.srcdeps.core.config.scalar.Negatable.NegatableString;
 import org.srcdeps.core.config.tree.ListOfScalarsNode;
 import org.srcdeps.core.config.tree.Node;
 import org.srcdeps.core.config.tree.ScalarNode;
@@ -44,7 +43,7 @@ public class MavenFailWith {
     public static class Builder extends DefaultContainerNode<Node> {
 
         ScalarNode<Boolean> addDefaults = new DefaultScalarNode<>("addDefaults", Boolean.TRUE);
-        ListOfScalarsNode<String> goals = new DefaultListOfScalarsNode<String>("goals", String.class) {
+        ListOfScalarsNode<NegatableString> goals = new DefaultListOfScalarsNode<NegatableString>("goals", NegatableString.class) {
 
             @Override
             public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
@@ -62,8 +61,8 @@ public class MavenFailWith {
             }
 
         };
-        ListOfScalarsNode<String> profiles = new DefaultListOfScalarsNode<>("profiles", String.class);
-        ListOfScalarsNode<String> properties = new DefaultListOfScalarsNode<>("properties", String.class);
+        ListOfScalarsNode<NegatableString> profiles = new DefaultListOfScalarsNode<>("profiles", NegatableString.class);
+        ListOfScalarsNode<NegatableProperty> properties = new DefaultListOfScalarsNode<>("properties", NegatableProperty.class);
 
         public Builder() {
             super("failWith");
@@ -98,57 +97,56 @@ public class MavenFailWith {
             return children;
         }
 
-        public Builder goal(String goal) {
+        public Builder goal(NegatableString goal) {
             this.goals.add(goal);
             return this;
         }
 
-        public Builder goals(Collection<String> goals) {
+        public Builder goals(Collection<NegatableString> goals) {
             this.goals.addAll(goals);
             return this;
         }
 
-        public Builder profile(String profile) {
+        public Builder profile(NegatableString profile) {
             this.profiles.add(profile);
             return this;
         }
 
-        public Builder profiles(Collection<String> profiles) {
+        public Builder profiles(Collection<NegatableString> profiles) {
             this.profiles.addAll(profiles);
             return this;
         }
 
-        public Builder properties(Collection<String> properties) {
+        public Builder properties(Collection<NegatableProperty> properties) {
             this.properties.addAll(properties);
             return this;
         }
 
-        public Builder property(String property) {
+        public Builder property(NegatableProperty property) {
             this.properties.add(property);
             return this;
         }
 
     }
 
-    private static Set<String> DEFAULT_FAIL_GOALS = Collections
-            .unmodifiableSet(new LinkedHashSet<>(Arrays.asList("release:prepare", "release:perform")));
+    private static Set<NegatableString> DEFAULT_FAIL_GOALS = NegatableString.setOf("release:prepare", "release:perform");
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public static Set<String> getDefaultFailGoals() {
+    public static Set<NegatableString> getDefaultFailGoals() {
         return DEFAULT_FAIL_GOALS;
     }
 
     private final boolean addDefaults;
 
-    private final Set<String> goals;
-    private final Set<String> profiles;
+    private final Set<NegatableString> goals;
+    private final Set<NegatableString> profiles;
 
-    private final Set<String> properties;
+    private final Set<NegatableProperty> properties;
 
-    private MavenFailWith(boolean addDefaults, Set<String> goals, Set<String> profiles, Set<String> properties) {
+    private MavenFailWith(boolean addDefaults, Set<NegatableString> goals, Set<NegatableString> profiles, Set<NegatableProperty> properties) {
         super();
         this.addDefaults = addDefaults;
         this.goals = goals;
@@ -190,7 +188,7 @@ public class MavenFailWith {
      *         goals can be either in the short form, e.g. {@code "release:prepare"}, or in the fully qualified form
      *         e.g. {@code "org.my-group:my-plugin:my-mojo"}
      */
-    public Set<String> getGoals() {
+    public Set<NegatableString> getGoals() {
         return goals;
     }
 
@@ -198,7 +196,7 @@ public class MavenFailWith {
      * @return a {@link Set} of Maven profile IDs. Presence of any of the returned profile ID will make the outer build
      *         fail
      */
-    public Set<String> getProfiles() {
+    public Set<NegatableString> getProfiles() {
         return profiles;
     }
 
@@ -208,7 +206,7 @@ public class MavenFailWith {
      *         make the build fail) or name=value pairs (in which case the build will only fail if the named property
      *         has the given value).
      */
-    public Set<String> getProperties() {
+    public Set<NegatableProperty> getProperties() {
         return properties;
     }
 
