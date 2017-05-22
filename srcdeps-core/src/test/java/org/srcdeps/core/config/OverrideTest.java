@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,8 @@ import java.util.Properties;
 import org.junit.Assert;
 import org.junit.Test;
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.config.scalar.Negatable.NegatableProperty;
+import org.srcdeps.core.config.scalar.Negatable.NegatableString;
 import org.srcdeps.core.config.tree.walk.OverrideVisitor;
 
 public class OverrideTest {
@@ -69,18 +71,18 @@ public class OverrideTest {
                                 .failWith( //
                                         MavenFailWith.builder() //
                                                 .addDefaults(false) //
-                                                .goal("g1") //
-                                                .profile("p1") //
-                                                .property("prop1") //
+                                                .goal(NegatableString.of("g1")) //
+                                                .profile(NegatableString.of("p1")) //
+                                                .property(NegatableProperty.of("prop1")) //
                         ) //
         );
         Assert.assertEquals(Arrays.asList("fwd1", "fwd2"), config.forwardProperties.asListOfValues());
 
         MavenFailWith.Builder failWith = config.maven.failWith;
         Assert.assertEquals(false, failWith.addDefaults.getValue());
-        Assert.assertEquals(Collections.singleton("g1"), failWith.goals.asSetOfValues());
-        Assert.assertEquals(Collections.singleton("p1"), failWith.profiles.asSetOfValues());
-        Assert.assertEquals(Collections.singleton("prop1"), failWith.properties.asSetOfValues());
+        Assert.assertEquals(NegatableString.setOf("g1"), failWith.goals.asSetOfValues());
+        Assert.assertEquals(NegatableString.setOf("p1"), failWith.profiles.asSetOfValues());
+        Assert.assertEquals(NegatableProperty.setOf("prop1"), failWith.properties.asSetOfValues());
 
         Properties props = new Properties();
         props.put("srcdeps.forwardProperties", ""); // replace by empty
@@ -96,9 +98,9 @@ public class OverrideTest {
 
         Assert.assertEquals(Collections.emptyList(), config.forwardProperties.asListOfValues());
         Assert.assertEquals(false, failWith.addDefaults.getValue());
-        Assert.assertEquals(Arrays.asList("g1", "g2"), failWith.goals.asListOfValues());
-        Assert.assertEquals(Arrays.asList("pro1", "pro2"), failWith.profiles.asListOfValues());
-        Assert.assertEquals(Arrays.asList("prop0", "prop1"), failWith.properties.asListOfValues());
+        Assert.assertEquals(NegatableString.listOf("g1", "g2"), failWith.goals.asListOfValues());
+        Assert.assertEquals(NegatableString.listOf("pro1", "pro2"), failWith.profiles.asListOfValues());
+        Assert.assertEquals(NegatableProperty.listOf("prop0", "prop1"), failWith.properties.asListOfValues());
 
     }
 

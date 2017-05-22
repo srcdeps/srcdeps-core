@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,8 @@ import org.srcdeps.core.config.MavenFailWith;
 import org.srcdeps.core.config.ScmRepository;
 import org.srcdeps.core.config.ScmRepositoryMaven;
 import org.srcdeps.core.config.scalar.Duration;
+import org.srcdeps.core.config.scalar.Negatable.NegatableProperty;
+import org.srcdeps.core.config.scalar.Negatable.NegatableString;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeId;
@@ -44,6 +46,10 @@ public class SrcdepsConstructor extends Constructor {
                 return Paths.get(((ScalarNode) node).getValue());
             } else if (node.getType() == Duration.class) {
                 return Duration.of(((ScalarNode) node).getValue());
+            } else if (node.getType() == NegatableString.class) {
+                return NegatableString.of(((ScalarNode) node).getValue());
+            } else if (node.getType() == NegatableProperty.class) {
+                return NegatableProperty.of(((ScalarNode) node).getValue());
             } else {
                 return super.construct(node);
             }

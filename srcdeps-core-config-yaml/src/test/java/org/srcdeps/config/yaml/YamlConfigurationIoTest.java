@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,8 @@ import org.srcdeps.core.config.MavenFailWith;
 import org.srcdeps.core.config.ScmRepository;
 import org.srcdeps.core.config.ScmRepositoryMaven;
 import org.srcdeps.core.config.scalar.Duration;
+import org.srcdeps.core.config.scalar.Negatable.NegatableProperty;
+import org.srcdeps.core.config.scalar.Negatable.NegatableString;
 import org.srcdeps.core.config.tree.walk.DefaultsAndInheritanceVisitor;
 import org.yaml.snakeyaml.constructor.ConstructorException;
 
@@ -69,12 +71,12 @@ public class YamlConfigurationIoTest {
                                     .failWith( //
                                             MavenFailWith.builder() //
                                                     .addDefaults(false) //
-                                                    .goal("goal1") //
-                                                    .goal("goal2") //
-                                                    .profile("profile1") //
-                                                    .profile("profile2") //
-                                                    .property("property1") //
-                                                    .property("property2") //
+                                                    .goal(NegatableString.of("goal1")) //
+                                                    .goal(NegatableString.of("goal2")) //
+                                                    .profile(NegatableString.of("profile1")) //
+                                                    .profile(NegatableString.of("profile2")) //
+                                                    .property(NegatableProperty.of("property1")) //
+                                                    .property(NegatableProperty.of("property2")) //
                             ) //
                     ) //
                     .repository( //

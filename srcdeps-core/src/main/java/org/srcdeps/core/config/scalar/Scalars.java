@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.config.scalar.Negatable.NegatableProperty;
+import org.srcdeps.core.config.scalar.Negatable.NegatableString;
 import org.srcdeps.core.config.tree.ScalarDeserializer;
 
 /**
@@ -157,6 +159,18 @@ public final class Scalars {
             @Override
             public Object deserialize(String value) {
                 return Duration.of(value);
+            }
+        });
+        primitives.put(NegatableString.class, new ScalarDeserializer() {
+            @Override
+            public Object deserialize(String value) {
+                return NegatableString.of(value);
+            }
+        });
+        primitives.put(NegatableProperty.class, new ScalarDeserializer() {
+            @Override
+            public Object deserialize(String value) {
+                return NegatableProperty.of(value);
             }
         });
         SCALAR_TYPES = Collections.unmodifiableMap(primitives);
