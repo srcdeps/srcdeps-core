@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,7 +58,7 @@ public class YamlWriterVisitorTest {
         String expectedConfig = "#\n" //
                         + "# srcdeps comment line 1\n" //
                         + "# srcdeps comment line 2\n" //
-                        + "configModelVersion: 2.0\n" //
+                        + "configModelVersion: 2.1\n" //
                         + "repositories:\n" //
                         + "\n" //
                         + "  # repo1 comment line 1\n" //

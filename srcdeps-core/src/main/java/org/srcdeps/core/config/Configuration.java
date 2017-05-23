@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -190,12 +190,12 @@ public class Configuration {
     private static final Set<String> DEFAULT_FORWARD_PROPERTIES = Collections
             .unmodifiableSet(new LinkedHashSet<>(Arrays.asList(Maven.getSrcdepsMavenPropertiesPattern())));
 
-    private static final String LATEST_CONFIG_MODEL_VERSION = "2.0";
+    private static final String LATEST_CONFIG_MODEL_VERSION = "2.1";
 
     private static final String SRCDEPS_ENCODING_PROPERTY = "srcdeps.encoding";
 
     private static final Set<String> SUPPORTED_CONFIG_MODEL_VERSIONS = Collections
-            .unmodifiableSet(new LinkedHashSet<>(Arrays.asList(LATEST_CONFIG_MODEL_VERSION)));
+            .unmodifiableSet(new LinkedHashSet<>(Arrays.asList("2.0", LATEST_CONFIG_MODEL_VERSION)));
 
     public static Builder builder() {
         return new Builder();

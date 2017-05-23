@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,17 +31,18 @@ import org.srcdeps.core.config.tree.impl.DefaultScalarNode;
  */
 public class Maven {
     public static class Builder extends DefaultContainerNode<Node> {
-        final MavenFailWith.Builder failWith = MavenFailWith.builder();
+        final MavenAssertions.FailWithBuilder failWith = MavenAssertions.failWithBuilder();
+        final MavenAssertions.FailWithoutBuilder failWithout = MavenAssertions.failWithoutBuilder();
         final ScalarNode<String> versionsMavenPluginVersion = new DefaultScalarNode<>("versionsMavenPluginVersion",
                 DEFAULT_VERSIONS_MAVEN_PLUGIN_VERSION);
 
         public Builder() {
             super("maven");
-            addChildren(versionsMavenPluginVersion, failWith);
+            addChildren(versionsMavenPluginVersion, failWith, failWithout);
         }
 
         public Maven build() {
-            return new Maven(failWith.build());
+            return new Maven(failWith.build(), failWithout.build());
         }
 
         public Builder commentBefore(String value) {
@@ -49,8 +50,13 @@ public class Maven {
             return this;
         }
 
-        public Builder failWith(MavenFailWith.Builder failWith) {
+        public Builder failWith(MavenAssertions.FailWithBuilder failWith) {
             this.failWith.init(failWith);
+            return this;
+        }
+
+        public Builder failWithout(MavenAssertions.FailWithoutBuilder failWithout) {
+            this.failWithout.init(failWithout);
             return this;
         }
 
@@ -101,11 +107,13 @@ public class Maven {
         return SRCDEPS_MAVEN_SETTINGS_PROPERTY;
     }
 
-    private final MavenFailWith failWith;
+    private final MavenAssertions failWith;
+    private final MavenAssertions failWithout;
 
-    private Maven(MavenFailWith failWith) {
+    private Maven(MavenAssertions failWith, MavenAssertions failWithout) {
         super();
         this.failWith = failWith;
+        this.failWithout = failWithout;
     }
 
     @Override
@@ -122,6 +130,11 @@ public class Maven {
                 return false;
         } else if (!failWith.equals(other.failWith))
             return false;
+        if (failWithout == null) {
+            if (other.failWithout != null)
+                return false;
+        } else if (!failWithout.equals(other.failWithout))
+            return false;
         return true;
     }
 
@@ -132,8 +145,19 @@ public class Maven {
      *
      * @return a {@link Set} of build arguments that make the top level build fail if they are present.
      */
-    public MavenFailWith getFailWith() {
+    public MavenAssertions getFailWith() {
         return failWith;
+    }
+
+    /**
+     * To be used to prevent building with srcdeps when any of the returned build arguments is present in the top level
+     * build. Note that this list is appended to the default {@code failWithAnyOfArguments} list of the given Build
+     * Tool. Maven's default {@code failWithAnyOfArguments} are <code>{"release:prepare", "release:perform"}</code>.
+     *
+     * @return a {@link Set} of build arguments that make the top level build fail if they are not present.
+     */
+    public MavenAssertions getFailWithout() {
+        return failWithout;
     }
 
     @Override
@@ -141,11 +165,12 @@ public class Maven {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((failWith == null) ? 0 : failWith.hashCode());
+        result = prime * result + ((failWithout == null) ? 0 : failWithout.hashCode());
         return result;
     }
 
     @Override
     public String toString() {
-        return "Maven [failWith=" + failWith + "]";
+        return "Maven [failWith=" + failWith + ", failWithout=" + failWithout + "]";
     }
 }
