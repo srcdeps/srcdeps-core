@@ -15,12 +15,16 @@
 # limitations under the License.
 #
 
-# `.mvn/srcdeps.yaml` - the srcdeps configuration file.
+# `srcdeps.yaml` - the srcdeps configuration file.
 #
 # The full srcdeps.yaml reference can be found under https://github.com/srcdeps/srcdeps-core/tree/master/doc/srcdeps.yaml
 #
 # Note that the options set here can be overriden on the command line,
 # see https://github.com/srcdeps/srcdeps-maven/blob/master/README.adoc#override-mvnsrcdepsyaml-options-on-the-command-line
+#
+# This file has to be located in the root directory of a Maven or
+# Gradle source tree. Before version 3.1.0 of `srcdeps-maven` the location for Maven was `.mvn/srcdeps.yaml` and it is
+# still supported.
 
 
 # `configModelVersion` exists to track the changes in the schema of of the srcdeps.yaml file.

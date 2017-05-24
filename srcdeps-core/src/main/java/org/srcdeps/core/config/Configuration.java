@@ -217,7 +217,7 @@ public class Configuration {
 
     /**
      * @return the name of the system property that can be used to set an encoding other than the default {@code utf-8}
-     *         for reading any srcdeps related content, esp. the {@code .mvn/srcdeps.yaml} file.
+     *         for reading any srcdeps related content, esp. the {@code srcdeps.yaml} file.
      */
     public static String getSrcdepsEncodingProperty() {
         return SRCDEPS_ENCODING_PROPERTY;
