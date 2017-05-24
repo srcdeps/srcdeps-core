@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,7 +52,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(configBuilder.builderIo.stderr.getValue());
 
         Assert.assertNull(configBuilder.maven.versionsMavenPluginVersion.getValue());
-        MavenFailWith.Builder failWithBuilder = configBuilder.maven.failWith;
+        MavenAssertions.FailWithBuilder failWithBuilder = configBuilder.maven.failWith;
         Stack<Node> stack = new Stack<>();
         stack.push(configBuilder);
         stack.push(configBuilder.maven);
@@ -95,9 +95,9 @@ public class DefaultsAndInheritanceTest {
 
         Assert.assertEquals(Maven.getDefaultVersionsMavenPluginVersion(),
                 configBuilder.maven.versionsMavenPluginVersion.getValue());
-        MavenFailWith failWith = config.getMaven().getFailWith();
+        MavenAssertions failWith = config.getMaven().getFailWith();
         Assert.assertEquals(true, failWith.isAddDefaults());
-        Assert.assertEquals(MavenFailWith.getDefaultFailGoals(), failWith.getGoals());
+        Assert.assertEquals(MavenAssertions.getDefaultFailGoals(), failWith.getGoals());
         Assert.assertEquals(Collections.emptySet(), failWith.getProfiles());
         Assert.assertEquals(Collections.emptySet(), failWith.getProperties());
 
@@ -124,7 +124,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals(Collections.emptySet(), config.maven.failWith.goals.asSetOfValues());
 
         config.accept(new DefaultsAndInheritanceVisitor());
-        Assert.assertEquals(MavenFailWith.getDefaultFailGoals(), config.maven.failWith.goals.asSetOfValues());
+        Assert.assertEquals(MavenAssertions.getDefaultFailGoals(), config.maven.failWith.goals.asSetOfValues());
     }
 
     @Test

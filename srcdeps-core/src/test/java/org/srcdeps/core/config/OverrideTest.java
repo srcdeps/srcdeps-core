@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,7 +67,7 @@ public class OverrideTest {
                         Maven.builder() //
                                 .versionsMavenPluginVersion("0.1") //
                                 .failWith( //
-                                        MavenFailWith.builder() //
+                                        MavenAssertions.failWithBuilder() //
                                                 .addDefaults(false) //
                                                 .goal("g1") //
                                                 .profile("p1") //
@@ -76,7 +76,7 @@ public class OverrideTest {
         );
         Assert.assertEquals(Arrays.asList("fwd1", "fwd2"), config.forwardProperties.asListOfValues());
 
-        MavenFailWith.Builder failWith = config.maven.failWith;
+        MavenAssertions.FailWithBuilder failWith = config.maven.failWith;
         Assert.assertEquals(false, failWith.addDefaults.getValue());
         Assert.assertEquals(Collections.singleton("g1"), failWith.goals.asSetOfValues());
         Assert.assertEquals(Collections.singleton("p1"), failWith.profiles.asSetOfValues());
@@ -90,7 +90,7 @@ public class OverrideTest {
 
         config.accept(new OverrideVisitor(props));
 
-        MavenFailWith.Builder overlayedFailWith = config.maven.failWith;
+        MavenAssertions.FailWithoutBuilder overlayedFailWith = config.maven.failWith;
 
         Assert.assertSame(failWith, overlayedFailWith);
 

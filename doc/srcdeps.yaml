@@ -15,12 +15,16 @@
 # limitations under the License.
 #
 
-# `.mvn/srcdeps.yaml` - the srcdeps configuration file.
+# `srcdeps.yaml` - the srcdeps configuration file.
 #
 # The full srcdeps.yaml reference can be found under https://github.com/srcdeps/srcdeps-core/tree/master/doc/srcdeps.yaml
 #
 # Note that the options set here can be overriden on the command line,
 # see https://github.com/srcdeps/srcdeps-maven/blob/master/README.adoc#override-mvnsrcdepsyaml-options-on-the-command-line
+#
+# This file has to be located in the root directory of a Maven or
+# Gradle source tree. Before version 3.1.0 of `srcdeps-maven` the location for Maven was `.mvn/srcdeps.yaml` and it is
+# still supported.
 
 
 # `configModelVersion` exists to track the changes in the schema of of the srcdeps.yaml file.
@@ -32,6 +36,7 @@
 #  2.0.0        | 2.0.0         | 1.0
 #  2.1.0        | 2.1.0         | 1.1, 1.0
 #  3.0.x        | 3.0.x         | 2.0
+#  3.1.x        | 3.1.x         | 2.1, 2.0
 #
 # Required, no default
 # Since 1.0
@@ -127,7 +132,7 @@ maven:
   # Since 2.0
   versionsMavenPluginVersion: 2.3
 
-  # `failWith` - a configuration node to define conditions under which the outer Maven build should fail
+  # `failWith` - a configuration node to define conditions whose presence will make the outer Maven build fail
   # as long as it has source dependencies.
   #
   # The introduction of `failWith` settings was motivated by the need to avoid releases with source
@@ -183,6 +188,62 @@ maven:
     - my-bare-breaker-property
     - my-breaker-property=my-breaker-value
 
+  # `failWithout` - a configuration node to define conditions whose absence will make the outer Maven build fail
+  # as long as it has source dependencies.
+  #
+  # The introduction of `failWithout` settings was motivated by the need to allow dependencies under some
+  # specific circumstances but disallow them in all other cases. E.g. to allow source dependencies only in a CI job
+  # that builds pull requests, you may choose some property name, say `srcdeps.enabled` and use it in `failWithout`:
+  #
+  #     failWithout:
+  #       properties:
+  #       - srcdeps.enabled
+  #
+  # Then, to opt-in the CI job that is allowed to use source dependencies, just pass `-Dsrcdeps.enabled` to `mvn`
+  # command. The CI job will succeed in using source dependencies, but all other invocations of `mvn` without
+  # `-Dsrcdeps.enabled` will fail.
+  #
+  # Note that for Maven, you need to add the `srcdeps-maven-enforcer` to `.mvn/extensions.xml` - see the
+  # link:https://github.com/srcdeps/srcdeps-maven/blob/master/srcdeps-maven-quickstarts/srcdeps-mvn-git-revision-quickstart/.mvn/extensions.xml#L31-L35[Srcdeps Git Revision Quickstart].
+  #
+  # We emphasize, that these settings are effective only if source dependencies exist in the outer
+  # project. In case there are no source dependencies there, the build will not fail even if any of
+  # the configured goals, profiles or properties are present.
+  #
+  # Note that the goals, profiles and properties set below are combined with with the logical `OR` - i.e.
+  # the build will fail if one or more of the goals, profiles or properties are not present in the outer build.
+  #
+  # Optional, see the individual attributes for their respective defaults
+  # Since 2.1
+  failWithout:
+
+    # `goals` - a list of Maven goals that should make the outer build fail if they are not present and the outer
+    # build has source dependencies. The goals can be either in the short form, e.g. `release:prepare`, or
+    # in the fully qualified form, e.g. `org.my-group:my-plugin:my-mojo`
+    #
+    # Optional, no default
+    # Since 2.1
+    goals:
+    - my-enabler-goal
+
+    # `profiles` - a list of Maven profile IDs that should make the outer build fail if they are not present and
+    # the outer build has source dependencies.
+    #
+    # Optional, no default
+    # Since 2.1
+    profiles:
+    - my-enabler-profile
+
+    # `properties` - a list of Maven properties that should make the outer build fail if they are not present
+    # and the outer build has source dependencies. The list can contain either bare property names (in which
+    # case a mere property presence checked) or name=value pairs (in which case both name and the value need to
+    # match).
+    #
+    # Optional, no default
+    # Since 2.1
+    properties:
+    - my-bare-enabler-property
+    - my-enabler-property=my-enabler-value
 
 # `repositories` - a map of source repositories to checkout and build from
 #

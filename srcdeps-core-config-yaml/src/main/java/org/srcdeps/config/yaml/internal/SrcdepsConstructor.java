@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ import java.nio.file.Paths;
 import org.srcdeps.core.config.BuilderIo;
 import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.Maven;
-import org.srcdeps.core.config.MavenFailWith;
+import org.srcdeps.core.config.MavenAssertions;
 import org.srcdeps.core.config.ScmRepository;
 import org.srcdeps.core.config.ScmRepositoryMaven;
 import org.srcdeps.core.config.scalar.Duration;
@@ -55,7 +55,8 @@ public class SrcdepsConstructor extends Constructor {
         this.yamlClassConstructors.put(NodeId.scalar, new PathConstruct());
         this.setPropertyUtils(
                 new BuilderPropertyUtils(Configuration.Builder.class, BuilderIo.Builder.class, Maven.Builder.class,
-                        MavenFailWith.Builder.class, ScmRepository.Builder.class, ScmRepositoryMaven.Builder.class));
+                        MavenAssertions.FailWithoutBuilder.class, MavenAssertions.FailWithBuilder.class,
+                        ScmRepository.Builder.class, ScmRepositoryMaven.Builder.class));
 
     }
 

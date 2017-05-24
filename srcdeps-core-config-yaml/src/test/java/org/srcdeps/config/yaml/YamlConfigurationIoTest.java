@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ import org.srcdeps.core.config.BuilderIo;
 import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.ConfigurationException;
 import org.srcdeps.core.config.Maven;
-import org.srcdeps.core.config.MavenFailWith;
+import org.srcdeps.core.config.MavenAssertions;
 import org.srcdeps.core.config.ScmRepository;
 import org.srcdeps.core.config.ScmRepositoryMaven;
 import org.srcdeps.core.config.scalar.Duration;
@@ -54,7 +54,7 @@ public class YamlConfigurationIoTest {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full.yaml"), "utf-8")) {
             Configuration actual = new YamlConfigurationIo().read(in).build();
             Configuration expected = Configuration.builder() //
-                    .configModelVersion("2.0") //
+                    .configModelVersion("2.1") //
                     .forwardProperty("myProp1") //
                     .forwardProperty("myProp2") //
                     .builderIo(BuilderIo.builder().stdin("read:/path/to/input/file")
@@ -67,7 +67,7 @@ public class YamlConfigurationIoTest {
                             Maven.builder() //
                                     .versionsMavenPluginVersion("1.2") //
                                     .failWith( //
-                                            MavenFailWith.builder() //
+                                            MavenAssertions.failWithBuilder() //
                                                     .addDefaults(false) //
                                                     .goal("goal1") //
                                                     .goal("goal2") //
@@ -75,6 +75,15 @@ public class YamlConfigurationIoTest {
                                                     .profile("profile2") //
                                                     .property("property1") //
                                                     .property("property2") //
+                            ) //
+                                    .failWithout( //
+                                            MavenAssertions.failWithoutBuilder() //
+                                                    .goal("goalA") //
+                                                    .goal("goalB") //
+                                                    .profile("profileA") //
+                                                    .profile("profileB") //
+                                                    .property("propertyA") //
+                                                    .property("propertyB") //
                             ) //
                     ) //
                     .repository( //
