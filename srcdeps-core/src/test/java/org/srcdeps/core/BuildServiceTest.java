@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -40,6 +42,7 @@ import org.srcdeps.core.util.SrcdepsCoreUtils;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class BuildServiceTest extends InjectedTest {
+
     private static final Logger log = LoggerFactory.getLogger(BuildServiceTest.class);
     private static final String mrmSettingsXmlPath = System.getProperty("mrm.settings.xml");
     private static final Path mvnLocalRepo;
@@ -80,19 +83,40 @@ public class BuildServiceTest extends InjectedTest {
 
     };
 
-    public void assertBuild(String gitRepoName, String groupDir, String artifactId, String srcVersion) throws IOException, BuildException {
+    public void assertBuild(String gitRepoUri, String srcVersion, String... artifactPathTemplates)
+            throws IOException, BuildException {
         Assert.assertNotNull("buildService not injected", buildService);
         log.info("Using {} as {}", buildService.getClass().getName(), BuildService.class.getName());
 
         final Path projectRoot = projectsDirectory.resolve(currentTestName);
         final Path projectBuildDirectory = projectRoot.resolve("build");
 
+        final List<Path> paths = new ArrayList<>(artifactPathTemplates.length * 2);
+        for (String artifactPathTemplate : artifactPathTemplates) {
+            if (artifactPathTemplate.endsWith("]")) {
+                int leftSqBracket = artifactPathTemplate.lastIndexOf('[');
+                final String typesString = artifactPathTemplate.substring(leftSqBracket + 1,
+                        artifactPathTemplate.length() - 1);
+                final String[] types = typesString.split(",");
+                final String template = artifactPathTemplate.substring(0, leftSqBracket);
+                for (String type : types) {
+                    Path path = mvnLocalRepo.resolve(template.replace("${version}", srcVersion) + type);
+                    paths.add(path);
+                }
+            } else {
+                Path path = mvnLocalRepo.resolve(artifactPathTemplate.replace("${version}", srcVersion));
+                paths.add(path);
+            }
+        }
+
         SrcdepsCoreUtils.deleteDirectory(projectRoot);
-        final String artifactDir = groupDir + "/"+ artifactId;
-        SrcdepsCoreUtils.deleteDirectory(mvnLocalRepo.resolve(artifactDir));
+
+        for (Path path : paths) {
+            SrcdepsCoreUtils.deleteDirectory(path.getParent());
+        }
 
         BuildRequest request = BuildRequest.builder() //
-                .scmUrl("git:https://github.com/srcdeps/"+ gitRepoName +".git") //
+                .scmUrl(gitRepoUri) //
                 .srcVersion(SrcVersion.parse(srcVersion)).projectRootDirectory(projectBuildDirectory) //
                 .buildArgument("-Dmaven.repo.local=" + mvnLocalRepo.toString()) //
                 .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
@@ -100,13 +124,40 @@ public class BuildServiceTest extends InjectedTest {
 
         buildService.build(request);
 
-        final String artifactPrefix = artifactDir + "/" + srcVersion + "/"+ artifactId +"-" + srcVersion;
-        assertExists(mvnLocalRepo.resolve(artifactPrefix + ".jar"));
-        assertExists(mvnLocalRepo.resolve(artifactPrefix + ".pom"));
+        for (Path path : paths) {
+            assertExists(path);
+        }
+
     }
 
     public void assertMvnBuild(String srcVersion) throws IOException, BuildException {
-        assertBuild("srcdeps-test-artifact", "org/l2x6/maven/srcdeps/itest", "srcdeps-test-artifact", srcVersion);
+        assertBuild("git:https://github.com/srcdeps/srcdeps-test-artifact.git", srcVersion,
+                "org/l2x6/maven/srcdeps/itest/srcdeps-test-artifact/${version}/srcdeps-test-artifact-${version}.[pom,jar]");
+    }
+
+    @Test
+    public void testGradleGitRevision() throws BuildException, IOException {
+        assertBuild("git:https://github.com/srcdeps/srcdeps-test-artifact-gradle.git",
+                "0.0.1-SRC-revision-389765a9de4f8526b6b2776c39bb0de67668de62",
+                "org/srcdeps/test/gradle/srcdeps-test-artifact-gradle/${version}/srcdeps-test-artifact-gradle-${version}.[pom,jar]");
+    }
+
+    @Test
+    public void testGradleGitRevisionMultiModule() throws BuildException, IOException {
+        assertBuild("git:https://github.com/srcdeps/srcdeps-test-artifact-gradle.git",
+                "0.0.1-SRC-revision-e63539236a94e8f6c2d720f8bda0323d1ce4db0f",
+                "org/srcdeps/test/gradle/srcdeps-test-artifact-gradle-api/${version}/srcdeps-test-artifact-gradle-api-${version}.[pom,jar]",
+                "org/srcdeps/test/gradle/srcdeps-test-artifact-gradle-impl/${version}/srcdeps-test-artifact-gradle-impl-${version}.[pom,jar]");
+    }
+
+    @Test
+    public void testGradleGitRevisionMockito() throws BuildException, IOException {
+        assertBuild("git:https://github.com/srcdeps/mockito.git",
+                "0.0.1-SRC-revision-6d6361fc72c16c947ef5f2f587fd9269a9d47f23",
+                "org/mockito/mockito-android/${version}/mockito-android-${version}.[pom,jar]",
+                "org/mockito/mockito-core/${version}/mockito-core-${version}.[pom,jar]",
+                "org/mockito/mockito-inline/${version}/mockito-inline-${version}.[pom,jar]"
+                );
     }
 
     @Test

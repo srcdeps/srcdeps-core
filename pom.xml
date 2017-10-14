@@ -17,7 +17,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.srcdeps.core</groupId>
@@ -46,6 +47,7 @@
   </developers>
 
   <modules>
+    <module>srcdeps-core-gradle-settings</module>
     <module>srcdeps-core</module>
     <module>srcdeps-core-config-yaml</module>
     <module>srcdeps-core-buildconfig</module>
@@ -80,10 +82,12 @@
          around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
     <version.com.google.inject>4.0</version.com.google.inject>
     <version.junit>4.12</version.junit>
+    <version.org.codehaus.groovy>2.4.10</version.org.codehaus.groovy>
     <version.org.eclipse.jgit>4.5.0.201609210915-r</version.org.eclipse.jgit>
     <!-- keep in sync with sisuInjectVersion in maven
          around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
     <version.org.eclipse.sisu>0.3.3</version.org.eclipse.sisu>
+    <version.org.jboss.byteman>3.0.10</version.org.jboss.byteman>
     <version.org.slf4j>1.7.22</version.org.slf4j>
     <version.org.snakeyaml>1.17</version.org.snakeyaml>
 
@@ -93,7 +97,7 @@
          during releases -->
     <version.org.srcdeps.core>3.1.1-SNAPSHOT</version.org.srcdeps.core><!-- @srcdeps.version@ -->
     <!-- Comma separated list of source files where we need to update the version literals marked by @srcdeps.version@ -->
-    <srcdeps.version.files>pom.xml</srcdeps.version.files>
+    <srcdeps.version.files>pom.xml,srcdeps-core/src/main/java/org/srcdeps/core/Constants.java</srcdeps.version.files>
 
     <!--
       Maven plugin versions
@@ -122,6 +126,7 @@
     <version.maven-source-plugin>2.4</version.maven-source-plugin>
     <version.maven-surefire-plugin>2.19.1</version.maven-surefire-plugin>
     <version.nexus-staging-maven-plugin>1.6.6</version.nexus-staging-maven-plugin>
+    <version.build-helper-maven-plugin>1.8</version.build-helper-maven-plugin>
     <version.org.codehaus.buildnumber-maven-plugin>1.4</version.org.codehaus.buildnumber-maven-plugin>
     <version.org.codehaus.mojo.xml-maven-plugin>1.0.1</version.org.codehaus.mojo.xml-maven-plugin>
     <version.directory-maven-plugin>0.1</version.directory-maven-plugin>
@@ -189,6 +194,12 @@
       </dependency>
 
       <dependency>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy</artifactId>
+        <version>${version.org.codehaus.groovy}</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.eclipse.jgit</groupId>
         <artifactId>org.eclipse.jgit</artifactId>
         <version>${version.org.eclipse.jgit}</version>
@@ -202,6 +213,12 @@
       </dependency>
 
       <dependency>
+        <groupId>org.jboss.byteman</groupId>
+        <artifactId>byteman</artifactId>
+        <version>${version.org.jboss.byteman}</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.srcdeps.core</groupId>
         <artifactId>srcdeps-core</artifactId>
         <version>3.1.1-SNAPSHOT</version>
@@ -210,6 +227,20 @@
       <dependency>
         <groupId>org.srcdeps.core</groupId>
         <artifactId>srcdeps-core-config-yaml</artifactId>
+        <version>3.1.1-SNAPSHOT</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.srcdeps.core</groupId>
+        <artifactId>srcdeps-core-gradle-version-override</artifactId>
+        <type>btm</type>
+        <version>3.1.1-SNAPSHOT</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.srcdeps.core</groupId>
+        <artifactId>srcdeps-core-gradle-settings</artifactId>
+        <type>gradle</type>
         <version>3.1.1-SNAPSHOT</version>
       </dependency>
 
@@ -423,6 +454,12 @@
 
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>${version.build-helper-maven-plugin}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
           <artifactId>mrm-maven-plugin</artifactId>
           <version>${version.mrm-maven-plugin}</version>
         </plugin>
@@ -482,6 +519,7 @@ See the License for the specific language governing permissions and
 limitations under the License.</inlineHeader>
           <excludes>
             <exclude>**/*.adoc</exclude>
+            <exclude>**/*.expected</exclude>
             <exclude>**/README</exclude>
             <exclude>**/README.*</exclude>
             <exclude>**/LICENSE.*</exclude>
@@ -491,6 +529,8 @@ limitations under the License.</inlineHeader>
             <exclude>mvnw.cmd</exclude>
           </excludes>
           <mapping>
+            <btm>SCRIPT_STYLE</btm>
+            <gradle>JAVADOC_STYLE</gradle>
             <yaml>SCRIPT_STYLE</yaml>
             <yml>SCRIPT_STYLE</yml>
           </mapping>

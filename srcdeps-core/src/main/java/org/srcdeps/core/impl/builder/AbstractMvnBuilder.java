@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.srcdeps.core.BuildException;
 import org.srcdeps.core.BuildRequest;
@@ -38,6 +39,7 @@ import org.srcdeps.core.shell.ShellCommand;
 public abstract class AbstractMvnBuilder extends ShellBuilder {
     protected static final List<String> MVN_DEFAULT_ARGS = Collections
             .unmodifiableList(Arrays.asList("clean", "install"));
+    protected static final Map<String, String> MVN_DEFAULT_BUILD_ENVIRONMENT = Collections.emptyMap();
     protected static final List<String> MVNW_FILE_NAMES = Collections
             .unmodifiableList(Arrays.asList("mvnw", "mvnw.cmd"));
 
@@ -110,8 +112,13 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     }
 
     @Override
+    protected Map<String, String> getDefaultBuildEnvironment() {
+        return MVN_DEFAULT_BUILD_ENVIRONMENT;
+    }
+
+    @Override
     protected List<String> getSkipTestsArguments(boolean skipTests) {
-        return skipTests ? SKIP_TESTS_ARGS : Collections.<String> emptyList();
+        return skipTests ? SKIP_TESTS_ARGS : Collections.<String>emptyList();
     }
 
     @Override
