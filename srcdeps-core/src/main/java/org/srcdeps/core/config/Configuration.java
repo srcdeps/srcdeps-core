@@ -190,12 +190,12 @@ public class Configuration {
     private static final Set<String> DEFAULT_FORWARD_PROPERTIES = Collections
             .unmodifiableSet(new LinkedHashSet<>(Arrays.asList(Maven.getSrcdepsMavenPropertiesPattern())));
 
-    private static final String LATEST_CONFIG_MODEL_VERSION = "2.1";
+    private static final String LATEST_CONFIG_MODEL_VERSION = "2.2";
 
     private static final String SRCDEPS_ENCODING_PROPERTY = "srcdeps.encoding";
 
     private static final Set<String> SUPPORTED_CONFIG_MODEL_VERSIONS = Collections
-            .unmodifiableSet(new LinkedHashSet<>(Arrays.asList("2.0", LATEST_CONFIG_MODEL_VERSION)));
+            .unmodifiableSet(new LinkedHashSet<>(Arrays.asList("2.0", "2.1", LATEST_CONFIG_MODEL_VERSION)));
 
     public static Builder builder() {
         return new Builder();

@@ -17,6 +17,7 @@
 package org.srcdeps.core;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,6 +54,15 @@ public class GavSet {
             return this;
         }
 
+        public Builder excludes(Collection<String> rawPatterns) {
+            if (rawPatterns != null) {
+                for (String rawPattern : rawPatterns) {
+                    this.excludes.add(GavPattern.of(rawPattern));
+                }
+            }
+            return this;
+        }
+
         public Builder excludes(String... rawPatterns) {
             if (rawPatterns != null) {
                 for (String rawPattern : rawPatterns) {
@@ -69,6 +79,15 @@ public class GavSet {
 
         public Builder include(String rawPattern) {
             this.includes.add(GavPattern.of(rawPattern));
+            return this;
+        }
+
+        public Builder includes(Collection<String> rawPatterns) {
+            if (rawPatterns != null) {
+                for (String rawPattern : rawPatterns) {
+                    this.includes.add(GavPattern.of(rawPattern));
+                }
+            }
             return this;
         }
 
@@ -97,12 +116,14 @@ public class GavSet {
     }
 
     private final List<GavPattern> excludes;
-    private final List<GavPattern> includes;
+    private final int hashcode;
+    private final List<GavPattern> includes;;
 
     GavSet(List<GavPattern> includes, List<GavPattern> excludes) {
         super();
         this.includes = includes;
         this.excludes = excludes;
+        this.hashcode = 31 * (31 * 1 + excludes.hashCode()) + includes.hashCode();
     }
 
     /**
@@ -117,7 +138,35 @@ public class GavSet {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        GavSet other = (GavSet) obj;
+        if (excludes == null) {
+            if (other.excludes != null)
+                return false;
+        } else if (!excludes.equals(other.excludes))
+            return false;
+        if (includes == null) {
+            if (other.includes != null)
+                return false;
+        } else if (!includes.equals(other.includes))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return hashcode;
+    }
+
+    @Override
     public String toString() {
         return "GavSet [excludes=" + excludes + ", includes=" + includes + "]";
     }
+
 }

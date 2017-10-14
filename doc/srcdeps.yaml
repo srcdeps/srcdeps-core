@@ -37,10 +37,11 @@
 #  2.1.0        | 2.1.0         | 1.1, 1.0
 #  3.0.x        | 3.0.x         | 2.0
 #  3.1.x        | 3.1.x         | 2.1, 2.0
+#  3.2.x        | 3.2.x         | 2.2
 #
 # Required, no default
 # Since 1.0
-configModelVersion: 2.0
+configModelVersion: 2.2
 
 # `forwardProperties` - used rarely, mostly for debugging.
 # A list of property names that the top level builder A should pass as java system properties to every
@@ -255,14 +256,14 @@ repositories:
   # or any other string unique at this level of the yaml file.
   org.l2x6.maven.srcdeps.itest:
 
-    # `selectors` - a way how to map dependency artifacts to source repositories.
+    # `includes` - select which dependency artifacts should be built from this source repository.
     #
-    # A selector is a pattern to match dependency GAVs (triples of groupId, artifactId and version) against. A selector
+    # An include is a pattern to match dependency GAVs (triples of groupId, artifactId and version) against. An include
     # has three colon delimited subpatterns, one for each of groupId, artifactId and version. The subpatterns for
     # artifactId and version can be omitted. The subpatterns may contain the wildcard * that stands for a number
     # of characters or an empty string.
     #
-    # = Selector examples:
+    # = examples of includes:
     #
     # `org.my-group`             an equivalent of `org.my-group:*:*`. It will match any version of any artifact
     #                            having groupId `org.my-group`.
@@ -276,15 +277,33 @@ repositories:
     #
     # `org.my-group:my-artifact:1.2.3` will match just the version 1.2.3 of artifacts `org.my-group:my-artifact`.
     #
-    # Note that in configModelVersion: 1.0, a selectors contained only groupId literals to perform exact string match
-    # with the `groupId` of the dependency. Because the subpatterns for artifactId and version can be omitted in 1.1
+    # At least one include is required
+    # Since 2.2
+    #
+    # Note that `includes` has the same meaning as `selectors` that existed since 1.0. `selectors` is still kept as an
+    # alias for `includes`.
+    #
+    # Note that in configModelVersion: 1.0, selectors consisted only of groupId literals to perform exact string match
+    # with the `groupId` of the dependency. Because the subpatterns for artifactId and version can be omitted since 1.1
     # the 1.1 selectors are backward compatible with 1.0 selectors.
     #
-    # At least one selector is required
-    # Since 1.0, but the syntax changed in 1.1 - see aboev
-    selectors:
+    includes:
     - org.l2x6.maven.srcdeps.itest # This SCM repository entry will be used for building artifacts
-                                   # with groupId org.l2x6.maven.srcdeps.itest
+                                   # with groupId org.l2x6.maven.srcdeps.itest (unless the given artifact is excluded
+                                   # by `excludes`)
+
+    # `excludes` - exclude dependency artifacts out of the set of artifacts that should be built from this source
+    # repository.
+    #
+    # Syntax of `excludes` is the same as `includes`.
+    #
+    # Optional, default is an empty list
+    # Since 2.2
+    #
+    excludes:
+    - org.l2x6.maven.srcdeps.itest:my-artifact # All artifacts with groupId `org.l2x6.maven.srcdeps.itest` and
+                                               # `artifactId my-artifact` are hereby marked as not having their source
+                                               # code in this source repository.
 
     # `urls` - a list of URLs to checkout the sources of the given dependency. If you list multiple SCM
     # repositories here then only the first successful checkout will count.

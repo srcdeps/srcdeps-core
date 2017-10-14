@@ -128,7 +128,7 @@ public class GavPattern {
      * literals and asterisk wildcard {@code *}. {@code *} matches zero or many arbitrary characters. Wildcard patterns
      * for groupId, artifactId and version need to be delimited by colon {@value #DELIMITER}.
      * <p>
-     * Selector examples:
+     * GAV pattern examples:
      * <p>
      * {@code org.my-group} - an equivalent of {@code org.my-group:*:*}. It will match any version of any artifact
      * having groupId {@code org.my-group}.

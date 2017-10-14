@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-configModelVersion: 2.2
+configModelVersion: 2.1
 
 forwardProperties:
 - myProp1
@@ -61,12 +61,9 @@ maven:
 repositories:
 
   org.repo1:
-    includes:
+    selectors:
     - group1
     - group2:artifact2:*
-    excludes:
-    - group3
-    - group4:artifact4
     urls:
     - url1
     - url2
@@ -81,7 +78,7 @@ repositories:
       versionsMavenPluginVersion: 2.2
 
   org.repo2:
-    includes:
+    selectors:
     - group3:artifact3
     - group4:artifact4:1.2.3
     urls:

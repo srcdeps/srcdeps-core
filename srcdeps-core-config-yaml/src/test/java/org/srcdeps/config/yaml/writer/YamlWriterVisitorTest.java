@@ -49,7 +49,7 @@ public class YamlWriterVisitorTest {
                                     .commentBefore("repo1 comment line 1") //
                                     .commentBefore("repo1 comment line 2") //
                                     .id("repo1") //
-                                    .selector("org.repo1") //
+                                    .include("org.repo1") //
                                     .url("git:url1")) //
                     .accept(new DefaultsAndInheritanceVisitor()).accept(writerVisitor) //
                     .build();
@@ -58,13 +58,13 @@ public class YamlWriterVisitorTest {
         String expectedConfig = "#\n" //
                         + "# srcdeps comment line 1\n" //
                         + "# srcdeps comment line 2\n" //
-                        + "configModelVersion: 2.1\n" //
+                        + "configModelVersion: 2.2\n" //
                         + "repositories:\n" //
                         + "\n" //
                         + "  # repo1 comment line 1\n" //
                         + "  # repo1 comment line 2\n" //
                         + "  repo1:\n" //
-                        + "    selectors:\n" //
+                        + "    includes:\n" //
                         + "    - org.repo1\n" //
                         + "    urls:\n" //
                         + "    - git:url1\n";

@@ -21,34 +21,35 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.srcdeps.core.GavPattern;
+import org.srcdeps.core.GavSet;
 
 /**
- * A class responsible for matching artifacts against patterns available in {@link ScmRepository#getSelectors()}.
+ * A class responsible for matching artifacts against patterns available in {@link ScmRepository#getIncludes()}.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class ScmRepositoryFinder {
 
-
-    private final Map<GavPattern, ScmRepository> gavPatternRepositoryMap;
+    private final Map<GavSet, ScmRepository> gavSetRepositoryMap;
 
     public ScmRepositoryFinder(Configuration configuration) {
         super();
-        Map<GavPattern, ScmRepository> resolvers = new LinkedHashMap<>();
+        Map<GavSet, ScmRepository> resolvers = new LinkedHashMap<>();
 
         for (ScmRepository repository : configuration.getRepositories()) {
-            for (String selector : repository.getSelectors()) {
-                resolvers.put(GavPattern.of(selector), repository);
-            }
+            final GavSet gavSet = GavSet.builder() //
+                    .includes(repository.getIncludes()) //
+                    .excludes(repository.getExcludes()) //
+                    .build();
+            resolvers.put(gavSet, repository);
         }
 
-        this.gavPatternRepositoryMap = Collections.unmodifiableMap(resolvers);
+        this.gavSetRepositoryMap = Collections.unmodifiableMap(resolvers);
     }
 
     /**
-     * Finds the {@link ScmRepository} that has a selector matching the given {@code groupId}, {@code artifactId} and
-     * {@code version}. Returns the matching {@link ScmRepository} or throws an {@link IllegalStateException}.
+     * Finds the {@link ScmRepository} {@link GavSet} contains the given GAV triple {@code groupId}, {@code artifactId}
+     * and {@code version}. Returns the matching {@link ScmRepository} or throws an {@link IllegalStateException}.
      *
      * @param groupId
      *            the groupId of the artifact for which we seek a matching {@link ScmRepository}
@@ -61,8 +62,8 @@ public class ScmRepositoryFinder {
      *             if no matching {@link ScmRepository} was found
      */
     public ScmRepository findRepository(String groupId, String artifactId, String version) {
-        for (Entry<GavPattern, ScmRepository> en : gavPatternRepositoryMap.entrySet()) {
-            if (en.getKey().matches(groupId, artifactId, version)) {
+        for (Entry<GavSet, ScmRepository> en : gavSetRepositoryMap.entrySet()) {
+            if (en.getKey().contains(groupId, artifactId, version)) {
                 return en.getValue();
             }
         }
