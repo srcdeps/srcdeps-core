@@ -29,19 +29,40 @@ public class GavtcTest {
         Assert.assertEquals(new Gavtc("g", "a", "v", "t"), Gavtc.of("g:a:v:t"));
     }
 
+    @Test
+    public void ofEmptyClassifier() {
+        Gavtc gavtc = Gavtc.of("g:a:v:t:");
+        Assert.assertEquals("g", gavtc.getGroupId());
+        Assert.assertEquals("a", gavtc.getArtifactId());
+        Assert.assertEquals("v", gavtc.getVersion());
+        Assert.assertEquals("t", gavtc.getType());
+        Assert.assertNull(gavtc.getClassifier());
+    }
+
     @Test(expected = IllegalStateException.class)
     public void ofMissingArtifactId() {
         Gavtc.of("g");
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void ofMissingVersion() {
-        Gavtc.of("g:a");
+    @Test
+    public void ofMissingClassifier() {
+        Gavtc gavtc = Gavtc.of("g:a:v:t");
+        Assert.assertEquals("g", gavtc.getGroupId());
+        Assert.assertEquals("a", gavtc.getArtifactId());
+        Assert.assertEquals("v", gavtc.getVersion());
+        Assert.assertEquals("t", gavtc.getType());
+        Assert.assertNull(gavtc.getClassifier());
+
     }
 
     @Test(expected = IllegalStateException.class)
     public void ofMissingType() {
         Gavtc.of("g:a:v");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void ofMissingVersion() {
+        Gavtc.of("g:a");
     }
 
 }

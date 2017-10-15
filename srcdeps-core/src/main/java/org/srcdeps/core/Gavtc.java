@@ -19,7 +19,8 @@ package org.srcdeps.core;
 import java.util.StringTokenizer;
 
 /**
- * An immutable {@link #groupId}, {@link #artifactId}, {@link #version}, {@code type}, {@code classifier} tuple.
+ * An immutable {@link #groupId}, {@link #artifactId}, {@link #version}, {@code type}, {@code classifier} tuple. Note
+ * that only {@code classifier} can be {@code null}.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
@@ -28,13 +29,15 @@ public class Gavtc extends Gav {
     /**
      * Returns a new {@link Gavtc} instance parsed out of the given {@code gavtcString}.
      *
-     * @param gavtcString the string to parse, something of the form {@code groupId:artifactId:version:type:classifier}
+     * @param gavtcString
+     *            the string to parse, something of the form {@code groupId:artifactId:version:type:classifier}
      * @return a new {@link Gavtc} instance parsed out of the given {@code gavtcString}
      */
     public static Gavtc of(String gavtcString) {
         StringTokenizer st = new StringTokenizer(gavtcString, ":");
         if (!st.hasMoreTokens()) {
-            throw new IllegalStateException(String.format("Cannot parse [%s] to a " + Gav.class.getName(), gavtcString));
+            throw new IllegalStateException(
+                    String.format("Cannot parse [%s] to a " + Gav.class.getName(), gavtcString));
         } else {
             final String g = st.nextToken();
             if (!st.hasMoreTokens()) {
@@ -64,6 +67,8 @@ public class Gavtc extends Gav {
 
     private final String type;
 
+    private final int hashCode;
+
     public Gavtc(String groupId, String artifactId, String version, String type) {
         this(groupId, artifactId, version, type, null);
     }
@@ -72,6 +77,8 @@ public class Gavtc extends Gav {
         super(groupId, artifactId, version);
         this.type = type;
         this.classifier = classifier;
+        this.hashCode = 31 * (31 * super.hashCode() + type.hashCode())
+                + ((classifier == null) ? 0 : classifier.hashCode());
     }
 
     @Override
@@ -83,34 +90,33 @@ public class Gavtc extends Gav {
         if (getClass() != obj.getClass())
             return false;
         Gavtc other = (Gavtc) obj;
+        if (!type.equals(other.type))
+            return false;
         if (classifier == null) {
             if (other.classifier != null)
                 return false;
         } else if (!classifier.equals(other.classifier))
             return false;
-        if (type == null) {
-            if (other.type != null)
-                return false;
-        } else if (!type.equals(other.type))
-            return false;
         return true;
     }
 
+    /**
+     * @return the classifier or {@code null} if none was specified
+     */
     public String getClassifier() {
         return classifier;
     }
 
+    /**
+     * @return the artifact type, such as {@code jar} or {@code pom}
+     */
     public String getType() {
         return type;
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((classifier == null) ? 0 : classifier.hashCode());
-        result = prime * result + ((type == null) ? 0 : type.hashCode());
-        return result;
+        return hashCode;
     }
 
     @Override
