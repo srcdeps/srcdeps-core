@@ -16,6 +16,8 @@
  */
 package org.srcdeps.core;
 
+import java.util.Arrays;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -63,6 +65,14 @@ public class GavtcTest {
     @Test(expected = IllegalStateException.class)
     public void ofMissingVersion() {
         Gavtc.of("g:a");
+    }
+
+    @Test
+    public void ofPattern() {
+        Assert.assertEquals(Arrays.asList(Gavtc.of("g:a:v:pom"), Gavtc.of("g:a:v:jar")),
+                Gavtc.ofPattern("g:a:v:[pom,jar]"));
+        Assert.assertEquals(Arrays.asList(Gavtc.of("g:a:v:pom")), Gavtc.ofPattern("g:a:v:[pom]"));
+        Assert.assertEquals(Arrays.asList(Gavtc.of("g:a:v:pom")), Gavtc.ofPattern("g:a:v:pom"));
     }
 
 }

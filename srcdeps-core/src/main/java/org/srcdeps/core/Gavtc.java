@@ -16,6 +16,9 @@
  */
 package org.srcdeps.core;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.StringTokenizer;
 
 /**
@@ -63,11 +66,57 @@ public class Gavtc extends Gav {
         }
     }
 
+    /**
+     * Returns an unmodifiable {@link List} of {@link Gavtc}s parsed out of the given {@code gavtcPattern}. The only
+     * supported pattern-like feature is {@code [alternative1,alternative2]} factorization of artifact type.
+     * <p>
+     * Example: {@code ofPattern("g:a:v:[jar,pom]")} creates a list equivalent to
+     * {@code Collections.unmodifiableList(Arrays.asList(new Gavtc("g", "a", "v", "jar"), new Gavtc("g", "a", "v", "pom")))}
+     *
+     * @param gavtcPattern
+     * @return an unmodifiable {@link List} of {@link Gavtc}s
+     */
+    public static List<Gavtc> ofPattern(String gavtcPattern) {
+        StringTokenizer st = new StringTokenizer(gavtcPattern, ":");
+        if (!st.hasMoreTokens()) {
+            throw new IllegalStateException(
+                    String.format("Cannot parse [%s] to a " + Gav.class.getName(), gavtcPattern));
+        } else {
+            final String g = st.nextToken();
+            if (!st.hasMoreTokens()) {
+                throw new IllegalStateException(
+                        String.format("Cannot parse [%s] to a " + Gavtc.class.getName(), gavtcPattern));
+            } else {
+                final String a = st.nextToken();
+                if (!st.hasMoreTokens()) {
+                    throw new IllegalStateException(
+                            String.format("Cannot parse [%s] to a " + Gavtc.class.getName(), gavtcPattern));
+                } else {
+                    final String v = st.nextToken();
+                    if (!st.hasMoreTokens()) {
+                        throw new IllegalStateException(
+                                String.format("Cannot parse [%s] to a " + Gavtc.class.getName(), gavtcPattern));
+                    } else {
+                        final String t = st.nextToken();
+                        final String c = st.hasMoreTokens() ? st.nextToken() : null;
+                        List<Gavtc> result = new ArrayList<>();
+                        StringTokenizer typeTokenizer = new StringTokenizer(t, "[,]");
+                        while (typeTokenizer.hasMoreTokens()) {
+                            String type = typeTokenizer.nextToken();
+                            result.add(new Gavtc(g, a, v, type, c));
+                        }
+                        return Collections.unmodifiableList(result);
+                    }
+                }
+            }
+        }
+    }
+
     private final String classifier;
 
-    private final String type;
-
     private final int hashCode;
+
+    private final String type;
 
     public Gavtc(String groupId, String artifactId, String version, String type) {
         this(groupId, artifactId, version, type, null);
