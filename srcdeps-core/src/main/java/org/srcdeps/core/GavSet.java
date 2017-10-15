@@ -159,6 +159,20 @@ public class GavSet {
         return true;
     }
 
+    /**
+     * @return the list of excludes
+     */
+    public List<GavPattern> getExcludes() {
+        return excludes;
+    }
+
+    /**
+     * @return the list of includes
+     */
+    public List<GavPattern> getIncludes() {
+        return includes;
+    }
+
     @Override
     public int hashCode() {
         return hashcode;

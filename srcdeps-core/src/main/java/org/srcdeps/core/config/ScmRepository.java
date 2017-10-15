@@ -26,6 +26,7 @@ import java.util.StringTokenizer;
 
 import org.srcdeps.core.BuildRequest.Verbosity;
 import org.srcdeps.core.GavPattern;
+import org.srcdeps.core.GavSet;
 import org.srcdeps.core.config.scalar.Duration;
 import org.srcdeps.core.config.tree.ListOfScalarsNode;
 import org.srcdeps.core.config.tree.Node;
@@ -177,6 +178,11 @@ public class ScmRepository {
             return this;
         }
 
+        public Builder maven(ScmRepositoryMaven.Builder maven) {
+            this.maven.init(maven);
+            return this;
+        }
+
         /**
          * Kept for backwards compatibility, as {@code selectors} were renamed to {@code includes}
          *
@@ -185,11 +191,6 @@ public class ScmRepository {
          */
         public Builder selectors(List<String> selectors) {
             this.includes.addAll(selectors);
-            return this;
-        }
-
-        public Builder maven(ScmRepositoryMaven.Builder maven) {
-            this.maven.init(maven);
             return this;
         }
 
@@ -300,6 +301,7 @@ public class ScmRepository {
     private final BuilderIo builderIo;
     private final Duration buildTimeout;
     private final List<String> excludes;
+    private final GavSet gavSet;
     private final String id;
     private final List<String> includes;
     private final ScmRepositoryMaven maven;
@@ -315,6 +317,7 @@ public class ScmRepository {
         this.id = id;
         this.includes = includes;
         this.excludes = excludes;
+        this.gavSet = GavSet.builder().includes(includes).excludes(excludes).build();
         this.urls = urls;
         this.buildArguments = buildArgs;
         this.skipTests = skipTests;
@@ -413,6 +416,13 @@ public class ScmRepository {
      */
     public List<String> getExcludes() {
         return excludes;
+    }
+
+    /**
+     * @return the {@link GavSet} containing the artifacts that should be built from this {@link ScmRepository}.
+     */
+    public GavSet getGavSet() {
+        return gavSet;
     }
 
     /**
