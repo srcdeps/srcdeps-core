@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.core.impl.builder;
+package org.srcdeps.core;
 
 import java.nio.file.Files;
 

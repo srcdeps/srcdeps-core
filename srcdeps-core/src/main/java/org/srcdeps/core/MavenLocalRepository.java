@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.core.impl.builder;
+package org.srcdeps.core;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -28,8 +28,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.srcdeps.core.Constants;
-import org.srcdeps.core.Gavtc;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;

@@ -29,6 +29,7 @@ import java.util.Map;
 import org.srcdeps.core.BuildException;
 import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.MavenLocalRepository;
 
 /**
  * A base for {@link GradleBuilder} and {@link GradlewBuilder}.
