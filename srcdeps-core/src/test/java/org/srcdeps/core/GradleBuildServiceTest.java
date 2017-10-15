@@ -45,7 +45,7 @@ public class GradleBuildServiceTest extends AbstractBuildServiceTest {
     @Test
     public void testGradleGitRevisionMockito() throws BuildException, IOException {
         assertBuild("git:https://github.com/srcdeps/mockito.git",
-                "0.0.1-SRC-revision-6d6361fc72c16c947ef5f2f587fd9269a9d47f23", //
+                "0.0.1-SRC-revision-6030bb9be4795870a47d41c0bff8615a0e6a54f9", //
                 "org.mockito:mockito-android:${version}:[pom,jar]", //
                 "org.mockito:mockito-core:${version}:[pom,jar]", //
                 "org.mockito:mockito-inline:${version}:[pom,jar]" //
