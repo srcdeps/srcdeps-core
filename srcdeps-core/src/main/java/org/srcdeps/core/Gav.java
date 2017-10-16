@@ -16,6 +16,8 @@
  */
 package org.srcdeps.core;
 
+import java.util.StringTokenizer;
+
 /**
  * An immutable {@link #groupId}, {@link #artifactId}, {@link #version} triple with a fast {@link #hashCode()} and
  * {@link #equals(Object)}.
@@ -23,6 +25,33 @@ package org.srcdeps.core;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class Gav {
+
+    /**
+     * Returns a new {@link Gav} instance parsed out of the given {@code gavString}.
+     *
+     * @param gavString the string to parse, something of the form {@code groupId:artifactId:version}
+     * @return a new {@link Gav} instance parsed out of the given {@code gavString}
+     */
+    public static Gav of(String gavString) {
+        StringTokenizer st = new StringTokenizer(gavString, ":");
+        if (!st.hasMoreTokens()) {
+            throw new IllegalStateException(String.format("Cannot parse [%s] to a "+ Gav.class.getName(), gavString));
+        } else {
+            final String g = st.nextToken();
+            if (!st.hasMoreTokens()) {
+                throw new IllegalStateException(String.format("Cannot parse [%s] to a "+ Gav.class.getName(), gavString));
+            } else {
+                final String a = st.nextToken();
+                if (!st.hasMoreTokens()) {
+                    throw new IllegalStateException(String.format("Cannot parse [%s] to a "+ Gav.class.getName(), gavString));
+                } else {
+                    final String v = st.nextToken();
+                    return new Gav(g, a, v);
+                }
+            }
+        }
+    }
+
     private final String artifactId;
     private final String groupId;
     private final int hashCode;

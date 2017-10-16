@@ -37,7 +37,7 @@ public class DefaultsAndInheritanceTest {
                 .repository(//
                         ScmRepository.builder() //
                                 .id("repo1") //
-                                .selector("org.example") //
+                                .include("org.example") //
                                 .url("file:///whereever") //
         );
 
@@ -68,7 +68,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(repo1Builder.addDefaultBuildArguments.getValue());
         Assert.assertEquals(Collections.emptyList(), repo1Builder.buildArguments.asListOfValues());
         Assert.assertNull(repo1Builder.maven.versionsMavenPluginVersion.getValue());
-        Assert.assertEquals(Collections.singletonList("org.example"), repo1Builder.selectors.asListOfValues());
+        Assert.assertEquals(Collections.singletonList("org.example"), repo1Builder.includes.asListOfValues());
         Assert.assertNull(repo1Builder.skipTests.getValue());
         Assert.assertEquals(Collections.singletonList("file:///whereever"), repo1Builder.urls.asListOfValues());
         Assert.assertNull(repo1Builder.buildTimeout.getValue());
@@ -105,7 +105,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals("repo1", repo1.getId());
         Assert.assertEquals(true, repo1.isAddDefaultBuildArguments());
         Assert.assertEquals(Collections.emptyList(), repo1.getBuildArguments());
-        Assert.assertEquals(Collections.singletonList("org.example"), repo1.getSelectors());
+        Assert.assertEquals(Collections.singletonList("org.example"), repo1.getIncludes());
         Assert.assertEquals(true, repo1.isSkipTests());
         Assert.assertEquals(Collections.singletonList("file:///whereever"), repo1.getUrls());
         Assert.assertEquals(Maven.getDefaultVersionsMavenPluginVersion(),
@@ -145,7 +145,7 @@ public class DefaultsAndInheritanceTest {
                 .repository(//
                         ScmRepository.builder() //
                                 .id("repo1") //
-                                .selector("org.example") //
+                                .include("org.example") //
                                 .url("file:///whereever") //
         );
 

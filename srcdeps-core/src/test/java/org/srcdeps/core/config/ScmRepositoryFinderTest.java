@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,13 +67,13 @@ public class ScmRepositoryFinderTest {
     }
 
     private Builder repo1() {
-        return ScmRepository.builder().id("repo1").selector("group1").selector("group2:artifact2:*").url("url1")
+        return ScmRepository.builder().id("repo1").include("group1").include("group2:artifact2:*").url("url1")
                 .url("url2").buildArgument("-arg1").buildArgument("-arg2").addDefaultBuildArguments(false)
                 .skipTests(false);
     }
 
     private Builder repo2() {
-        return ScmRepository.builder().id("repo2").selector("group3:artifact3").selector("group4:artifact4:1.2.3")
+        return ScmRepository.builder().id("repo2").include("group3:artifact3").include("group4:artifact4:1.2.3")
                 .url("url3").url("url4").buildArgument("arg3").addDefaultBuildArguments(false).skipTests(false);
     }
 }

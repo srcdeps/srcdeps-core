@@ -54,6 +54,79 @@ public class YamlConfigurationIoTest {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full.yaml"), "utf-8")) {
             Configuration actual = new YamlConfigurationIo().read(in).build();
             Configuration expected = Configuration.builder() //
+                    .configModelVersion("2.2") //
+                    .forwardProperty("myProp1") //
+                    .forwardProperty("myProp2") //
+                    .builderIo(BuilderIo.builder().stdin("read:/path/to/input/file")
+                            .stdout("write:/path/to/output/file").stderr("err2out"))
+                    .skip(true) //
+                    .sourcesDirectory(Paths.get("/home/me/.m2/srcdeps")) //
+                    .verbosity(Verbosity.debug) //
+                    .buildTimeout(new Duration(35, TimeUnit.MINUTES)) //
+                    .maven( //
+                            Maven.builder() //
+                                    .versionsMavenPluginVersion("1.2") //
+                                    .failWith( //
+                                            MavenAssertions.failWithBuilder() //
+                                                    .addDefaults(false) //
+                                                    .goal("goal1") //
+                                                    .goal("goal2") //
+                                                    .profile("profile1") //
+                                                    .profile("profile2") //
+                                                    .property("property1") //
+                                                    .property("property2") //
+                            ) //
+                                    .failWithout( //
+                                            MavenAssertions.failWithoutBuilder() //
+                                                    .goal("goalA") //
+                                                    .goal("goalB") //
+                                                    .profile("profileA") //
+                                                    .profile("profileB") //
+                                                    .property("propertyA") //
+                                                    .property("propertyB") //
+                            ) //
+                    ) //
+                    .repository( //
+                            ScmRepository.builder() //
+                                    .id("org.repo1") //
+                                    .verbosity(Verbosity.trace) //
+                                    .include("group1") //
+                                    .include("group2:artifact2:*") //
+                                    .exclude("group3") //
+                                    .exclude("group4:artifact4") //
+                                    .url("url1") //
+                                    .url("url2") //
+                                    .buildArgument("-arg1") //
+                                    .buildArgument("-arg2") //
+                                    .addDefaultBuildArguments(false) //
+                                    .skipTests(false) //
+                                    .buildTimeout(new Duration(64, TimeUnit.SECONDS)) //
+                                    .maven( //
+                                            ScmRepositoryMaven.builder() //
+                                                    .versionsMavenPluginVersion("2.2") //
+                            ) //
+                    ) //
+                    .repository( //
+                            ScmRepository.builder() //
+                                    .id("org.repo2") //
+                                    .include("group3:artifact3") //
+                                    .include("group4:artifact4:1.2.3") //
+                                    .url("url3") //
+                                    .url("url4") //
+                                    .buildArgument("arg3") //
+                                    .addDefaultBuildArguments(false) //
+                                    .skipTests(false)) //
+                    .build();
+            Assert.assertEquals(expected, actual);
+        }
+    }
+
+
+    @Test
+    public void readFull21Selectors() throws ConfigurationException, UnsupportedEncodingException, IOException {
+        try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full-2.1-selectors.yaml"), "utf-8")) {
+            Configuration actual = new YamlConfigurationIo().read(in).build();
+            Configuration expected = Configuration.builder() //
                     .configModelVersion("2.1") //
                     .forwardProperty("myProp1") //
                     .forwardProperty("myProp2") //
@@ -90,8 +163,8 @@ public class YamlConfigurationIoTest {
                             ScmRepository.builder() //
                                     .id("org.repo1") //
                                     .verbosity(Verbosity.trace) //
-                                    .selector("group1") //
-                                    .selector("group2:artifact2:*") //
+                                    .include("group1") //
+                                    .include("group2:artifact2:*") //
                                     .url("url1") //
                                     .url("url2") //
                                     .buildArgument("-arg1") //
@@ -107,8 +180,8 @@ public class YamlConfigurationIoTest {
                     .repository( //
                             ScmRepository.builder() //
                                     .id("org.repo2") //
-                                    .selector("group3:artifact3") //
-                                    .selector("group4:artifact4:1.2.3") //
+                                    .include("group3:artifact3") //
+                                    .include("group4:artifact4:1.2.3") //
                                     .url("url3") //
                                     .url("url4") //
                                     .buildArgument("arg3") //
@@ -118,7 +191,6 @@ public class YamlConfigurationIoTest {
             Assert.assertEquals(expected, actual);
         }
     }
-
     @Test
     public void readMinimal() throws ConfigurationException, UnsupportedEncodingException, IOException {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-minimal.yaml"), "utf-8")) {
@@ -131,7 +203,7 @@ public class YamlConfigurationIoTest {
                     .repository( //
                             ScmRepository.builder() //
                                     .id("srcdepsTestArtifact") //
-                                    .selector("org.l2x6.maven.srcdeps.itest") //
+                                    .include("org.l2x6.maven.srcdeps.itest") //
                                     .url("git:https://github.com/srcdeps/srcdeps-test-artifact.git") //
                     ) //
                     .accept(new DefaultsAndInheritanceVisitor()) //

@@ -25,6 +25,7 @@ import java.util.Stack;
 import java.util.StringTokenizer;
 
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.GavPattern;
 import org.srcdeps.core.config.scalar.Duration;
 import org.srcdeps.core.config.tree.ListOfScalarsNode;
 import org.srcdeps.core.config.tree.Node;
@@ -61,8 +62,9 @@ public class ScmRepository {
             }
 
         };
+        final ListOfScalarsNode<String> excludes = new DefaultListOfScalarsNode<>("excludes", String.class);
+        final ListOfScalarsNode<String> includes = new DefaultListOfScalarsNode<>("includes", String.class);
         final ScmRepositoryMaven.Builder maven = ScmRepositoryMaven.builder();
-        final ListOfScalarsNode<String> selectors = new DefaultListOfScalarsNode<>("selectors", String.class);
         final ScalarNode<Boolean> skipTests = new DefaultScalarNode<>("skipTests", Boolean.TRUE);
         final ListOfScalarsNode<String> urls = new DefaultListOfScalarsNode<>("urls", String.class);
         final ScalarNode<Verbosity> verbosity = new DefaultScalarNode<Verbosity>("verbosity", Verbosity.class) {
@@ -84,7 +86,8 @@ public class ScmRepository {
         public Builder() {
             super("repository", true);
             addChildren( //
-                    selectors, //
+                    includes, //
+                    excludes, //
                     urls, //
                     buildArguments, //
                     addDefaultBuildArguments, //
@@ -104,7 +107,8 @@ public class ScmRepository {
         public ScmRepository build() {
             ScmRepository result = new ScmRepository( //
                     name, //
-                    selectors.asListOfValues(), //
+                    includes.asListOfValues(), //
+                    excludes.asListOfValues(), //
                     urls.asListOfValues(), //
                     buildArguments.asListOfValues(), //
                     skipTests.getValue(), //
@@ -136,6 +140,16 @@ public class ScmRepository {
             return this;
         }
 
+        public Builder exclude(String exclude) {
+            this.excludes.add(exclude);
+            return this;
+        }
+
+        public Builder excludes(List<String> excludes) {
+            this.excludes.addAll(excludes);
+            return this;
+        }
+
         @Override
         public Map<String, Node> getChildren() {
             return children;
@@ -153,18 +167,29 @@ public class ScmRepository {
             return this;
         }
 
+        public Builder include(String include) {
+            this.includes.add(include);
+            return this;
+        }
+
+        public Builder includes(List<String> includes) {
+            this.includes.addAll(includes);
+            return this;
+        }
+
+        /**
+         * Kept for backwards compatibility, as {@code selectors} were renamed to {@code includes}
+         *
+         * @param selectors
+         * @return this {@link Builder}
+         */
+        public Builder selectors(List<String> selectors) {
+            this.includes.addAll(selectors);
+            return this;
+        }
+
         public Builder maven(ScmRepositoryMaven.Builder maven) {
             this.maven.init(maven);
-            return this;
-        }
-
-        public Builder selector(String selector) {
-            this.selectors.add(selector);
-            return this;
-        }
-
-        public Builder selectors(List<String> selectors) {
-            this.selectors.addAll(selectors);
             return this;
         }
 
@@ -274,20 +299,22 @@ public class ScmRepository {
     private final List<String> buildArguments;
     private final BuilderIo builderIo;
     private final Duration buildTimeout;
+    private final List<String> excludes;
     private final String id;
+    private final List<String> includes;
     private final ScmRepositoryMaven maven;
-    private final List<String> selectors;
 
     private final boolean skipTests;
     private final List<String> urls;
     private final Verbosity verbosity;
 
-    private ScmRepository(String id, List<String> selectors, List<String> urls, List<String> buildArgs,
-            boolean skipTests, boolean addDefaultBuildArguments, ScmRepositoryMaven maven, Duration buildTimeout,
-            BuilderIo builderIo, Verbosity verbosity) {
+    private ScmRepository(String id, List<String> includes, List<String> excludes, List<String> urls,
+            List<String> buildArgs, boolean skipTests, boolean addDefaultBuildArguments, ScmRepositoryMaven maven,
+            Duration buildTimeout, BuilderIo builderIo, Verbosity verbosity) {
         super();
         this.id = id;
-        this.selectors = selectors;
+        this.includes = includes;
+        this.excludes = excludes;
         this.urls = urls;
         this.buildArguments = buildArgs;
         this.skipTests = skipTests;
@@ -334,10 +361,15 @@ public class ScmRepository {
                 return false;
         } else if (!maven.equals(other.maven))
             return false;
-        if (selectors == null) {
-            if (other.selectors != null)
+        if (includes == null) {
+            if (other.includes != null)
                 return false;
-        } else if (!selectors.equals(other.selectors))
+        } else if (!includes.equals(other.includes))
+            return false;
+        if (excludes == null) {
+            if (other.excludes != null)
+                return false;
+        } else if (!excludes.equals(other.excludes))
             return false;
         if (skipTests != other.skipTests)
             return false;
@@ -374,6 +406,16 @@ public class ScmRepository {
     }
 
     /**
+     * Returns a {@link List} of GAV patterns that should not be considered as belonging to this source repository. See
+     * {@link GavPattern#of(String)}
+     *
+     * @return a {@link List} of GAV patters
+     */
+    public List<String> getExcludes() {
+        return excludes;
+    }
+
+    /**
      * @return an identifier of this {@link ScmRepository}. Should be a sequence of Java identifiers concatenated by
      *         {@code '.'} character
      */
@@ -391,21 +433,20 @@ public class ScmRepository {
     }
 
     /**
+     * Returns a {@link List} of GAV patterns that should be built from this source repository. See
+     * {@link GavPattern#of(String)}
+     *
+     * @return a {@link List} of GAV patters
+     */
+    public List<String> getIncludes() {
+        return includes;
+    }
+
+    /**
      * @return the Maven specific settings for this source repository.
      */
     public ScmRepositoryMaven getMaven() {
         return maven;
-    }
-
-    /**
-     * Returns a {@link List} of selectors to map dependency artifacts to source repositories. ATM, the association is
-     * given by the exact string match between the {@code groupId} of the dependency artifact and one of the selectors
-     * listed here.
-     *
-     * @return a {@link List} of selectors
-     */
-    public List<String> getSelectors() {
-        return selectors;
     }
 
     /**
@@ -439,7 +480,8 @@ public class ScmRepository {
         result = prime * result + ((builderIo == null) ? 0 : builderIo.hashCode());
         result = prime * result + ((id == null) ? 0 : id.hashCode());
         result = prime * result + ((maven == null) ? 0 : maven.hashCode());
-        result = prime * result + ((selectors == null) ? 0 : selectors.hashCode());
+        result = prime * result + ((includes == null) ? 0 : includes.hashCode());
+        result = prime * result + ((excludes == null) ? 0 : excludes.hashCode());
         result = prime * result + (skipTests ? 1231 : 1237);
         result = prime * result + ((urls == null) ? 0 : urls.hashCode());
         result = prime * result + ((verbosity == null) ? 0 : verbosity.hashCode());
@@ -471,8 +513,8 @@ public class ScmRepository {
     public String toString() {
         return "ScmRepository [addDefaultBuildArguments=" + addDefaultBuildArguments + ", buildArguments="
                 + buildArguments + ", builderIo=" + builderIo + ", buildTimeout=" + buildTimeout + ", id=" + id
-                + ", maven=" + maven + ", selectors=" + selectors + ", skipTests=" + skipTests + ", urls=" + urls
-                + ", verbosity=" + verbosity + "]";
+                + ", maven=" + maven + ", includes=" + includes + ", excludes=" + excludes + ", skipTests=" + skipTests
+                + ", urls=" + urls + ", verbosity=" + verbosity + "]";
     }
 
 }

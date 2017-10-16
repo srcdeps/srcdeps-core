@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016 Maven Source Dependencies
+# Copyright 2015-2017 Maven Source Dependencies
 # Plugin contributors as indicated by the @author tags.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ sourcesDirectory: /home/me/.m2/srcdeps
 
 repositories:
   srcdepsTestArtifact:
-    selectors:
+    includes:
     - org.l2x6.maven.srcdeps.itest
     urls:
     - git:https://github.com/srcdeps/srcdeps-test-artifact.git

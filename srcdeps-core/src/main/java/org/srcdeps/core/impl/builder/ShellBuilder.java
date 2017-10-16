@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,9 @@
 package org.srcdeps.core.impl.builder;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.srcdeps.core.BuildException;
@@ -65,7 +67,7 @@ public abstract class ShellBuilder implements Builder {
                 .executable(locateExecutable(request)) //
                 .arguments(args) //
                 .workingDirectory(request.getProjectRootDirectory()) //
-                .environment(request.getBuildEnvironment()) //
+                .environment(mergeEnvironment(request)) //
                 .ioRedirects(request.getIoRedirects()) //
                 .timeoutMs(timeoutMs) //
                 .build();
@@ -73,6 +75,8 @@ public abstract class ShellBuilder implements Builder {
     }
 
     protected abstract List<String> getDefaultBuildArguments();
+
+    protected abstract Map<String, String> getDefaultBuildEnvironment();
 
     protected List<String> getForwardPropertiesArguments(Set<String> fwdPropNames) {
         List<String> result = new ArrayList<>();
@@ -122,6 +126,20 @@ public abstract class ShellBuilder implements Builder {
         return executable;
     }
 
+    /**
+     * Returns a new {@link List} that contains build arguments combined from the following sources:
+     * <ul>
+     * <li>{@link #getDefaultBuildArguments()} (if {@code request.isAddDefaultBuildArguments()} return
+     * {@code true})</li>
+     * <li>{@code request.getBuildArguments()}</li>
+     * <li>{@code getVerbosityArguments(request.getVerbosity()))}</li>
+     * <li>{@code getForwardPropertiesArguments(request.getForwardProperties())}</li>
+     * </ul>
+     *
+     * @param request
+     *            the request for which we are merging the arguments
+     * @return a new {@link List}, never {@code null}
+     */
     protected List<String> mergeArguments(BuildRequest request) {
         List<String> result = new ArrayList<>();
         if (request.isAddDefaultBuildArguments()) {
@@ -134,4 +152,22 @@ public abstract class ShellBuilder implements Builder {
         return result;
     }
 
+    /**
+     * Returns a new {@link Map} that contains environment variables combined from the following sources:
+     * <ul>
+     * <li>{@link #getDefaultBuildEnvironment()} (if {@code request.isAddDefaultBuildEnvironment()} return
+     * {@code true})</li>
+     * </ul>
+     *
+     * @param request
+     *            the request for which we are merging the arguments
+     * @return a new {@link Map}, never {@code null}
+     */
+    protected Map<String, String> mergeEnvironment(BuildRequest request) {
+        Map<String, String> result = new LinkedHashMap<>();
+        if (request.isAddDefaultBuildEnvironment()) {
+            result.putAll(getDefaultBuildEnvironment());
+        }
+        return result;
+    }
 }

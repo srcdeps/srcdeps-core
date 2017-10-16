@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,6 +49,7 @@ public class BuildRequest {
     public static class BuildRequestBuilder {
 
         private boolean addDefaultBuildArguments = true;
+        private boolean addDefaultBuildEnvironment = true;
         private List<String> buildArguments = new ArrayList<>();
         private Map<String, String> buildEnvironment = new LinkedHashMap<>();
         private Set<String> forwardProperties = new LinkedHashSet<>();
@@ -72,13 +73,23 @@ public class BuildRequest {
         }
 
         /**
+         * @param addDefaultBuildEnvironment
+         *            see {@link BuildRequest#isAddDefaultBuildEnvironment()}
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder addDefaultBuildEnvironment(boolean addDefaultBuildEnvironment) {
+            this.addDefaultBuildEnvironment = addDefaultBuildEnvironment;
+            return this;
+        }
+
+        /**
          * @return a new {@link BuildRequest} based on the values stored in fields of this {@link BuildRequestBuilder}
          */
         public BuildRequest build() {
             return new BuildRequest(projectRootDirectory, srcVersion, Collections.unmodifiableList(scmUrls),
                     Collections.unmodifiableList(buildArguments), skipTests, addDefaultBuildArguments,
                     Collections.unmodifiableSet(forwardProperties), Collections.unmodifiableMap(buildEnvironment),
-                    verbosity, ioRedirects, timeoutMs, versionsMavenPluginVersion);
+                    addDefaultBuildEnvironment, verbosity, ioRedirects, timeoutMs, versionsMavenPluginVersion);
         }
 
         /**
@@ -202,7 +213,8 @@ public class BuildRequest {
         }
 
         /**
-         * @param skipTests see {@link BuildRequest#isSkipTests()}
+         * @param skipTests
+         *            see {@link BuildRequest#isSkipTests()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder skipTests(boolean skipTests) {
@@ -292,6 +304,7 @@ public class BuildRequest {
     }
 
     private final boolean addDefaultBuildArguments;
+    private final boolean addDefaultBuildEnvironment;
     private final List<String> buildArguments;
     private final Map<String, String> buildEnvironment;
     private final Set<String> forwardProperties;
@@ -306,8 +319,8 @@ public class BuildRequest {
 
     private BuildRequest(Path projectRootDirectory, SrcVersion srcVersion, List<String> scmUrls,
             List<String> buildArguments, boolean skipTests, boolean addDefaultBuildArguments,
-            Set<String> forwardProperties, Map<String, String> buildEnvironment, Verbosity verbosity,
-            IoRedirects ioRedirects, long timeoutMs, String versionsMavenPluginVersion) {
+            Set<String> forwardProperties, Map<String, String> buildEnvironment, boolean addDefaultBuildEnvironment,
+            Verbosity verbosity, IoRedirects ioRedirects, long timeoutMs, String versionsMavenPluginVersion) {
         super();
 
         SrcdepsCoreUtils.assertArgNotNull(projectRootDirectory, "projectRootDirectory");
@@ -326,6 +339,7 @@ public class BuildRequest {
         this.buildArguments = buildArguments;
         this.skipTests = skipTests;
         this.buildEnvironment = buildEnvironment;
+        this.addDefaultBuildEnvironment = addDefaultBuildEnvironment;
         this.verbosity = verbosity;
         this.timeoutMs = timeoutMs;
         this.addDefaultBuildArguments = addDefaultBuildArguments;
@@ -428,6 +442,14 @@ public class BuildRequest {
     }
 
     /**
+     * @return {@code true} if the given {@link Builder}'s default environment variables should be combined with the
+     *         environment returned by {@link #getBuildEnvironment()}; {@code false} otherwise
+     */
+    public boolean isAddDefaultBuildEnvironment() {
+        return addDefaultBuildEnvironment;
+    }
+
+    /**
      * @return {@code true} if no tests should be run when building the dependency. For dependencies built with Maven,
      *         this accounts to adding {@code -DskipTests} to the {@code mvn} arguments.
      */
@@ -437,10 +459,12 @@ public class BuildRequest {
 
     @Override
     public String toString() {
-        return "BuildRequest [addDefaultBuildArguments=" + addDefaultBuildArguments + ", buildArguments="
-                + buildArguments + ", buildEnvironment=" + buildEnvironment + ", forwardProperties=" + forwardProperties
-                + ", ioRedirects=" + ioRedirects + ", projectRootDirectory=" + projectRootDirectory + ", scmUrls="
-                + scmUrls + ", skipTests=" + skipTests + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs
-                + ", verbosity=" + verbosity + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + "]";
+        return "BuildRequest [addDefaultBuildArguments=" + addDefaultBuildArguments + ", addDefaultBuildEnvironment="
+                + addDefaultBuildEnvironment + ", buildArguments=" + buildArguments + ", buildEnvironment="
+                + buildEnvironment + ", forwardProperties=" + forwardProperties + ", ioRedirects=" + ioRedirects
+                + ", projectRootDirectory=" + projectRootDirectory + ", scmUrls=" + scmUrls + ", skipTests=" + skipTests
+                + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs + ", verbosity=" + verbosity
+                + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + "]";
     }
+
 }

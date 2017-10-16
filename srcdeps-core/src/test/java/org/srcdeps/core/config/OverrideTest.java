@@ -35,12 +35,12 @@ public class OverrideTest {
                 .repository( //
                         ScmRepository.builder() //
                                 .id("org.repo1") //
-                                .selector("org.example") //
+                                .include("org.example") //
                                 .url("file:///whereever") //
         );
         ScmRepository.Builder nonOverlayedRepo = config.repositories.getChildren().get("org.repo1");
         Assert.assertEquals("org.repo1", nonOverlayedRepo.getName());
-        Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.selectors.asListOfValues());
+        Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.includes.asListOfValues());
         Assert.assertEquals(Collections.singletonList("file:///whereever"), nonOverlayedRepo.urls.asListOfValues());
 
         Properties props = new Properties();
@@ -52,7 +52,7 @@ public class OverrideTest {
         Assert.assertSame(nonOverlayedRepo, overlayedRepo);
 
         Assert.assertEquals("org.repo1", nonOverlayedRepo.getName());
-        Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.selectors.asListOfValues());
+        Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.includes.asListOfValues());
         Assert.assertEquals(Arrays.asList("file:///whereever", "file:///here"), nonOverlayedRepo.urls.asListOfValues());
 
     }
@@ -136,7 +136,7 @@ public class OverrideTest {
         Configuration.Builder config = Configuration.builder()
                 .repository(ScmRepository.builder() //
                         .id("org.repo1") //
-                        .selector("org.example") //
+                        .include("org.example") //
                         .url("file:///whereever") //
                         .maven( //
                                 ScmRepositoryMaven.builder() //
@@ -145,7 +145,7 @@ public class OverrideTest {
 
         ScmRepository.Builder nonOverlayedRepo = config.repositories.getChildren().get("org.repo1");
         Assert.assertEquals("org.repo1", nonOverlayedRepo.getName());
-        Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.selectors.asListOfValues());
+        Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.includes.asListOfValues());
         Assert.assertEquals(Collections.singletonList("file:///whereever"), nonOverlayedRepo.urls.asListOfValues());
         Assert.assertEquals("1.2", nonOverlayedRepo.maven.versionsMavenPluginVersion.getValue());
 
@@ -157,7 +157,7 @@ public class OverrideTest {
         ScmRepository.Builder overlayedRepo = config.repositories.getChildren().get("org.repo1");
         Assert.assertSame(nonOverlayedRepo, overlayedRepo);
         Assert.assertEquals("org.repo1", nonOverlayedRepo.getName());
-        Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.selectors.asListOfValues());
+        Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.includes.asListOfValues());
         Assert.assertEquals(Collections.singletonList("file:///whereever"), nonOverlayedRepo.urls.asListOfValues());
         Assert.assertEquals("1.3", nonOverlayedRepo.maven.versionsMavenPluginVersion.getValue());
 
@@ -184,12 +184,12 @@ public class OverrideTest {
                 .repository( //
                         ScmRepository.builder() //
                                 .id("repo1") //
-                                .selector("org.example") //
+                                .include("org.example") //
                                 .url("file:///whereever") //
         );
         ScmRepository.Builder nonOverlayedRepo = config.repositories.getChildren().get("repo1");
         Assert.assertEquals("repo1", nonOverlayedRepo.getName());
-        Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.selectors.asListOfValues());
+        Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.includes.asListOfValues());
         Assert.assertEquals(Collections.singletonList("file:///whereever"), nonOverlayedRepo.urls.asListOfValues());
 
         Properties props = new Properties();
@@ -201,7 +201,7 @@ public class OverrideTest {
         Assert.assertSame(nonOverlayedRepo, overlayedRepo);
 
         Assert.assertEquals("repo1", nonOverlayedRepo.getName());
-        Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.selectors.asListOfValues());
+        Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.includes.asListOfValues());
         Assert.assertEquals(Collections.singletonList("file:///here"), nonOverlayedRepo.urls.asListOfValues());
 
     }
