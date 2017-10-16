@@ -74,16 +74,31 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>org.srcdeps.core</groupId>
-      <artifactId>srcdeps-core-gradle-settings</artifactId>
-      <type>gradle</type>
-    </dependency>
-
   </dependencies>
 
   <build>
     <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>antrun-copy</id>
+            <phase>process-resources</phase>
+            <configuration>
+              <target name="move SrcdepsInner.java to SrcdepsInner.gradle">
+                <copy file="${basedir}/src/main/java/org/srcdeps/core/SrcdepsInner.java" tofile="${project.build.outputDirectory}/gradle/settings/SrcdepsInner.gradle" />
+                <copy file="${basedir}/src/main/java/org/srcdeps/core/GavSet.java" tofile="${project.build.outputDirectory}/gradle/settings/GavSet.gradle" />
+                <copy file="${basedir}/src/main/java/org/srcdeps/core/GavPattern.java" tofile="${project.build.outputDirectory}/gradle/settings/GavPattern.gradle" />
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
       <!-- To speed up the tests, we use the mrm-maven-plugin to proxy the local Maven repo of the main build so that
            the test child build does not have to download all the dependencies from the Central. -->

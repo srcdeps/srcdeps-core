@@ -183,8 +183,8 @@ public class GavSet {
 
     }
 
-    private static final GavSet INCLUDE_ALL = new GavSet(Collections.singletonList(GavPattern.matchAll()),
-            Collections.<GavPattern>emptyList());
+    private static final List<GavPattern> EMPTY_LIST = Collections.emptyList();
+    private static final GavSet INCLUDE_ALL = new GavSet(Collections.singletonList(GavPattern.matchAll()), EMPTY_LIST);
 
     private static void append(List<GavPattern> cludes, Appendable out) throws IOException {
         boolean first = true;
@@ -230,7 +230,8 @@ public class GavSet {
     /**
      * Appends {@link #excludes} to the given {@code out} separating them by comma.
      *
-     * @param out an {@link Appendable} to append to
+     * @param out
+     *            an {@link Appendable} to append to
      * @throws IOException
      */
     public void appendExcludes(Appendable out) throws IOException {
@@ -240,7 +241,8 @@ public class GavSet {
     /**
      * Appends {@link #includes} to the given {@code out} separating them by comma.
      *
-     * @param out an {@link Appendable} to append to
+     * @param out
+     *            an {@link Appendable} to append to
      * @throws IOException
      */
     public void appendIncludes(Appendable out) throws IOException {

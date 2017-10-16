@@ -17,20 +17,25 @@
 package org.srcdeps.core.impl.builder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.srcdeps.core.BuildException;
 import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.GavPattern;
 import org.srcdeps.core.GavSet;
-import org.srcdeps.core.MavenLocalRepository;
+import org.srcdeps.core.SrcdepsInner;
+import org.srcdeps.core.util.SrcdepsCoreUtils;
 
 /**
  * A base for {@link GradleBuilder} and {@link GradlewBuilder}.
@@ -40,10 +45,19 @@ import org.srcdeps.core.MavenLocalRepository;
 public abstract class AbstractGradleBuilder extends ShellBuilder {
     protected static final List<String> BUILD_GRADLE_FILE_NAMES = Collections.singletonList("build.gradle");
 
+    protected static final Path SRCDEPS_TRANSFORM_GRADLE = Paths.get("srcdeps-transform.gradle");
+    protected static final Pattern PACKAGE_PATTERN = Pattern.compile(".*package +[^;]+;");
+
     protected static final List<String> GRADLE_DEFAULT_ARGS = Collections
             .unmodifiableList(Arrays.asList("clean", "install", "--no-daemon"));
     protected static final List<String> GRADLEW_FILE_NAMES = Collections
             .unmodifiableList(Arrays.asList("gradlew", "gradlew.bat"));
+
+    protected static final List<String> INNER_CLASSES = Collections.unmodifiableList(Arrays.asList(//
+            GavPattern.class.getSimpleName() + ".gradle", //
+            GavSet.class.getSimpleName() + ".gradle", //
+            SrcdepsInner.class.getSimpleName() + ".gradle" //
+    ));
 
     protected static final List<String> SKIP_TESTS_ARGS = Collections.emptyList();
 
@@ -94,14 +108,9 @@ public abstract class AbstractGradleBuilder extends ShellBuilder {
     }
 
     protected final Map<String, String> defaultBuildEnvironment;
-    private final MavenLocalRepository mavenLocalRepository;
-
-    private final Path defaultGradleSettings;
 
     public AbstractGradleBuilder(String executable) {
         super(executable);
-        this.mavenLocalRepository = MavenLocalRepository.autodetect();
-        this.defaultGradleSettings = mavenLocalRepository.resolve(MavenLocalRepository.GRADLE_SETTINGS);
         this.defaultBuildEnvironment = Collections.emptyMap();
     }
 
@@ -169,13 +178,30 @@ public abstract class AbstractGradleBuilder extends ShellBuilder {
                 throw new BuildException(String.format("File not found [%s]", buildGradle));
             }
 
-            final byte[] settingsAppendix = Files.readAllBytes(defaultGradleSettings);
-            final Path settingsGradlePath = request.getProjectRootDirectory().resolve("settings.gradle");
-            if (Files.exists(settingsGradlePath)) {
-                Files.write(settingsGradlePath, settingsAppendix, StandardOpenOption.APPEND);
-            } else {
-                Files.write(settingsGradlePath, settingsAppendix);
+            final Path rootPath = request.getProjectRootDirectory();
+            final StringBuilder settingsAppendix = new StringBuilder("\n");
+
+            for (String innerClass : INNER_CLASSES) {
+                String srcdepsInnerSrc = SrcdepsCoreUtils
+                        .read(getClass().getResource("/gradle/settings/" + innerClass));
+                srcdepsInnerSrc = PACKAGE_PATTERN.matcher(srcdepsInnerSrc).replaceFirst("");
+                settingsAppendix.append(srcdepsInnerSrc).append("\n");
             }
+
+            settingsAppendix.append("def srcdepsInner = new SrcdepsInner()\n");
+
+            String srcdepsInnerSrc = SrcdepsCoreUtils
+                    .read(getClass().getResource("/gradle/settings/srcdeps-transform.gradle"));
+            settingsAppendix.append(srcdepsInnerSrc).append("\n");
+
+            final Path settingsGradlePath = rootPath.resolve("settings.gradle");
+            if (Files.exists(settingsGradlePath)) {
+                Files.write(settingsGradlePath, settingsAppendix.toString().getBytes(StandardCharsets.UTF_8),
+                        StandardOpenOption.APPEND);
+            } else {
+                Files.write(settingsGradlePath, settingsAppendix.toString().getBytes(StandardCharsets.UTF_8));
+            }
+
         } catch (IOException e) {
             throw new BuildException(String.format("Could not change the version in file [%s]", buildGradle), e);
         }

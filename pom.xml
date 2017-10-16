@@ -47,7 +47,6 @@
   </developers>
 
   <modules>
-    <module>srcdeps-core-gradle-settings</module>
     <module>srcdeps-core</module>
     <module>srcdeps-core-config-yaml</module>
     <module>srcdeps-core-buildconfig</module>
@@ -234,13 +233,6 @@
         <groupId>org.srcdeps.core</groupId>
         <artifactId>srcdeps-core-gradle-version-override</artifactId>
         <type>btm</type>
-        <version>3.1.1-SNAPSHOT</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.srcdeps.core</groupId>
-        <artifactId>srcdeps-core-gradle-settings</artifactId>
-        <type>gradle</type>
         <version>3.1.1-SNAPSHOT</version>
       </dependency>
 

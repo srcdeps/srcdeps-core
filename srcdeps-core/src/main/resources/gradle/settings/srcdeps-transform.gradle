@@ -14,23 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.core;
 
-import java.nio.file.Files;
+gradle.projectsLoaded {
 
-import org.junit.Assert;
-import org.junit.Test;
-
-/**
- * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
- */
-public class MavenLocalRepositoryTest {
-
-    @Test
-    public void pathsExist() {
-        MavenLocalRepository repo = MavenLocalRepository.autodetect();
-        Assert.assertTrue(MavenLocalRepository.class.getSimpleName() + ".getRootDirectory() must exist",
-                Files.exists(repo.getRootDirectory()));
+    gradle.rootProject.properties['allprojects'].each {
+        it.afterEvaluate { project ->
+            logger.error("srcdeps processing "+ project.group +":"+ project.name +":"+ project.version)
+            def plugins = project.plugins;
+            if (!plugins.hasPlugin('maven')) {
+                logger.error("srcdeps adding maven plugin to "+ project.name)
+                plugins.apply('maven')
+            }
+            logger.error("srcdeps changing version of "+ project.name +" from "+ project.version +" to "+ srcdepsInner.version)
+            project.version = srcdepsInner.version
+        }
     }
-
 }

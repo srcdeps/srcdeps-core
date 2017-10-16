@@ -144,8 +144,6 @@ public class MavenLocalRepository {
         return new MavenLocalRepository(rootDirectory);
     }
 
-    public static final Gavtc GRADLE_SETTINGS = new Gavtc("org.srcdeps.core", "srcdeps-core-gradle-settings",
-            Constants.SRCDEPS_CORE_VERSION, "gradle");
     private Path rootDirectory;
 
     public MavenLocalRepository(Path rootDirectory) {

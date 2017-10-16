@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,11 @@ package org.srcdeps.core.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
@@ -176,6 +181,26 @@ public class SrcdepsCoreUtils {
      */
     public static boolean isWindows() {
         return isWindows;
+    }
+
+    /**
+     * Opens am {@link InputStream} out of the given {@code url} and returns the content as a UTF-8 string.
+     *
+     * @param url
+     *            the {@link URL} to read from
+     * @return the content read from the given {@code url}
+     * @throws IOException
+     */
+    public static String read(URL url) throws IOException {
+        StringBuilder result = new StringBuilder();
+        try (Reader in = new InputStreamReader(url.openStream(), StandardCharsets.UTF_8)) {
+            char[] buf = new char[1024];
+            int n;
+            while ((n = in.read(buf)) >= 0) {
+                result.append(buf, 0, n);
+            }
+        }
+        return result.toString();
     }
 
     private SrcdepsCoreUtils() {
