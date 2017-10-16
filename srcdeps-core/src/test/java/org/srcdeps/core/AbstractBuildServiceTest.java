@@ -124,14 +124,16 @@ public class AbstractBuildServiceTest extends InjectedTest {
             SrcdepsCoreUtils.deleteDirectory(path.getParent());
         }
 
-        BuildRequest request = BuildRequest.builder() //
+        BuildRequestBuilder requestBuilder = BuildRequest.builder() //
                 .scmUrl(gitRepoUri) //
                 .srcVersion(SrcVersion.parse(srcVersion)).projectRootDirectory(projectBuildDirectory) //
                 .buildArgument("-Dmaven.repo.local=" + mvnLocalRepo.getRootDirectory().toString()) //
                 .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
-                .build();
+                ;
 
-        buildService.build(request);
+        builderTransformer.transform(requestBuilder);
+
+        buildService.build(requestBuilder.build());
 
         for (Path path : paths) {
             assertExists(path);

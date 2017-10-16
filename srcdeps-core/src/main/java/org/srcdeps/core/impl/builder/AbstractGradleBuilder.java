@@ -29,6 +29,7 @@ import java.util.Map;
 import org.srcdeps.core.BuildException;
 import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.GavSet;
 import org.srcdeps.core.MavenLocalRepository;
 
 /**
@@ -44,8 +45,7 @@ public abstract class AbstractGradleBuilder extends ShellBuilder {
     protected static final List<String> GRADLEW_FILE_NAMES = Collections
             .unmodifiableList(Arrays.asList("gradlew", "gradlew.bat"));
 
-    // Maybe also "-x", "integTest" ?
-    protected static final List<String> SKIP_TESTS_ARGS = Collections.emptyList(); // Collections.unmodifiableList(Arrays.asList("-x", "test"));
+    protected static final List<String> SKIP_TESTS_ARGS = Collections.emptyList();
 
     /**
      * @return the list of file names that can store Gradle build scripts.
@@ -141,7 +141,23 @@ public abstract class AbstractGradleBuilder extends ShellBuilder {
     @Override
     protected List<String> mergeArguments(BuildRequest request) {
         List<String> result = new ArrayList<>(super.mergeArguments(request));
-        result.add("-Dsrcdeps.version=" + request.getSrcVersion().toString());
+        result.add("-Dsrcdeps.inner.version=" + request.getSrcVersion().toString());
+
+        GavSet gavSet = request.getGavSet();
+
+        try {
+            StringBuilder sb = new StringBuilder("-Dsrcdeps.inner.includes=");
+            gavSet.appendIncludes(sb);
+            result.add(sb.toString());
+
+            sb.setLength(0);
+            sb.append("-Dsrcdeps.inner.excludes=");
+            gavSet.appendExcludes(sb);
+            result.add(sb.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         return result;
     }
 
@@ -163,8 +179,6 @@ public abstract class AbstractGradleBuilder extends ShellBuilder {
         } catch (IOException e) {
             throw new BuildException(String.format("Could not change the version in file [%s]", buildGradle), e);
         }
-
-
 
     }
 

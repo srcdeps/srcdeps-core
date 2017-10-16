@@ -19,6 +19,7 @@ package org.srcdeps.core;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.srcdeps.core.BuildRequest.BuildRequestBuilder;
 
 /**
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
@@ -44,8 +45,23 @@ public class GradleBuildServiceTest extends AbstractBuildServiceTest {
 
     @Test
     public void testGradleGitRevisionMockito() throws BuildException, IOException {
+
+        BuilderTransformer bt  = new BuilderTransformer() {
+            @Override
+            public BuildRequestBuilder transform(BuildRequestBuilder builder) {
+                GavSet gavSet = GavSet.builder() //
+                        .include("org.mockito")
+//                        .exclude("org.mockito:mockito-testng")
+//                        .exclude("org.mockito:mockito-android")
+//                        .exclude("org.mockito:mockito-inline")
+                        .build();
+                return builder.gavSet(gavSet).buildArgument("--stacktrace");
+            }
+        };
+
         assertBuild("git:https://github.com/srcdeps/mockito.git",
                 "0.0.1-SRC-revision-6030bb9be4795870a47d41c0bff8615a0e6a54f9", //
+                bt, //
                 "org.mockito:mockito-android:${version}:[pom,jar]", //
                 "org.mockito:mockito-core:${version}:[pom,jar]", //
                 "org.mockito:mockito-inline:${version}:[pom,jar]" //

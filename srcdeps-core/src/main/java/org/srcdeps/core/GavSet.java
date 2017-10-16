@@ -16,10 +16,12 @@
  */
 package org.srcdeps.core;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * A set of {@link Gav}s defined by included and excluded {@link GavPattern}s.
@@ -49,11 +51,24 @@ public class GavSet {
             return new GavSet(useIncludes, useExcludes);
         }
 
+        /**
+         * Exclude a single GAV pattern.
+         *
+         * @param rawPattern
+         * @return this {@link Builder}
+         */
         public Builder exclude(String rawPattern) {
             this.excludes.add(GavPattern.of(rawPattern));
             return this;
         }
 
+        /**
+         * Parses the entries of the given {@link Collection} of {@code rawPatterns} and excludes those.
+         *
+         * @param rawPatterns
+         *            {@link Collection} of GAV patterns to parse via {@link GavPattern#of(String)}
+         * @return this {@link Builder}
+         */
         public Builder excludes(Collection<String> rawPatterns) {
             if (rawPatterns != null) {
                 for (String rawPattern : rawPatterns) {
@@ -63,6 +78,13 @@ public class GavSet {
             return this;
         }
 
+        /**
+         * Parses the entries of the given array of {@code rawPatterns} and excludes those.
+         *
+         * @param rawPatterns
+         *            a list of GAV patterns to parse via {@link GavPattern#of(String)}
+         * @return this {@link Builder}
+         */
         public Builder excludes(String... rawPatterns) {
             if (rawPatterns != null) {
                 for (String rawPattern : rawPatterns) {
@@ -72,16 +94,51 @@ public class GavSet {
             return this;
         }
 
+        /**
+         * Parses the given comma separated list of {@code rawPatterns} and excludes those.
+         *
+         * @param rawPatterns
+         *            a comma separated list of GAV patterns
+         * @return this {@link Builder}
+         */
+        public Builder excludes(String rawPatterns) {
+            if (rawPatterns != null) {
+                StringTokenizer st = new StringTokenizer(rawPatterns, ",");
+                while (st.hasMoreTokens()) {
+                    this.excludes.add(GavPattern.of(st.nextToken()));
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Adds {@link GavPattern#matchSnapshots()} to {@link #excludes}.
+         *
+         * @return this {@link Builder}
+         */
         public Builder excludeSnapshots() {
             this.excludes.add(GavPattern.matchSnapshots());
             return this;
         }
 
+        /**
+         * Include a single GAV pattern.
+         *
+         * @param rawPattern
+         * @return this {@link Builder}
+         */
         public Builder include(String rawPattern) {
             this.includes.add(GavPattern.of(rawPattern));
             return this;
         }
 
+        /**
+         * Parses the entries of the given {@link Collection} of {@code rawPatterns} and includes those.
+         *
+         * @param rawPatterns
+         *            {@link Collection} of GAV patterns to parse via {@link GavPattern#of(String)}
+         * @return this {@link Builder}
+         */
         public Builder includes(Collection<String> rawPatterns) {
             if (rawPatterns != null) {
                 for (String rawPattern : rawPatterns) {
@@ -91,6 +148,30 @@ public class GavSet {
             return this;
         }
 
+        /**
+         * Parses the given comma separated list of {@code rawPatterns} and includes those.
+         *
+         * @param rawPatterns
+         *            a comma separated list of GAV patterns
+         * @return this {@link Builder}
+         */
+        public Builder includes(String rawPatterns) {
+            if (rawPatterns != null) {
+                StringTokenizer st = new StringTokenizer(rawPatterns, ",");
+                while (st.hasMoreTokens()) {
+                    this.includes.add(GavPattern.of(st.nextToken()));
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Parses the entries of the given array of {@code rawPatterns} and includes those.
+         *
+         * @param rawPatterns
+         *            a list of GAV patterns to parse via {@link GavPattern#of(String)}
+         * @return this {@link Builder}
+         */
         public Builder includes(String... rawPatterns) {
             if (rawPatterns != null) {
                 for (String rawPattern : rawPatterns) {
@@ -102,8 +183,27 @@ public class GavSet {
 
     }
 
+    private static final GavSet INCLUDE_ALL = new GavSet(Collections.singletonList(GavPattern.matchAll()),
+            Collections.<GavPattern>emptyList());
+
+    private static void append(List<GavPattern> cludes, Appendable out) throws IOException {
+        boolean first = true;
+        for (GavPattern gavPattern : cludes) {
+            if (first) {
+                first = false;
+            } else {
+                out.append(',');
+            }
+            out.append(gavPattern.toString());
+        }
+    }
+
     public static Builder builder() {
         return new Builder();
+    }
+
+    public static GavSet includeAll() {
+        return INCLUDE_ALL;
     }
 
     private static boolean matches(String groupId, String artifactId, String version, List<GavPattern> patterns) {
@@ -116,14 +216,35 @@ public class GavSet {
     }
 
     private final List<GavPattern> excludes;
-    private final int hashcode;
-    private final List<GavPattern> includes;;
+    private final int hashcode;;
+
+    private final List<GavPattern> includes;
 
     GavSet(List<GavPattern> includes, List<GavPattern> excludes) {
         super();
         this.includes = includes;
         this.excludes = excludes;
         this.hashcode = 31 * (31 * 1 + excludes.hashCode()) + includes.hashCode();
+    }
+
+    /**
+     * Appends {@link #excludes} to the given {@code out} separating them by comma.
+     *
+     * @param out an {@link Appendable} to append to
+     * @throws IOException
+     */
+    public void appendExcludes(Appendable out) throws IOException {
+        append(excludes, out);
+    }
+
+    /**
+     * Appends {@link #includes} to the given {@code out} separating them by comma.
+     *
+     * @param out an {@link Appendable} to append to
+     * @throws IOException
+     */
+    public void appendIncludes(Appendable out) throws IOException {
+        append(includes, out);
     }
 
     /**

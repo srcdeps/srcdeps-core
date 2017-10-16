@@ -16,18 +16,347 @@
  */
 
 logger.error("srcdeps gradle-settings appendix loaded")
+
+import java.util.regex.Pattern
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+class SrcdepsInner {
+
+    static class GavPattern {
+
+        private static final char DELIMITER = ':';
+        private static final String DELIMITER_STRING = ":";
+        private static final String MULTI_WILDCARD = "*";
+        private static final String MATCH_ALL_PATTERN_SOURCE = ".*";
+        private static final Pattern MATCH_ALL_PATTERN = Pattern.compile(".*");
+        private static final GavPattern MATCH_ALL;
+
+        static {
+            try {
+                MATCH_ALL = new GavPattern(MATCH_ALL_PATTERN, MATCH_ALL_PATTERN, MATCH_ALL_PATTERN)
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        /**
+         * @return a singleton that matches all possible GAVs
+         */
+        public static GavPattern matchAll() {
+            return MATCH_ALL;
+        }
+
+        /**
+         * Creates a new {@link GavPattern} out of the given {@code wildcardPattern}. A wildcard pattern consists of string
+         * literals and asterisk wildcard {@code *}. {@code *} matches zero or many arbitrary characters. Wildcard patterns
+         * for groupId, artifactId and version need to be delimited by colon {@value #DELIMITER}.
+         * <p>
+         * GAV pattern examples:
+         * <p>
+         * {@code org.my-group} - an equivalent of {@code org.my-group:*:*}. It will match any version of any artifact
+         * having groupId {@code org.my-group}.
+         * <p>
+         * {@code org.my-group*} - an equivalent of {@code org.my-group*:*:*}. It will match any version of any artifact
+         * whose groupId starts with {@code org.my-group} - i.e. it will match all of {@code org.my-group},
+         * {@code org.my-group.api}, {@code org.my-group.impl}, etc.
+         * <p>
+         * {@code org.my-group:my-artifact} - an equivalent of {@code org.my-group:my-artifact:*}. It will match any version
+         * of all such artifacts that have groupId {@code org.my-group} and artifactId {@code my-artifact}
+         * <p>
+         * {@code org.my-group:my-artifact:1.2.3} - will match just the version 1.2.3 of artifacts
+         * {@code org.my-group:my-artifact}.
+         *
+         * @param wildcardPattern
+         *            a string pattern to parse and create a new {@link GavPattern} from
+         * @return a new {@link GavPattern}
+         */
+        public static GavPattern of(String wildcardPattern) {
+            final Pattern groupIdPattern;
+            StringTokenizer st = new StringTokenizer(wildcardPattern, DELIMITER_STRING);
+            if (st.hasMoreTokens()) {
+                groupIdPattern = toPattern(st.nextToken());
+            } else {
+                groupIdPattern = MATCH_ALL_PATTERN;
+            }
+            final Pattern artifactIdPattern;
+            if (st.hasMoreTokens()) {
+                artifactIdPattern = toPattern(st.nextToken());
+            } else {
+                artifactIdPattern = MATCH_ALL_PATTERN;
+            }
+            final Pattern versionPattern;
+            if (st.hasMoreTokens()) {
+                versionPattern = toPattern(st.nextToken());
+            } else {
+                versionPattern = MATCH_ALL_PATTERN;
+            }
+            return new GavPattern(groupIdPattern, artifactIdPattern, versionPattern);
+        }
+
+        /**
+         * Transforms the given {@code wildcardPattern} to a new {@link Pattern}.
+         *
+         * @param wildcardPattern
+         * @return a new {@link Pattern}
+         */
+        private static Pattern toPattern(String wildcardPattern) {
+            return Pattern.compile(wildcardPattern.replace(MULTI_WILDCARD, MATCH_ALL_PATTERN_SOURCE));
+        }
+
+        /**
+         * Transforms the given {@code pattern} to its wildcard representation.
+         *
+         * @param pattern
+         *            the {@link Pattern} to transform
+         * @return a wildcard representation of the given {@code pattern}
+         */
+        private static String toWildcard(Pattern pattern) {
+            return pattern.pattern().replace(MATCH_ALL_PATTERN_SOURCE, MULTI_WILDCARD);
+        }
+
+        private final Pattern artifactIdPattern;
+        private final Pattern groupIdPattern;
+        private final String source;
+        private final Pattern versionPattern;
+
+        GavPattern(java.util.regex.Pattern groupIdPattern, java.util.regex.Pattern artifactIdPattern, java.util.regex.Pattern versionPattern) {
+            super();
+            this.groupIdPattern = groupIdPattern;
+            this.artifactIdPattern = artifactIdPattern;
+            this.versionPattern = versionPattern;
+
+            StringBuilder source = new StringBuilder(groupIdPattern.pattern().length()
+                    + artifactIdPattern.pattern().length() + versionPattern.pattern().length() + 2);
+
+            source.append(toWildcard(groupIdPattern));
+            final boolean artifactMatchesAll = MATCH_ALL_PATTERN_SOURCE.equals(artifactIdPattern.pattern());
+            final boolean versionMatchesAll = MATCH_ALL_PATTERN_SOURCE.equals(versionPattern.pattern());
+            if (!versionMatchesAll) {
+                source.append(DELIMITER).append(toWildcard(artifactIdPattern));
+                source.append(DELIMITER).append(toWildcard(versionPattern));
+            } else if (!artifactMatchesAll) {
+                source.append(DELIMITER).append(toWildcard(artifactIdPattern));
+            }
+            this.source = source.toString();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            GavPattern other = (GavPattern) obj;
+            return this.source.equals(other.source);
+        }
+
+        @Override
+        public int hashCode() {
+            return this.source.hashCode();
+        }
+
+        /**
+         * Matches the given {@code groupId}, {@code artifactId}, {@code version} triple against this {@link GavPattern}.
+         *
+         * @param groupId
+         * @param artifactId
+         * @param version
+         * @return {@code true} if this {@link GavPattern} matches the given {@code groupId}, {@code artifactId},
+         *         {@code version} triple and {@code false otherwise}
+         */
+        public boolean matches(String groupId, String artifactId, String version) {
+            return groupIdPattern.matcher(groupId).matches() && artifactIdPattern.matcher(artifactId).matches() &&
+               versionPattern.matcher(version).matches();
+        }
+
+        @Override
+        public String toString() {
+            return source;
+        }
+
+    }
+
+
+    static class GavSet {
+
+        public static class Builder {
+            private List<GavPattern> excludes = new ArrayList<>();
+            private List<GavPattern> includes = new ArrayList<>();
+
+            private Builder() {
+            }
+
+            public GavSet build() {
+                if (includes.isEmpty()) {
+                    includes.add(GavPattern.matchAll());
+                }
+                return new GavSet(Collections.unmodifiableList(includes), Collections.unmodifiableList(excludes));
+            }
+
+            public Builder excludes(String rawPatterns) {
+                if (rawPatterns != null) {
+                    StringTokenizer st = new StringTokenizer(rawPatterns, ",");
+                    while (st.hasMoreTokens()) {
+                        this.excludes.add(GavPattern.of(st.nextToken()));
+                    }
+                }
+                return this;
+            }
+
+            public Builder includes(String rawPatterns) {
+                if (rawPatterns != null) {
+                    StringTokenizer st = new StringTokenizer(rawPatterns, ",");
+                    while (st.hasMoreTokens()) {
+                        this.includes.add(GavPattern.of(st.nextToken()));
+                    }
+                }
+                return this;
+            }
+
+        }
+        private static final Logger log = LoggerFactory.getLogger(GavSet.class)
+        private static final GavSet INCLUDE_ALL = new GavSet(Collections.singletonList(GavPattern.of("*")),
+                Collections.<GavPattern>emptyList());
+
+        private static void append(List<GavPattern> cludes, Appendable out) throws IOException {
+            boolean first = true;
+            for (GavPattern gavPattern : cludes) {
+                if (first) {
+                    first = false;
+                } else {
+                    out.append(',');
+                }
+                out.append(gavPattern.toString());
+            }
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static GavSet includeAll() {
+            return INCLUDE_ALL;
+        }
+
+        private static boolean matches(String groupId, String artifactId, String version, List<GavPattern> patterns) {
+            for (GavPattern pattern : patterns) {
+                log.error("srcdeps matching [{}:{}:{}] against pattern [{}]", groupId, artifactId, version, pattern)
+                if (pattern.matches(groupId, artifactId, version)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private final List<GavPattern> excludes;
+        private final int hashcode;;
+
+        private final List<GavPattern> includes;
+
+        GavSet(List<GavPattern> includes, List<GavPattern> excludes) {
+            super();
+            this.includes = includes;
+            this.excludes = excludes;
+            this.hashcode = 31 * (31 * 1 + excludes.hashCode()) + includes.hashCode();
+        }
+
+        public void appendExcludes(Appendable out) throws IOException {
+            append(excludes, out);
+        }
+
+        public void appendIncludes(Appendable out) throws IOException {
+            append(includes, out);
+        }
+
+        /**
+         *
+         * @param groupId
+         * @param artifactId
+         * @param version
+         * @return {@code true} if the given GAV triple is a member of this {@link GavSet} and {@code false} otherwise
+         */
+        public boolean contains(String groupId, String artifactId, String version) {
+            return matches(groupId, artifactId, version, includes) && !matches(groupId, artifactId, version, excludes);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            GavSet other = (GavSet) obj;
+            if (excludes == null) {
+                if (other.excludes != null)
+                    return false;
+            } else if (!excludes.equals(other.excludes))
+                return false;
+            if (includes == null) {
+                if (other.includes != null)
+                    return false;
+            } else if (!includes.equals(other.includes))
+                return false;
+            return true;
+        }
+
+        /**
+         * @return the list of excludes
+         */
+        public List<GavPattern> getExcludes() {
+            return excludes;
+        }
+
+        /**
+         * @return the list of includes
+         */
+        public List<GavPattern> getIncludes() {
+            return includes;
+        }
+
+        @Override
+        public int hashCode() {
+            return hashcode;
+        }
+
+        @Override
+        public String toString() {
+            return "GavSet [excludes=" + excludes + ", includes=" + includes + "]";
+        }
+
+    }
+
+    final String version
+    final GavSet gavSet
+
+    SrcdepsInner() {
+        this.version = System.getProperty("srcdeps.inner.version")
+        this.gavSet = GavSet.builder() //
+                .includes(System.getProperty("srcdeps.inner.includes")) //
+                .excludes(System.getProperty("srcdeps.inner.excludes")) //
+                .build();
+    }
+
+}
+
+def srcdepsInner = new SrcdepsInner()
+
 gradle.projectsLoaded {
 
     gradle.rootProject.properties['allprojects'].each {
         it.afterEvaluate { project ->
+            logger.error("srcdeps processing "+ project.group +":"+ project.name +":"+ project.version)
             def plugins = project.plugins;
             if (!plugins.hasPlugin('maven')) {
                 logger.error("srcdeps adding maven plugin to "+ project.name)
                 plugins.apply('maven')
             }
-            def srcdepsVersion = System.getProperty("srcdeps.version")
-            logger.error("srcdeps changing version of "+ project.name +" from "+ project.version +" to "+ srcdepsVersion)
-            project.version = srcdepsVersion
+            logger.error("srcdeps changing version of "+ project.name +" from "+ project.version +" to "+ srcdepsInner.version)
+            project.version = srcdepsInner.version
         }
     }
 }
