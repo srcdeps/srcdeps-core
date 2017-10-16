@@ -80,7 +80,8 @@ public class BuildServiceTest extends InjectedTest {
 
     };
 
-    public void assertBuild(String gitRepoName, String groupDir, String artifactId, String srcVersion) throws IOException, BuildException {
+    public void assertBuild(String gitRepoName, String groupDir, String artifactId, String srcVersion)
+            throws IOException, BuildException {
         Assert.assertNotNull("buildService not injected", buildService);
         log.info("Using {} as {}", buildService.getClass().getName(), BuildService.class.getName());
 
@@ -88,11 +89,11 @@ public class BuildServiceTest extends InjectedTest {
         final Path projectBuildDirectory = projectRoot.resolve("build");
 
         SrcdepsCoreUtils.deleteDirectory(projectRoot);
-        final String artifactDir = groupDir + "/"+ artifactId;
+        final String artifactDir = groupDir + "/" + artifactId;
         SrcdepsCoreUtils.deleteDirectory(mvnLocalRepo.resolve(artifactDir));
 
         BuildRequest request = BuildRequest.builder() //
-                .scmUrl("git:https://github.com/srcdeps/"+ gitRepoName +".git") //
+                .scmUrl("git:https://github.com/srcdeps/" + gitRepoName + ".git") //
                 .srcVersion(SrcVersion.parse(srcVersion)).projectRootDirectory(projectBuildDirectory) //
                 .buildArgument("-Dmaven.repo.local=" + mvnLocalRepo.toString()) //
                 .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
@@ -100,13 +101,23 @@ public class BuildServiceTest extends InjectedTest {
 
         buildService.build(request);
 
-        final String artifactPrefix = artifactDir + "/" + srcVersion + "/"+ artifactId +"-" + srcVersion;
+        final String artifactPrefix = artifactDir + "/" + srcVersion + "/" + artifactId + "-" + srcVersion;
         assertExists(mvnLocalRepo.resolve(artifactPrefix + ".jar"));
         assertExists(mvnLocalRepo.resolve(artifactPrefix + ".pom"));
     }
 
+    public void assertGradleBuild(String srcVersion) throws IOException, BuildException {
+        assertBuild("srcdeps-test-artifact-gradle", "org/srcdeps/test/gradle", "srcdeps-test-artifact-gradle",
+                srcVersion);
+    }
+
     public void assertMvnBuild(String srcVersion) throws IOException, BuildException {
         assertBuild("srcdeps-test-artifact", "org/l2x6/maven/srcdeps/itest", "srcdeps-test-artifact", srcVersion);
+    }
+
+    @Test
+    public void testGradleGitRevision() throws BuildException, IOException {
+        assertGradleBuild("0.0.1-SRC-revision-389765a9de4f8526b6b2776c39bb0de67668de62");
     }
 
     @Test
