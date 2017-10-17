@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -157,6 +157,12 @@ public final class Scalars {
             @Override
             public Object deserialize(String value) {
                 return Duration.of(value);
+            }
+        });
+        primitives.put(CharStreamSource.class, new ScalarDeserializer() {
+            @Override
+            public Object deserialize(String value) {
+                return CharStreamSource.of(value);
             }
         });
         SCALAR_TYPES = Collections.unmodifiableMap(primitives);

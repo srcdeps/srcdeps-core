@@ -96,7 +96,7 @@
          during releases -->
     <version.org.srcdeps.core>3.1.1-SNAPSHOT</version.org.srcdeps.core><!-- @srcdeps.version@ -->
     <!-- Comma separated list of source files where we need to update the version literals marked by @srcdeps.version@ -->
-    <srcdeps.version.files>pom.xml,srcdeps-core/src/main/java/org/srcdeps/core/Constants.java</srcdeps.version.files>
+    <srcdeps.version.files>pom.xml,srcdeps-core/src/main/java/org/srcdeps/core/Constants.java,doc/srcdeps.yaml</srcdeps.version.files>
 
     <!--
       Maven plugin versions
@@ -807,6 +807,10 @@ limitations under the License.</inlineHeader>
                     <replacement>
                       <token>&lt;version.org.srcdeps.core&gt;[^&lt;]*&lt;/version.org.srcdeps.core&gt;&lt;!-- @srcdeps.version@ --&gt;</token>
                       <value>&lt;version.org.srcdeps.core&gt;${project.version}&lt;/version.org.srcdeps.core&gt;&lt;!-- @srcdeps.version@ --&gt;</value>
+                    </replacement>
+                    <replacement>
+                      <token>https://github.com/srcdeps/srcdeps-core/tree/[^/]+/srcdeps-core/src/main/resources/gradle/settings/srcdeps-model-transformer.gradle @srcdeps.version@</token>
+                      <value>https://github.com/srcdeps/srcdeps-core/tree/3.1.1-SNAPSHOT/srcdeps-core/src/main/resources/gradle/settings/srcdeps-model-transformer.gradle @srcdeps.version@</value>
                     </replacement>
                   </replacements>
                 </configuration>

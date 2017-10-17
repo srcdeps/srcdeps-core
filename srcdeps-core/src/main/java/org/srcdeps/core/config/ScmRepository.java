@@ -64,6 +64,7 @@ public class ScmRepository {
 
         };
         final ListOfScalarsNode<String> excludes = new DefaultListOfScalarsNode<>("excludes", String.class);
+        final ScmRepositoryGradle.Builder gradle = ScmRepositoryGradle.builder();
         final ListOfScalarsNode<String> includes = new DefaultListOfScalarsNode<>("includes", String.class);
         final ScmRepositoryMaven.Builder maven = ScmRepositoryMaven.builder();
         final ScalarNode<Boolean> skipTests = new DefaultScalarNode<>("skipTests", Boolean.TRUE);
@@ -96,8 +97,8 @@ public class ScmRepository {
                     buildTimeout, //
                     builderIo, //
                     verbosity, //
-                    maven //
-            );
+                    maven, //
+                    gradle);
         }
 
         public Builder addDefaultBuildArguments(boolean addDefaultBuildArguments) {
@@ -115,6 +116,7 @@ public class ScmRepository {
                     skipTests.getValue(), //
                     addDefaultBuildArguments.getValue(), //
                     maven.build(), //
+                    gradle.build(), //
                     buildTimeout.getValue(), //
                     builderIo.build(), //
                     verbosity.getValue());
@@ -154,6 +156,11 @@ public class ScmRepository {
         @Override
         public Map<String, Node> getChildren() {
             return children;
+        }
+
+        public Builder gradle(ScmRepositoryGradle.Builder gradle) {
+            this.gradle.init(gradle);
+            return this;
         }
 
         /**
@@ -302,6 +309,7 @@ public class ScmRepository {
     private final Duration buildTimeout;
     private final List<String> excludes;
     private final GavSet gavSet;
+    private final ScmRepositoryGradle gradle;
     private final String id;
     private final List<String> includes;
     private final ScmRepositoryMaven maven;
@@ -312,7 +320,7 @@ public class ScmRepository {
 
     private ScmRepository(String id, List<String> includes, List<String> excludes, List<String> urls,
             List<String> buildArgs, boolean skipTests, boolean addDefaultBuildArguments, ScmRepositoryMaven maven,
-            Duration buildTimeout, BuilderIo builderIo, Verbosity verbosity) {
+            ScmRepositoryGradle gradle, Duration buildTimeout, BuilderIo builderIo, Verbosity verbosity) {
         super();
         this.id = id;
         this.includes = includes;
@@ -323,6 +331,7 @@ public class ScmRepository {
         this.skipTests = skipTests;
         this.addDefaultBuildArguments = addDefaultBuildArguments;
         this.maven = maven;
+        this.gradle = gradle;
         this.buildTimeout = buildTimeout;
         this.builderIo = builderIo;
         this.verbosity = verbosity;
@@ -363,6 +372,11 @@ public class ScmRepository {
             if (other.maven != null)
                 return false;
         } else if (!maven.equals(other.maven))
+            return false;
+        if (gradle == null) {
+            if (other.gradle != null)
+                return false;
+        } else if (!gradle.equals(other.gradle))
             return false;
         if (includes == null) {
             if (other.includes != null)
@@ -423,6 +437,10 @@ public class ScmRepository {
      */
     public GavSet getGavSet() {
         return gavSet;
+    }
+
+    public ScmRepositoryGradle getGradle() {
+        return gradle;
     }
 
     /**
@@ -490,6 +508,7 @@ public class ScmRepository {
         result = prime * result + ((builderIo == null) ? 0 : builderIo.hashCode());
         result = prime * result + ((id == null) ? 0 : id.hashCode());
         result = prime * result + ((maven == null) ? 0 : maven.hashCode());
+        result = prime * result + ((gradle == null) ? 0 : gradle.hashCode());
         result = prime * result + ((includes == null) ? 0 : includes.hashCode());
         result = prime * result + ((excludes == null) ? 0 : excludes.hashCode());
         result = prime * result + (skipTests ? 1231 : 1237);
@@ -523,8 +542,8 @@ public class ScmRepository {
     public String toString() {
         return "ScmRepository [addDefaultBuildArguments=" + addDefaultBuildArguments + ", buildArguments="
                 + buildArguments + ", builderIo=" + builderIo + ", buildTimeout=" + buildTimeout + ", id=" + id
-                + ", maven=" + maven + ", includes=" + includes + ", excludes=" + excludes + ", skipTests=" + skipTests
-                + ", urls=" + urls + ", verbosity=" + verbosity + "]";
+                + ", maven=" + maven + ", gradle=" + gradle + ", includes=" + includes + ", excludes=" + excludes
+                + ", skipTests=" + skipTests + ", urls=" + urls + ", verbosity=" + verbosity + "]";
     }
 
 }

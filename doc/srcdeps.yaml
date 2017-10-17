@@ -37,7 +37,7 @@
 #  2.1.0        | 2.1.0         | 1.1, 1.0
 #  3.0.x        | 3.0.x         | 2.0
 #  3.1.x        | 3.1.x         | 2.1, 2.0
-#  3.2.x        | 3.2.x         | 2.2
+#  3.2.x        | 3.2.x         | 2.2, 2.1, 2.0
 #
 # Required, no default
 # Since 1.0
@@ -381,3 +381,32 @@ repositories:
       # hard coded default 2.3 is used
       # Since 2.0
       versionsMavenPluginVersion: 2.3
+
+    # `gradle` - Gradle specific settings for this source repository.
+    #
+    # Optional, with defaults for the individual attributes of `gradle`
+    # Since 2.2
+    gradle:
+
+      # `modelTransformer` - an URI-like specification of a gradle script to append to the given project's
+      # `settings.gradle`.
+      #
+      # The default script can be seen in the source tree of the respective `srcdeps-core` version:
+      #
+      # https://github.com/srcdeps/srcdeps-core/tree/3.1.1-SNAPSHOT/srcdeps-core/src/main/resources/gradle/settings/srcdeps-model-transformer.gradle @srcdeps.version@
+      #
+      # Consists of two substantial parts: `<scheme>:<value>`, where `<scheme>` is one of `classpath`, `file` or `literal`
+      #
+      # the meaning of `<value>` is scheme specific:
+      #
+      # * For `classpath` scheme, the `<value>` is a path that will be resolved via `getClass().getResource(<value>)`.
+      #   Example: `modelTransformer: 'classpath:/gradle/settings/srcdeps-model-transformer.gradle'`
+      # * For `file` scheme, the `<value>` is a file system path relative to the outer project's root directory.
+      #   Example: `modelTransformer: 'file:src/build/srcdeps/my-script.gradle'`
+      # * For `literal` scheme, the `<value>` is a file system path relative to the outer project's root directory
+      #   Example: `modelTransformer: 'literal: println "srcdeps rocks!"'`
+      #
+      #
+      # Optional, default: `classpath:/gradle/settings/srcdeps-model-transformer.gradle`
+      # Since 2.0
+      modelTransformer: "classpath:/gradle/settings/srcdeps-model-transformer.gradle"

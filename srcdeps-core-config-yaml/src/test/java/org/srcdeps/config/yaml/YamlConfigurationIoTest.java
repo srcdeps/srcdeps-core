@@ -32,7 +32,9 @@ import org.srcdeps.core.config.ConfigurationException;
 import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.config.MavenAssertions;
 import org.srcdeps.core.config.ScmRepository;
+import org.srcdeps.core.config.ScmRepositoryGradle;
 import org.srcdeps.core.config.ScmRepositoryMaven;
+import org.srcdeps.core.config.scalar.CharStreamSource;
 import org.srcdeps.core.config.scalar.Duration;
 import org.srcdeps.core.config.tree.walk.DefaultsAndInheritanceVisitor;
 import org.yaml.snakeyaml.constructor.ConstructorException;
@@ -104,6 +106,10 @@ public class YamlConfigurationIoTest {
                                     .maven( //
                                             ScmRepositoryMaven.builder() //
                                                     .versionsMavenPluginVersion("2.2") //
+                            ) //
+                                    .gradle( //
+                                            ScmRepositoryGradle.builder() //
+                                                    .modelTransformer(CharStreamSource.of("file:my/file")) //
                             ) //
                     ) //
                     .repository( //

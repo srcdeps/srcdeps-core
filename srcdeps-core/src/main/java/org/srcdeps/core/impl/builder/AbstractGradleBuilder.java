@@ -35,6 +35,7 @@ import org.srcdeps.core.BuildRequest.Verbosity;
 import org.srcdeps.core.GavPattern;
 import org.srcdeps.core.GavSet;
 import org.srcdeps.core.SrcdepsInner;
+import org.srcdeps.core.config.scalar.CharStreamSource;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 
 /**
@@ -191,7 +192,7 @@ public abstract class AbstractGradleBuilder extends ShellBuilder {
             settingsAppendix.append("def srcdepsInner = new SrcdepsInner()\n");
 
             String srcdepsInnerSrc = SrcdepsCoreUtils
-                    .read(getClass().getResource("/gradle/settings/srcdeps-transform.gradle"));
+                    .read(getClass().getResource(CharStreamSource.modelTransformer().getResource()));
             settingsAppendix.append(srcdepsInnerSrc).append("\n");
 
             final Path settingsGradlePath = rootPath.resolve("settings.gradle");

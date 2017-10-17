@@ -79,6 +79,8 @@ repositories:
     verbosity: trace
     maven:
       versionsMavenPluginVersion: 2.2
+    gradle:
+      modelTransformer: "file:my/file"
 
   org.repo2:
     includes:

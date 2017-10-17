@@ -68,6 +68,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(repo1Builder.addDefaultBuildArguments.getValue());
         Assert.assertEquals(Collections.emptyList(), repo1Builder.buildArguments.asListOfValues());
         Assert.assertNull(repo1Builder.maven.versionsMavenPluginVersion.getValue());
+        Assert.assertNull(repo1Builder.gradle.modelTransformer.getValue());
         Assert.assertEquals(Collections.singletonList("org.example"), repo1Builder.includes.asListOfValues());
         Assert.assertNull(repo1Builder.skipTests.getValue());
         Assert.assertEquals(Collections.singletonList("file:///whereever"), repo1Builder.urls.asListOfValues());
@@ -159,6 +160,7 @@ public class DefaultsAndInheritanceTest {
         Builder repo1 = config.repositories.getChildren().get("repo1");
         Assert.assertNull(repo1.buildTimeout.getValue());
         Assert.assertNull(repo1.maven.versionsMavenPluginVersion.getValue());
+        Assert.assertNull(repo1.gradle.modelTransformer.getValue());
         Assert.assertNull(repo1.builderIo.stdin.getValue());
         Assert.assertNull(repo1.builderIo.stdout.getValue());
         Assert.assertNull(repo1.builderIo.stderr.getValue());

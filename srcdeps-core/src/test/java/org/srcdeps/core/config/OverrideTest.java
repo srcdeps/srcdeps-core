@@ -25,6 +25,7 @@ import java.util.Properties;
 import org.junit.Assert;
 import org.junit.Test;
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.config.scalar.CharStreamSource;
 import org.srcdeps.core.config.tree.walk.OverrideVisitor;
 
 public class OverrideTest {
@@ -133,14 +134,13 @@ public class OverrideTest {
     @Test
     public void overrideScmRepositoryMaven() {
 
-        Configuration.Builder config = Configuration.builder()
-                .repository(ScmRepository.builder() //
-                        .id("org.repo1") //
-                        .include("org.example") //
-                        .url("file:///whereever") //
-                        .maven( //
-                                ScmRepositoryMaven.builder() //
-                                        .versionsMavenPluginVersion("1.2")) //
+        Configuration.Builder config = Configuration.builder().repository(ScmRepository.builder() //
+                .id("org.repo1") //
+                .include("org.example") //
+                .url("file:///whereever") //
+                .maven( //
+                        ScmRepositoryMaven.builder() //
+                                .versionsMavenPluginVersion("1.2")) //
         );
 
         ScmRepository.Builder nonOverlayedRepo = config.repositories.getChildren().get("org.repo1");
@@ -151,6 +151,7 @@ public class OverrideTest {
 
         Properties props = new Properties();
         props.put("srcdeps.repositories[org.repo1].maven.versionsMavenPluginVersion", "1.3");
+        props.put("srcdeps.repositories[org.repo1].gradle.modelTransformer", "literal: foo");
 
         config.accept(new OverrideVisitor(props));
 
@@ -160,6 +161,7 @@ public class OverrideTest {
         Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.includes.asListOfValues());
         Assert.assertEquals(Collections.singletonList("file:///whereever"), nonOverlayedRepo.urls.asListOfValues());
         Assert.assertEquals("1.3", nonOverlayedRepo.maven.versionsMavenPluginVersion.getValue());
+        Assert.assertEquals(CharStreamSource.of("literal: foo"), nonOverlayedRepo.gradle.modelTransformer.getValue());
 
     }
 
