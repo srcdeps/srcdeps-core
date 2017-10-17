@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.core.impl.builder;
+package org.srcdeps.core;
 
 import java.nio.file.Files;
 
@@ -31,8 +31,6 @@ public class MavenLocalRepositoryTest {
         MavenLocalRepository repo = MavenLocalRepository.autodetect();
         Assert.assertTrue(MavenLocalRepository.class.getSimpleName() + ".getRootDirectory() must exist",
                 Files.exists(repo.getRootDirectory()));
-        Assert.assertTrue(MavenLocalRepository.class.getSimpleName() + ".GRADLE_SETTINGS must exist",
-                Files.exists(repo.resolve(MavenLocalRepository.GRADLE_SETTINGS)));
     }
 
 }

@@ -15,19 +15,18 @@
  * limitations under the License.
  */
 
-logger.error("srcdeps gradle-settings appendix loaded")
 gradle.projectsLoaded {
 
     gradle.rootProject.properties['allprojects'].each {
         it.afterEvaluate { project ->
+            logger.error("srcdeps processing "+ project.group +":"+ project.name +":"+ project.version)
             def plugins = project.plugins;
             if (!plugins.hasPlugin('maven')) {
                 logger.error("srcdeps adding maven plugin to "+ project.name)
                 plugins.apply('maven')
             }
-            def srcdepsVersion = System.getProperty("srcdeps.version")
-            logger.error("srcdeps changing version of "+ project.name +" from "+ project.version +" to "+ srcdepsVersion)
-            project.version = srcdepsVersion
+            logger.error("srcdeps changing version of "+ project.name +" from "+ project.version +" to "+ srcdepsInner.version)
+            project.version = srcdepsInner.version
         }
     }
 }

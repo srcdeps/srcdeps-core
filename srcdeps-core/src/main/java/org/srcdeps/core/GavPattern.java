@@ -99,7 +99,8 @@ public class GavPattern {
         MATCH_ALL_PATTERN = Pattern.compile(MATCH_ALL_PATTERN_SOURCE);
         DELIMITER_STRING = String.valueOf(DELIMITER);
         MATCH_ALL = new GavPattern(MATCH_ALL_PATTERN, MATCH_ALL_PATTERN, MATCH_ALL_PATTERN);
-        MATCH_SNAPSHOTS = new GavPattern(MATCH_ALL_PATTERN, MATCH_ALL_PATTERN, toPattern(MULTI_WILDCARD + SNAPSHOT_SUFFIX));
+        MATCH_SNAPSHOTS = new GavPattern(MATCH_ALL_PATTERN, MATCH_ALL_PATTERN,
+                toPattern(MULTI_WILDCARD + SNAPSHOT_SUFFIX));
     }
 
     /**
@@ -244,8 +245,9 @@ public class GavPattern {
      *         {@code version} triple and {@code false otherwise}
      */
     public boolean matches(String groupId, String artifactId, String version) {
-        return groupIdPattern.matcher(groupId).matches() && artifactIdPattern.matcher(artifactId).matches()
-                && versionPattern.matcher(version).matches();
+        return groupIdPattern.matcher(groupId).matches() && //
+                artifactIdPattern.matcher(artifactId).matches() && //
+                versionPattern.matcher(version).matches();
     }
 
     @Override

@@ -53,6 +53,7 @@ public class BuildRequest {
         private List<String> buildArguments = new ArrayList<>();
         private Map<String, String> buildEnvironment = new LinkedHashMap<>();
         private Set<String> forwardProperties = new LinkedHashSet<>();
+        private GavSet gavSet = GavSet.includeAll();
         private IoRedirects ioRedirects = IoRedirects.inheritAll();
         private Path projectRootDirectory;
         private List<String> scmUrls = new ArrayList<>();
@@ -86,7 +87,7 @@ public class BuildRequest {
          * @return a new {@link BuildRequest} based on the values stored in fields of this {@link BuildRequestBuilder}
          */
         public BuildRequest build() {
-            return new BuildRequest(projectRootDirectory, srcVersion, Collections.unmodifiableList(scmUrls),
+            return new BuildRequest(projectRootDirectory, srcVersion, gavSet, Collections.unmodifiableList(scmUrls),
                     Collections.unmodifiableList(buildArguments), skipTests, addDefaultBuildArguments,
                     Collections.unmodifiableSet(forwardProperties), Collections.unmodifiableMap(buildEnvironment),
                     addDefaultBuildEnvironment, verbosity, ioRedirects, timeoutMs, versionsMavenPluginVersion);
@@ -169,6 +170,17 @@ public class BuildRequest {
          */
         public BuildRequestBuilder forwardProperty(String value) {
             forwardProperties.add(value);
+            return this;
+        }
+
+        /**
+         * @see BuildRequest#getGavSet()
+         * @param gavSet
+         *            the {@link GavSet} to set
+         * @return this builder
+         */
+        public BuildRequestBuilder gavSet(GavSet gavSet) {
+            this.gavSet = gavSet;
             return this;
         }
 
@@ -308,6 +320,7 @@ public class BuildRequest {
     private final List<String> buildArguments;
     private final Map<String, String> buildEnvironment;
     private final Set<String> forwardProperties;
+    private final GavSet gavSet;
     private final IoRedirects ioRedirects;
     private final Path projectRootDirectory;
     private final List<String> scmUrls;
@@ -317,7 +330,7 @@ public class BuildRequest {
     private final Verbosity verbosity;
     private final String versionsMavenPluginVersion;
 
-    private BuildRequest(Path projectRootDirectory, SrcVersion srcVersion, List<String> scmUrls,
+    private BuildRequest(Path projectRootDirectory, SrcVersion srcVersion, GavSet gavSet, List<String> scmUrls,
             List<String> buildArguments, boolean skipTests, boolean addDefaultBuildArguments,
             Set<String> forwardProperties, Map<String, String> buildEnvironment, boolean addDefaultBuildEnvironment,
             Verbosity verbosity, IoRedirects ioRedirects, long timeoutMs, String versionsMavenPluginVersion) {
@@ -335,6 +348,7 @@ public class BuildRequest {
 
         this.projectRootDirectory = projectRootDirectory;
         this.srcVersion = srcVersion;
+        this.gavSet = gavSet;
         this.scmUrls = scmUrls;
         this.buildArguments = buildArguments;
         this.skipTests = skipTests;
@@ -381,6 +395,16 @@ public class BuildRequest {
      */
     public Set<String> getForwardProperties() {
         return forwardProperties;
+    }
+
+    /**
+     * Returns the {@link GavSet} that defines the set of artifacts that should be built by this {@link BuildRequest}.
+     * {@link Builder} implementations should make their best to build just this set of artifacts and nothing else.
+     *
+     * @return the {@link GavSet}
+     */
+    public GavSet getGavSet() {
+        return gavSet;
     }
 
     /**
