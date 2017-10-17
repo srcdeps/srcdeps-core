@@ -188,17 +188,32 @@ public class SrcdepsCoreUtils {
      *
      * @param url
      *            the {@link URL} to read from
+     * @param buf
+     *            a properly dimensioned buffer to use when reading
      * @return the content read from the given {@code url}
      * @throws IOException
      */
-    public static String read(URL url) throws IOException {
-        StringBuilder result = new StringBuilder();
+    public static String read(URL url, char[] buf) throws IOException {
         try (Reader in = new InputStreamReader(url.openStream(), StandardCharsets.UTF_8)) {
-            char[] buf = new char[1024];
-            int n;
-            while ((n = in.read(buf)) >= 0) {
-                result.append(buf, 0, n);
-            }
+            return read(in, buf);
+        }
+    }
+
+    /**
+     * Returns the content of the given {@code reader} as string.
+     *
+     * @param reader
+     *            the {@link Reader} to read from
+     * @param buf
+     *            a properly dimensioned buffer to use when reading
+     * @return the content read from the given {@code reader}
+     * @throws IOException
+     */
+    public static String read(Reader reader, char[] buf) throws IOException {
+        StringBuilder result = new StringBuilder();
+        int n;
+        while ((n = reader.read(buf)) >= 0) {
+            result.append(buf, 0, n);
         }
         return result.toString();
     }

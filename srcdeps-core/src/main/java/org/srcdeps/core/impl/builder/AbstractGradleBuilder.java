@@ -17,6 +17,7 @@
 package org.srcdeps.core.impl.builder;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,7 +47,7 @@ public abstract class AbstractGradleBuilder extends ShellBuilder {
     protected static final List<String> BUILD_GRADLE_FILE_NAMES = Collections.singletonList("build.gradle");
 
     protected static final Path SRCDEPS_TRANSFORM_GRADLE = Paths.get("srcdeps-transform.gradle");
-    protected static final Pattern PACKAGE_PATTERN = Pattern.compile(".*package +[^;]+;");
+    protected static final Pattern PACKAGE_PATTERN = Pattern.compile(".*package +[^;]+;", Pattern.DOTALL);
 
     protected static final List<String> GRADLE_DEFAULT_ARGS = Collections
             .unmodifiableList(Arrays.asList("clean", "install", "--no-daemon"));
@@ -181,18 +182,24 @@ public abstract class AbstractGradleBuilder extends ShellBuilder {
             final Path rootPath = request.getProjectRootDirectory();
             final StringBuilder settingsAppendix = new StringBuilder("\n");
 
+            final char[] buf = new char[10240];
+
             for (String innerClass : INNER_CLASSES) {
-                String srcdepsInnerSrc = SrcdepsCoreUtils
-                        .read(getClass().getResource("/gradle/settings/" + innerClass));
+                String srcdepsInnerSrc = SrcdepsCoreUtils.read( //
+                        getClass().getResource("/gradle/settings/" + innerClass), //
+                        buf //
+                );
                 srcdepsInnerSrc = PACKAGE_PATTERN.matcher(srcdepsInnerSrc).replaceFirst("");
                 settingsAppendix.append(srcdepsInnerSrc).append("\n");
             }
 
             settingsAppendix.append("def srcdepsInner = new SrcdepsInner()\n");
 
-            String srcdepsInnerSrc = SrcdepsCoreUtils
-                    .read(getClass().getResource("/gradle/settings/srcdeps-transform.gradle"));
-            settingsAppendix.append(srcdepsInnerSrc).append("\n");
+            try (Reader r = request.getGradleModelTransformer().openReader(StandardCharsets.UTF_8,
+                    request.getDependentProjectRootDirectory())) {
+                String src = SrcdepsCoreUtils.read(r, buf);
+                settingsAppendix.append(src).append("\n");
+            }
 
             final Path settingsGradlePath = rootPath.resolve("settings.gradle");
             if (Files.exists(settingsGradlePath)) {

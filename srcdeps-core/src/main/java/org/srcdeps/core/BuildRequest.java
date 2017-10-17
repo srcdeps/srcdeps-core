@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.srcdeps.core.config.scalar.CharStreamSource;
 import org.srcdeps.core.shell.IoRedirects;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 
@@ -52,8 +53,10 @@ public class BuildRequest {
         private boolean addDefaultBuildEnvironment = true;
         private List<String> buildArguments = new ArrayList<>();
         private Map<String, String> buildEnvironment = new LinkedHashMap<>();
+        private Path dependentProjectRootDirectory;
         private Set<String> forwardProperties = new LinkedHashSet<>();
         private GavSet gavSet = GavSet.includeAll();
+        private CharStreamSource gradleModelTransformer;
         private IoRedirects ioRedirects = IoRedirects.inheritAll();
         private Path projectRootDirectory;
         private List<String> scmUrls = new ArrayList<>();
@@ -87,10 +90,11 @@ public class BuildRequest {
          * @return a new {@link BuildRequest} based on the values stored in fields of this {@link BuildRequestBuilder}
          */
         public BuildRequest build() {
-            return new BuildRequest(projectRootDirectory, srcVersion, gavSet, Collections.unmodifiableList(scmUrls),
-                    Collections.unmodifiableList(buildArguments), skipTests, addDefaultBuildArguments,
-                    Collections.unmodifiableSet(forwardProperties), Collections.unmodifiableMap(buildEnvironment),
-                    addDefaultBuildEnvironment, verbosity, ioRedirects, timeoutMs, versionsMavenPluginVersion);
+            return new BuildRequest(dependentProjectRootDirectory, projectRootDirectory, srcVersion, gavSet,
+                    Collections.unmodifiableList(scmUrls), Collections.unmodifiableList(buildArguments), skipTests,
+                    addDefaultBuildArguments, Collections.unmodifiableSet(forwardProperties),
+                    Collections.unmodifiableMap(buildEnvironment), addDefaultBuildEnvironment, verbosity, ioRedirects,
+                    timeoutMs, versionsMavenPluginVersion, gradleModelTransformer);
         }
 
         /**
@@ -152,6 +156,16 @@ public class BuildRequest {
         }
 
         /**
+         * @param dependentProjectRootDirectory
+         *            see {@link BuildRequest#getDependentProjectRootDirectory()}
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder dependentProjectRootDirectory(Path dependentProjectRootDirectory) {
+            this.dependentProjectRootDirectory = dependentProjectRootDirectory;
+            return this;
+        }
+
+        /**
          * @see BuildRequest#getForwardProperties()
          * @param values
          *            the property names or patterns to forward
@@ -181,6 +195,16 @@ public class BuildRequest {
          */
         public BuildRequestBuilder gavSet(GavSet gavSet) {
             this.gavSet = gavSet;
+            return this;
+        }
+
+        /**
+         * @param gradleModelTransformer
+         *            see {@link BuildRequest#getGradleModelTransformer()}
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder gradleModelTransformer(CharStreamSource gradleModelTransformer) {
+            this.gradleModelTransformer = gradleModelTransformer;
             return this;
         }
 
@@ -264,6 +288,11 @@ public class BuildRequest {
             return this;
         }
 
+        /**
+         * @param versionsMavenPluginVersion
+         *            see {@link BuildRequest#getVersionsMavenPluginVersion()}
+         * @return this {@link BuildRequestBuilder}
+         */
         public BuildRequestBuilder versionsMavenPluginVersion(String versionsMavenPluginVersion) {
             this.versionsMavenPluginVersion = versionsMavenPluginVersion;
             return this;
@@ -319,10 +348,13 @@ public class BuildRequest {
     private final boolean addDefaultBuildEnvironment;
     private final List<String> buildArguments;
     private final Map<String, String> buildEnvironment;
+    private final Path dependentProjectRootDirectory;
     private final Set<String> forwardProperties;
     private final GavSet gavSet;
+    private final CharStreamSource gradleModelTransformer;
     private final IoRedirects ioRedirects;
     private final Path projectRootDirectory;
+
     private final List<String> scmUrls;
     private final boolean skipTests;
     private final SrcVersion srcVersion;
@@ -330,12 +362,14 @@ public class BuildRequest {
     private final Verbosity verbosity;
     private final String versionsMavenPluginVersion;
 
-    private BuildRequest(Path projectRootDirectory, SrcVersion srcVersion, GavSet gavSet, List<String> scmUrls,
-            List<String> buildArguments, boolean skipTests, boolean addDefaultBuildArguments,
-            Set<String> forwardProperties, Map<String, String> buildEnvironment, boolean addDefaultBuildEnvironment,
-            Verbosity verbosity, IoRedirects ioRedirects, long timeoutMs, String versionsMavenPluginVersion) {
+    private BuildRequest(Path dependentProjectRootDirectory, Path projectRootDirectory, SrcVersion srcVersion,
+            GavSet gavSet, List<String> scmUrls, List<String> buildArguments, boolean skipTests,
+            boolean addDefaultBuildArguments, Set<String> forwardProperties, Map<String, String> buildEnvironment,
+            boolean addDefaultBuildEnvironment, Verbosity verbosity, IoRedirects ioRedirects, long timeoutMs,
+            String versionsMavenPluginVersion, CharStreamSource gradleModelTransformer) {
         super();
 
+        SrcdepsCoreUtils.assertArgNotNull(dependentProjectRootDirectory, "dependentProjectRootDirectory");
         SrcdepsCoreUtils.assertArgNotNull(projectRootDirectory, "projectRootDirectory");
         SrcdepsCoreUtils.assertArgNotNull(srcVersion, "srcVersion");
         SrcdepsCoreUtils.assertArgNotNull(scmUrls, "scmUrls");
@@ -345,7 +379,9 @@ public class BuildRequest {
         SrcdepsCoreUtils.assertArgNotNull(buildEnvironment, "buildEnvironment");
         SrcdepsCoreUtils.assertArgNotNull(ioRedirects, "ioRedirects");
         SrcdepsCoreUtils.assertArgNotNull(versionsMavenPluginVersion, "versionsMavenPluginVersion");
+        SrcdepsCoreUtils.assertArgNotNull(gradleModelTransformer, "gradleModelTransformer");
 
+        this.dependentProjectRootDirectory = dependentProjectRootDirectory;
         this.projectRootDirectory = projectRootDirectory;
         this.srcVersion = srcVersion;
         this.gavSet = gavSet;
@@ -360,6 +396,7 @@ public class BuildRequest {
         this.forwardProperties = forwardProperties;
         this.ioRedirects = ioRedirects;
         this.versionsMavenPluginVersion = versionsMavenPluginVersion;
+        this.gradleModelTransformer = gradleModelTransformer;
     }
 
     /**
@@ -379,6 +416,13 @@ public class BuildRequest {
      */
     public Map<String, String> getBuildEnvironment() {
         return buildEnvironment;
+    }
+
+    /**
+     * @return an absolute {@link Path} to the root directory of the dependent (outer) project tree.
+     */
+    public Path getDependentProjectRootDirectory() {
+        return dependentProjectRootDirectory;
     }
 
     /**
@@ -408,6 +452,13 @@ public class BuildRequest {
     }
 
     /**
+     * @return a {@link CharStreamSource} from which the Gradle model transformer script will be loaded.
+     */
+    public CharStreamSource getGradleModelTransformer() {
+        return gradleModelTransformer;
+    }
+
+    /**
      * @return the {@link IoRedirects} to use when the {@link Builder} spawns new {@link Process}es
      */
     public IoRedirects getIoRedirects() {
@@ -415,7 +466,7 @@ public class BuildRequest {
     }
 
     /**
-     * @return the root directory of the project's source tree that should be built
+     * @return the root directory of the dependency project's source tree that should be built
      *
      */
     public Path getProjectRootDirectory() {
@@ -453,6 +504,9 @@ public class BuildRequest {
         return verbosity;
     }
 
+    /**
+     * @return the version of {@code versions-maven-plugin} to use when setting versions in an inner Maven build.
+     */
     public String getVersionsMavenPluginVersion() {
         return versionsMavenPluginVersion;
     }
@@ -488,7 +542,8 @@ public class BuildRequest {
                 + buildEnvironment + ", forwardProperties=" + forwardProperties + ", ioRedirects=" + ioRedirects
                 + ", projectRootDirectory=" + projectRootDirectory + ", scmUrls=" + scmUrls + ", skipTests=" + skipTests
                 + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs + ", verbosity=" + verbosity
-                + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + "]";
+                + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + ", gradleModelTransformer="
+                + gradleModelTransformer + "]";
     }
 
 }
