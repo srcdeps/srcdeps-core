@@ -48,16 +48,9 @@ public class MavenLocalRepository {
     static class SettingsXmlParser extends DefaultHandler {
 
         private StringBuilder charBuffer;
+        private String localRepositoryPath;
         /** The element stack */
         private Deque<String> stack = new java.util.ArrayDeque<String>();
-        private String localRepositoryPath;
-
-        @Override
-        public void startDocument() throws SAXException {
-            stack.clear();
-            charBuffer = null;
-            localRepositoryPath = null;
-        }
 
         @Override
         public void characters(char[] ch, int start, int length) throws SAXException {
@@ -74,17 +67,6 @@ public class MavenLocalRepository {
                     localRepositoryPath = charBuffer.toString().trim();
                     charBuffer = null;
                 }
-            }
-        }
-
-        @Override
-        public void startElement(String uri, String localName, String qName, Attributes attributes)
-                throws SAXException {
-            if (localRepositoryPath == null) {
-                if ("localRepository".equals(qName)) {
-                    charBuffer = new StringBuilder();
-                }
-                stack.push(qName);
             }
         }
 
@@ -107,6 +89,24 @@ public class MavenLocalRepository {
                 return Paths.get(localRepositoryPath);
             } else {
                 return defaultResult;
+            }
+        }
+
+        @Override
+        public void startDocument() throws SAXException {
+            stack.clear();
+            charBuffer = null;
+            localRepositoryPath = null;
+        }
+
+        @Override
+        public void startElement(String uri, String localName, String qName, Attributes attributes)
+                throws SAXException {
+            if (localRepositoryPath == null) {
+                if ("localRepository".equals(qName)) {
+                    charBuffer = new StringBuilder();
+                }
+                stack.push(qName);
             }
         }
 
@@ -155,10 +155,24 @@ public class MavenLocalRepository {
         return rootDirectory;
     }
 
+    /**
+     * @param gav
+     *            the {@link Gavtc} to resolve
+     * @return a {@link Path} under which the given artifact should exist in this {@link MavenLocalRepository}
+     */
     public Path resolve(Gavtc gav) {
-        return rootDirectory.resolve(gav.getGroupId().replace('.', '/')).resolve(gav.getArtifactId())
-                .resolve(gav.getVersion()).resolve(gav.getArtifactId() + "-" + gav.getVersion()
+        return resolveGroup(gav.getGroupId()).resolve(gav.getArtifactId()).resolve(gav.getVersion())
+                .resolve(gav.getArtifactId() + "-" + gav.getVersion()
                         + (gav.getClassifier() == null ? "" : "-" + gav.getClassifier()) + "." + gav.getType());
+    }
+
+    /**
+     * @param groupId
+     *            the {@code groupId} to resolve
+     * @return a {@link Path} under which the given {@code groupId} lives in this {@link MavenLocalRepository}
+     */
+    public Path resolveGroup(String groupId) {
+        return rootDirectory.resolve(groupId.replace('.', '/'));
     }
 
 }
