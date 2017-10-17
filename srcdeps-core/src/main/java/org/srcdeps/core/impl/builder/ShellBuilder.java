@@ -153,10 +153,12 @@ public abstract class ShellBuilder implements Builder {
     }
 
     /**
-     * Returns a new {@link Map} that contains environment variables combined from the following sources:
+     * Returns a new {@link Map} that contains environment variables combined from the following sources (the entries
+     * added at later stages win):
      * <ul>
-     * <li>{@link #getDefaultBuildEnvironment()} (if {@code request.isAddDefaultBuildEnvironment()} return
+     * <li>{@link #getDefaultBuildEnvironment()} (if {@code request.isAddDefaultBuildEnvironment()} returns
      * {@code true})</li>
+     * <li>{@code request.getBuildEnvironment()}</li>
      * </ul>
      *
      * @param request
@@ -168,6 +170,7 @@ public abstract class ShellBuilder implements Builder {
         if (request.isAddDefaultBuildEnvironment()) {
             result.putAll(getDefaultBuildEnvironment());
         }
+        result.putAll(request.getBuildEnvironment());
         return result;
     }
 }
