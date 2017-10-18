@@ -6,9 +6,9 @@ image:https://travis-ci.org/srcdeps/srcdeps-core.svg?branch=master["Build Status
 endif::[]
 
 A core library for building dependencies from their sources during the build.
-At this point `srcdeps-core` library is used only in link:https://github.com/srcdeps/srcdeps-maven[Srcdeps Maven].
-However, `srcdeps-core` has an ambition to be generic enough so that a support for other Java build tools such as
-Gradle or sbt can be added. Contributions are welcome!
+`srcdeps-core` is used by link:https://github.com/srcdeps/srcdeps-maven[srcdeps for Maven]
+and by https://github.com/srcdeps/srcdeps-gradle-plugin[srcdeps Gradle Plugin]
+Contributions to support Ant and sbt are welcome!
 
 == Misc.
 
