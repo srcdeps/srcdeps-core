@@ -63,6 +63,30 @@ public class SrcdepsCoreUtils {
     }
 
     /**
+     * Copy the given {@code src} directory to the given {@code destination} directory.
+     *
+     * @param src the directory to copy
+     * @param destination where to copy
+     * @throws IOException
+     */
+    public static void copyDirectory(final Path src, final Path destination) throws IOException {
+        Files.walkFileTree(src, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs)
+                    throws IOException {
+                Files.createDirectories(destination.resolve(src.relativize(dir)));
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                Files.copy(file, destination.resolve(src.relativize(file)));
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    /**
      * Deletes a file or directory recursivelly if it exists.
      *
      * @param directory
@@ -184,22 +208,6 @@ public class SrcdepsCoreUtils {
     }
 
     /**
-     * Opens am {@link InputStream} out of the given {@code url} and returns the content as a UTF-8 string.
-     *
-     * @param url
-     *            the {@link URL} to read from
-     * @param buf
-     *            a properly dimensioned buffer to use when reading
-     * @return the content read from the given {@code url}
-     * @throws IOException
-     */
-    public static String read(URL url, char[] buf) throws IOException {
-        try (Reader in = new InputStreamReader(url.openStream(), StandardCharsets.UTF_8)) {
-            return read(in, buf);
-        }
-    }
-
-    /**
      * Returns the content of the given {@code reader} as string.
      *
      * @param reader
@@ -216,6 +224,22 @@ public class SrcdepsCoreUtils {
             result.append(buf, 0, n);
         }
         return result.toString();
+    }
+
+    /**
+     * Opens am {@link InputStream} out of the given {@code url} and returns the content as a UTF-8 string.
+     *
+     * @param url
+     *            the {@link URL} to read from
+     * @param buf
+     *            a properly dimensioned buffer to use when reading
+     * @return the content read from the given {@code url}
+     * @throws IOException
+     */
+    public static String read(URL url, char[] buf) throws IOException {
+        try (Reader in = new InputStreamReader(url.openStream(), StandardCharsets.UTF_8)) {
+            return read(in, buf);
+        }
     }
 
     private SrcdepsCoreUtils() {
