@@ -1,0 +1,41 @@
+= Override `srcdeps.yaml` options on the command line
+
+All options configurable in `srcdeps.yaml` can be overriden through system properties passed on the command
+line. To construct the property name, just take the `srcdeps.` prefix and append the `srcdeps.yaml` DOM
+path to the option you want to override.
+
+For example, to dynamically change the verbosity you would have to issue something like
+
+[source,shell]
+----
+mvn ... -Dsrcdeps.verbosity=debug
+----
+
+To *replace* `https://github.com/my-org/my-project.git` with your local git repository in the above
+example, you need to invoke something like
+
+[source,shell]
+----
+mvn ... -Dsrcdeps.repositories[org.my-group].urls[0]=/home/my-user/repos/my-project/.git
+----
+
+To *append* your local git repository to the list of URLs in the above example, you need to invoke something like
+
+[source,shell]
+----
+mvn ... -Dsrcdeps.repositories[org.my-group].urls[1]=/home/my-user/repos/my-project/.git
+----
+
+To *prepend* your local git repository to the list of URLs in the above example, you need to invoke something like
+
+[source,shell]
+----
+mvn ... -Dsrcdeps.repositories[org.my-group].urls[-1]=/home/my-user/repos/my-project/.git
+----
+
+To *replace the whole list* with a new list of URLs in the above example, you need to invoke something like
+
+[source,shell]
+----
+mvn ... -Dsrcdeps.repositories[org.my-group].urls=/home/my-user/repos/my-project/.git,https://github.com/my-user/my-project.git
+----
