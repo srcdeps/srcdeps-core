@@ -20,6 +20,7 @@
  * (1) It sets project versions to the version specified in {@code SrcdepsInner.version}
  * (2) It it applies the {@code maven} plugin unless the plugin is applied already
  */
+logger.info("srcdeps: executing default model transformer")
  gradle.projectsLoaded {
 
     gradle.rootProject.properties['allprojects'].each {
@@ -28,14 +29,14 @@
             def artifactId = project.name // unfortunately this will not be accurate in all cases; improvements welcome!
             def version = project.version
 
-            logger.error("srcdeps is processing ${groupId}:${artifactId}:${version}")
+            logger.debug("srcdeps: processing ${groupId}:${artifactId}:${version}")
             if (srcdepsInner.gavSet.contains(groupId, artifactId, version)) {
                 def plugins = project.plugins;
                 if (!plugins.hasPlugin('maven')) {
-                    logger.error("srcdeps is adding maven plugin to ${groupId}:${artifactId}")
+                    logger.debug("srcdeps: adding maven plugin to ${groupId}:${artifactId}")
                     plugins.apply('maven')
                 }
-                logger.error("srcdeps is changing version of ${groupId}:${artifactId} from "+ project.version +" to "+ srcdepsInner.version)
+                logger.debug("srcdeps: changing version of ${groupId}:${artifactId} from "+ project.version +" to "+ srcdepsInner.version)
                 project.version = srcdepsInner.version
             }
         }

@@ -37,7 +37,7 @@ public class SrcdepsInner {
     final GavSet gavSet;
 
     SrcdepsInner() {
-        log.error("srcdeps initializing " + SrcdepsInner.class.getSimpleName());
+        log.debug("srcdeps: initializing " + SrcdepsInner.class.getSimpleName());
         this.version = System.getProperty("srcdeps.inner.version");
         this.gavSet = GavSet.builder() //
                 .includes(System.getProperty("srcdeps.inner.includes")) //

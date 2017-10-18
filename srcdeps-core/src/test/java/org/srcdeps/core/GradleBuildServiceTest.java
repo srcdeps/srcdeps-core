@@ -80,6 +80,7 @@ public class GradleBuildServiceTest extends AbstractBuildServiceTest {
                         .build();
                 final CharStreamSource modelTransformer = CharStreamSource.of( //
                         "literal:" //
+                                + "logger.error(\"srcdeps: executing custom model transformer\")\n" //
                                 + "def name2ArtifactIdMap = [\n" + "    mockito: 'mockito-core',\n"
                                 + "    android: 'mockito-android',\n" + "    extTest: 'mockito-extTest',\n"
                                 + "    inline: 'mockito-inline',\n" + "    kotlinTest: 'mockito-kotlinTest',\n"
@@ -92,15 +93,15 @@ public class GradleBuildServiceTest extends AbstractBuildServiceTest {
                                 + "            def artifactId = name2ArtifactIdMap.get(project.name)\n" //
                                 + "            def version = project.version\n" //
                                 + "\n" //
-                                + "            logger.error(\"srcdeps mapped project name ${project.name} to artifactId ${artifactId}\")\n" //
-                                + "            logger.error(\"srcdeps is processing ${groupId}:${artifactId}:${version}\")\n" //
+                                + "            logger.error(\"srcdeps: mapped project name ${project.name} to artifactId ${artifactId}\")\n" //
+                                + "            logger.error(\"srcdeps: processing ${groupId}:${artifactId}:${version}\")\n" //
                                 + "            def plugins = project.plugins;\n" //
                                 + "            if (srcdepsInner.gavSet.contains(groupId, artifactId, version)) {\n" //
                                 + "                if (!plugins.hasPlugin('maven')) {\n" //
-                                + "                    logger.error(\"srcdeps is adding maven plugin to ${groupId}:${artifactId}\")\n" //
+                                + "                    logger.error(\"srcdeps: adding maven plugin to ${groupId}:${artifactId}\")\n" //
                                 + "                    plugins.apply('maven')\n" //
                                 + "                }\n" //
-                                + "                logger.error(\"srcdeps is changing version of ${groupId}:${artifactId} from \"+ project.version +\" to \"+ srcdepsInner.version)\n" //
+                                + "                logger.error(\"srcdeps: changing version of ${groupId}:${artifactId} from \"+ project.version +\" to \"+ srcdepsInner.version)\n" //
                                 + "                project.version = srcdepsInner.version\n" //
                                 + "            }\n" //
                                 + "        }\n" //
