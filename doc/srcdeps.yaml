@@ -37,7 +37,7 @@
 #  2.1.0        | 2.1.0         | 1.1, 1.0
 #  3.0.x        | 3.0.x         | 2.0
 #  3.1.x        | 3.1.x         | 2.1, 2.0
-#  3.2.x        | 3.2.x         | 2.2
+#  3.2.x        | 3.2.x         | 2.2, 2.1, 2.0
 #
 # Required, no default
 # Since 1.0
@@ -381,3 +381,37 @@ repositories:
       # hard coded default 2.3 is used
       # Since 2.0
       versionsMavenPluginVersion: 2.3
+
+    # `gradle` - Gradle specific settings for this source repository.
+    #
+    # Optional, with defaults for the individual attributes of `gradle`
+    # Since 2.2
+    gradle:
+
+      # `modelTransformer` - an URI-like specification of a Gradle script to append to the given dependency project's
+      # `settings.gradle`.
+      #
+      # The `modelTransformer` URI consists of two substantial parts: `<scheme>:<resource>`, where `<scheme>` is one of
+      # `classpath`, `file` or `literal` and the meaning of `<resource>` is scheme specific:
+      #
+      # * For `classpath` scheme, the `<resource>` is a path that will be resolved via
+      #   `getClass().getResource(<resource>)`.
+      #   Example: `modelTransformer: 'classpath:/gradle/settings/srcdeps-model-transformer.gradle'`
+      #
+      # * For `file` scheme, the `<resource>` is a file system path relative to the outer project's root directory.
+      #   Example: `modelTransformer: 'file:src/build/srcdeps/my-script.gradle'`
+      #
+      # * For `literal` scheme, the `<resource>` is a string literal to use verbatim as the resource content.
+      #   Example: `modelTransformer: 'literal: println "srcdeps rocks!"'`
+      #
+      # The script depicted by the default URI `classpath:/gradle/settings/srcdeps-model-transformer.gradle` can be seen
+      # in the source tree of the respective `srcdeps-core` version:
+      #
+      # https://github.com/srcdeps/srcdeps-core/tree/3.2.0/srcdeps-core/src/main/resources/gradle/settings/srcdeps-model-transformer.gradle @srcdeps.version@
+      #
+      # If the default script does not suit your needs, the prefered way to adjust it, is to copy it to your dependent
+      # project, ajdust it there and use a `file:` URI with a filesystem path relative to your project's root directory.
+      #
+      # Optional, default: `classpath:/gradle/settings/srcdeps-model-transformer.gradle`
+      # Since 2.0
+      modelTransformer: "classpath:/gradle/settings/srcdeps-model-transformer.gradle"

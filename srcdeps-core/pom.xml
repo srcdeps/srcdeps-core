@@ -87,7 +87,9 @@
             <id>antrun-copy</id>
             <phase>process-resources</phase>
             <configuration>
-              <target name="move SrcdepsInner.java to SrcdepsInner.gradle">
+              <!-- We copy these Java classes to resources renaming them to .gradle because we want to inject them
+                   to inner Gradle build's settings.gradle -->
+              <target name="java-to-gradle">
                 <copy file="${basedir}/src/main/java/org/srcdeps/core/SrcdepsInner.java" tofile="${project.build.outputDirectory}/gradle/settings/SrcdepsInner.gradle" />
                 <copy file="${basedir}/src/main/java/org/srcdeps/core/GavSet.java" tofile="${project.build.outputDirectory}/gradle/settings/GavSet.gradle" />
                 <copy file="${basedir}/src/main/java/org/srcdeps/core/GavPattern.java" tofile="${project.build.outputDirectory}/gradle/settings/GavPattern.gradle" />

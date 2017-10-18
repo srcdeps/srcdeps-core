@@ -95,8 +95,6 @@
          Note that the sync-project-versions profile automagically replaces the value
          during releases -->
     <version.org.srcdeps.core>3.1.1-SNAPSHOT</version.org.srcdeps.core><!-- @srcdeps.version@ -->
-    <!-- Comma separated list of source files where we need to update the version literals marked by @srcdeps.version@ -->
-    <srcdeps.version.files>pom.xml,srcdeps-core/src/main/java/org/srcdeps/core/Constants.java</srcdeps.version.files>
 
     <!--
       Maven plugin versions
@@ -389,8 +387,8 @@
           <version>${version.maven-release-plugin}</version>
           <configuration>
             <tagNameFormat>@{project.version}</tagNameFormat>
-            <preparationGoals>clean generate-sources -Psync-project-versions "-Dsrcdeps.version.commit.message.prefix=[maven-release-plugin] Prepare release"</preparationGoals>
-            <completionGoals>clean generate-sources -Psync-project-versions "-Dsrcdeps.version.commit.message.prefix=[maven-release-plugin] Set next development version"</completionGoals>
+            <preparationGoals>clean generate-sources -Psync-project-versions-release -Psync-project-versions "-Dsrcdeps.version.commit.message.prefix=[maven-release-plugin] Prepare release"</preparationGoals>
+            <completionGoals>clean generate-sources -Psync-project-versions-snapshot -Psync-project-versions "-Dsrcdeps.version.commit.message.prefix=[maven-release-plugin] Set next development version"</completionGoals>
             <goals>deploy</goals>
             <releaseProfiles>release</releaseProfiles>
             <autoVersionSubmodules>true</autoVersionSubmodules>
@@ -779,6 +777,21 @@ limitations under the License.</inlineHeader>
       </build>
     </profile>
 
+    <profile>
+      <id>sync-project-versions-release</id>
+      <properties>
+        <!-- Comma separated list of source files where we need to update the version literals marked by @srcdeps.version@ -->
+        <srcdeps.version.files>pom.xml,srcdeps-core/src/main/java/org/srcdeps/core/Constants.java,doc/srcdeps.yaml</srcdeps.version.files>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>sync-project-versions-snapshot</id>
+      <properties>
+        <!-- Comma separated list of source files where we need to update the version literals marked by @srcdeps.version@ -->
+        <srcdeps.version.files>pom.xml,srcdeps-core/src/main/java/org/srcdeps/core/Constants.java</srcdeps.version.files>
+      </properties>
+    </profile>
 
     <profile>
       <id>sync-project-versions</id>
@@ -807,6 +820,10 @@ limitations under the License.</inlineHeader>
                     <replacement>
                       <token>&lt;version.org.srcdeps.core&gt;[^&lt;]*&lt;/version.org.srcdeps.core&gt;&lt;!-- @srcdeps.version@ --&gt;</token>
                       <value>&lt;version.org.srcdeps.core&gt;${project.version}&lt;/version.org.srcdeps.core&gt;&lt;!-- @srcdeps.version@ --&gt;</value>
+                    </replacement>
+                    <replacement>
+                      <token>https://github.com/srcdeps/srcdeps-core/tree/[^/]+/srcdeps-core/src/main/resources/gradle/settings/srcdeps-model-transformer.gradle @srcdeps.version@</token>
+                      <value>https://github.com/srcdeps/srcdeps-core/tree/${project.version}/srcdeps-core/src/main/resources/gradle/settings/srcdeps-model-transformer.gradle &#64;srcdeps.version&#64;</value><!-- we use &#64; instead of @ so that this line does not match the replacement -->
                     </replacement>
                   </replacements>
                 </configuration>

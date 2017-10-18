@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@ import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.ScmException;
 import org.srcdeps.core.SrcVersion;
 import org.srcdeps.core.config.Maven;
+import org.srcdeps.core.config.scalar.CharStreamSource;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 
 /**
@@ -58,9 +59,11 @@ public class JGitScmTest {
         /* first clone */
         BuildRequest cloningRequest = BuildRequest.builder() //
                 .srcVersion(SrcVersion.parse("0.0.1-SRC-tag-0.0.1")) //
+                .dependentProjectRootDirectory(dir) //
                 .projectRootDirectory(dir) //
                 .scmUrl("git:https://github.com/srcdeps/srcdeps-test-artifact.git") //
                 .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
+                .gradleModelTransformer(CharStreamSource.defaultModelTransformer()) //
                 .build();
         JGitScm jGitScm = new JGitScm();
 
@@ -73,9 +76,11 @@ public class JGitScmTest {
         /* try if the fetch works after we have cloned already */
         BuildRequest fetchingRequest = BuildRequest.builder() //
                 .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-0a5ab902099b24c2b13ed1dad8c5f537458bcc89")) //
+                .dependentProjectRootDirectory(dir) //
                 .projectRootDirectory(dir) //
                 .scmUrl("git:https://github.com/srcdeps/srcdeps-test-artifact.git") //
                 .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
+                .gradleModelTransformer(CharStreamSource.defaultModelTransformer()) //
                 .build();
 
         jGitScm.fetchAndReset(fetchingRequest);

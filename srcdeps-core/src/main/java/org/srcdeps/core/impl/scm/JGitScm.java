@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -185,7 +185,7 @@ public class JGitScm implements Scm {
             try {
                 SrcdepsCoreUtils.ensureDirectoryExistsAndEmpty(dir);
             } catch (IOException e) {
-                throw new ScmException(String.format("Srcdeps could not create directory [%s]", dir), e);
+                throw new ScmException(String.format("srcdeps could not create directory [%s]", dir), e);
             }
             cloneAndCheckout(request);
         }
@@ -200,7 +200,7 @@ public class JGitScm implements Scm {
         /* Try the urls one after another and exit on the first success */
         for (String url : request.getScmUrls()) {
             String useUrl = stripUriPrefix(url);
-            log.info("Srcdeps attempting to clone version {} from SCM URL {}", request.getSrcVersion(), useUrl);
+            log.info("srcdeps: attempting to clone version {} from SCM URL {}", request.getSrcVersion(), useUrl);
 
             CloneCommand cmd = Git.cloneRepository().setURI(useUrl).setDirectory(dir.toFile());
 
@@ -228,7 +228,7 @@ public class JGitScm implements Scm {
                 /* return on the first success */
                 return;
             } catch (Exception e) {
-                log.warn("Srcdeps could not checkout version {} from SCM URL {}: {}: {}", request.getSrcVersion(),
+                log.warn("srcdeps: could not checkout version {} from SCM URL {}: {}: {}", request.getSrcVersion(),
                         useUrl, e.getClass().getName(), e.getMessage());
                 lastException = new ScmException(String.format("Could not checkout from URL [%s]", useUrl), e);
             }
@@ -242,7 +242,7 @@ public class JGitScm implements Scm {
         try (Git git = Git.open(dir.toFile())) {
             Set<String> removedFiles = git.clean().setCleanDirectories(true).call();
             for (String removedFile : removedFiles) {
-                log.debug("Srcdeps removed an unstaged file {}", removedFile);
+                log.debug("srcdeps: removed an unstaged file {}", removedFile);
             }
             git.reset().setMode(ResetType.HARD).call();
 
@@ -259,7 +259,7 @@ public class JGitScm implements Scm {
         int i = 0;
         for (String url : request.getScmUrls()) {
             String useUrl = stripUriPrefix(url);
-            log.info("Srcdeps attempting to fetch version {} from SCM URL {}", request.getSrcVersion(), useUrl);
+            log.info("srcdeps: attempting to fetch version {} from SCM URL {}", request.getSrcVersion(), useUrl);
             String remoteAlias = i == 0 ? "origin" : "origin" + i;
             try (Git git = Git.open(dir.toFile())) {
 
@@ -316,11 +316,11 @@ public class JGitScm implements Scm {
                 git.reset().setMode(ResetType.HARD).setRef(startPoint).call();
                 return;
             } catch (ScmException e) {
-                log.warn("Srcdeps could not checkout version {} from SCM URL {}: {}: {}", request.getSrcVersion(),
+                log.warn("srcdeps: could not checkout version {} from SCM URL {}: {}: {}", request.getSrcVersion(),
                         useUrl, e.getClass().getName(), e.getMessage());
                 lastException = e;
             } catch (Exception e) {
-                log.warn("Srcdeps could not checkout version {} from SCM URL {}: {}: {}", request.getSrcVersion(),
+                log.warn("srcdeps: could not checkout version {} from SCM URL {}: {}: {}", request.getSrcVersion(),
                         useUrl, e.getClass().getName(), e.getMessage());
                 lastException = new ScmException(String.format("Could not checkout from URL [%s]", useUrl), e);
             }

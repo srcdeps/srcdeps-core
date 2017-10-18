@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2017 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -120,7 +120,7 @@ public class OverrideVisitor extends AbstractVisitor {
         path.pop();
         String stringList = overrideSource.getProperty(joinedPath);
         if (stringList != null) {
-            log.info("Srcdeps configuration override [{}] = [{}].", joinedPath, stringList);
+            log.info("srcdeps: configuration override [{}] = [{}].", joinedPath, stringList);
             replaceElements(stringList, handler, list);
         }
 
@@ -130,7 +130,7 @@ public class OverrideVisitor extends AbstractVisitor {
             final String key = joinedPath + "[" + i + "]";
             final String val = overrideSource.getProperty(key);
             if (val != null) {
-                log.info("Srcdeps configuration override [{}] = [{}].", key, val);
+                log.info("srcdeps: configuration override [{}] = [{}].", key, val);
                 list.getElements().get(i).setValue(handler.deserialize(val));
             }
         }
@@ -140,7 +140,7 @@ public class OverrideVisitor extends AbstractVisitor {
             final String key = joinedPath + "[" + i + "]";
             final String val = overrideSource.getProperty(key);
             if (val != null) {
-                log.info("Srcdeps configuration override [{}] = [{}].", key, val);
+                log.info("srcdeps: configuration override [{}] = [{}].", key, val);
                 list.getElements().add(0, DefaultScalarNode.of(handler.deserialize(val)));
             } else {
                 break;
@@ -152,7 +152,7 @@ public class OverrideVisitor extends AbstractVisitor {
             final String key = joinedPath + "[" + i + "]";
             final String val = overrideSource.getProperty(key);
             if (val != null) {
-                log.info("Srcdeps configuration override [{}] = [{}].", key, val);
+                log.info("srcdeps: configuration override [{}] = [{}].", key, val);
                 list.add(handler.deserialize(val));
             } else {
                 break;
@@ -230,7 +230,7 @@ public class OverrideVisitor extends AbstractVisitor {
             final String newValue = overrideSource.getProperty(joinedPath);
             if (newValue != null) {
                 ScalarDeserializer deserializer = Scalars.getDeserializer(node.getType());
-                log.info("Srcdeps configuration override [{}] = [{}].", joinedPath, newValue);
+                log.info("srcdeps: configuration override [{}] = [{}].", joinedPath, newValue);
                 node.setValue(deserializer.deserialize(newValue));
             }
             path.pop();

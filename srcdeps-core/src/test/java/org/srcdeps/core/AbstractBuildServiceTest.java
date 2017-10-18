@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.srcdeps.core.BuildRequest.BuildRequestBuilder;
 import org.srcdeps.core.config.Maven;
+import org.srcdeps.core.config.scalar.CharStreamSource;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 
 /**
@@ -59,11 +60,13 @@ public class AbstractBuildServiceTest extends InjectedTest {
         }
     };
     private static final Path projectsDirectory;
+    private static final Path dependentProjectRootDirectory;
     private static final Path targetDirectory = Paths.get(System.getProperty("project.build.directory", "target"))
             .toAbsolutePath();
 
     static {
         projectsDirectory = targetDirectory.resolve("test-projects");
+        dependentProjectRootDirectory = targetDirectory.resolve("classes");
         Path mvnLocalRepoPath = targetDirectory.resolve("mvn-local-repo");
         mvnLocalRepo = new MavenLocalRepository(mvnLocalRepoPath);
     }
@@ -126,9 +129,12 @@ public class AbstractBuildServiceTest extends InjectedTest {
 
         BuildRequestBuilder requestBuilder = BuildRequest.builder() //
                 .scmUrl(gitRepoUri) //
-                .srcVersion(SrcVersion.parse(srcVersion)).projectRootDirectory(projectBuildDirectory) //
+                .srcVersion(SrcVersion.parse(srcVersion)) //
+                .projectRootDirectory(projectBuildDirectory) //
+                .dependentProjectRootDirectory(dependentProjectRootDirectory) //
                 .buildArgument("-Dmaven.repo.local=" + mvnLocalRepo.getRootDirectory().toString()) //
                 .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
+                .gradleModelTransformer(CharStreamSource.defaultModelTransformer()) //
                 ;
 
         builderTransformer.transform(requestBuilder);

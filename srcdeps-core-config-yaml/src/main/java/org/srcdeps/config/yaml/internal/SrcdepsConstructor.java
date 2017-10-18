@@ -24,7 +24,9 @@ import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.config.MavenAssertions;
 import org.srcdeps.core.config.ScmRepository;
+import org.srcdeps.core.config.ScmRepositoryGradle;
 import org.srcdeps.core.config.ScmRepositoryMaven;
+import org.srcdeps.core.config.scalar.CharStreamSource;
 import org.srcdeps.core.config.scalar.Duration;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.nodes.Node;
@@ -44,6 +46,8 @@ public class SrcdepsConstructor extends Constructor {
                 return Paths.get(((ScalarNode) node).getValue());
             } else if (node.getType() == Duration.class) {
                 return Duration.of(((ScalarNode) node).getValue());
+            } else if (node.getType() == CharStreamSource.class) {
+                return CharStreamSource.of(((ScalarNode) node).getValue());
             } else {
                 return super.construct(node);
             }
@@ -53,10 +57,9 @@ public class SrcdepsConstructor extends Constructor {
     public SrcdepsConstructor() {
         super();
         this.yamlClassConstructors.put(NodeId.scalar, new PathConstruct());
-        this.setPropertyUtils(
-                new BuilderPropertyUtils(Configuration.Builder.class, BuilderIo.Builder.class, Maven.Builder.class,
-                        MavenAssertions.FailWithoutBuilder.class, MavenAssertions.FailWithBuilder.class,
-                        ScmRepository.Builder.class, ScmRepositoryMaven.Builder.class));
+        this.setPropertyUtils(new BuilderPropertyUtils(Configuration.Builder.class, BuilderIo.Builder.class,
+                Maven.Builder.class, MavenAssertions.FailWithoutBuilder.class, MavenAssertions.FailWithBuilder.class,
+                ScmRepository.Builder.class, ScmRepositoryMaven.Builder.class, ScmRepositoryGradle.Builder.class));
 
     }
 
