@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 package org.srcdeps.core;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,7 +29,9 @@ import java.util.StringTokenizer;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
-public class GavSet {
+public class GavSet implements Serializable {
+    /**  */
+    private static final long serialVersionUID = 4495169649760950618L;
 
     public static class Builder {
         private List<GavPattern> excludes = new ArrayList<>();
@@ -216,7 +219,7 @@ public class GavSet {
     }
 
     private final List<GavPattern> excludes;
-    private final int hashcode;;
+    private final transient int hashcode;;
 
     private final List<GavPattern> includes;
 

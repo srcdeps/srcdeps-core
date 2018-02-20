@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.srcdeps.core.impl;
+package org.srcdeps.core.impl.scm;
 
 import java.nio.file.Path;
 import java.util.Set;
@@ -25,43 +25,44 @@ import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.srcdeps.core.BuildException;
 import org.srcdeps.core.BuildRequest;
-import org.srcdeps.core.BuildService;
-import org.srcdeps.core.Builder;
+import org.srcdeps.core.Scm;
+import org.srcdeps.core.ScmException;
+import org.srcdeps.core.ScmService;
+import org.srcdeps.core.impl.DefaultBuildService;
 
 /**
- * The default implementation of {@link BuildService} that makes use of the {@link Builder}s injected
- * by the DI container.
+ * A {@link ScmService} based on a {@link Set} of {@link Scm}s.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
+ * @since 3.2.1
  */
 @Named
 @Singleton
-public class DefaultBuildService implements BuildService {
+public class DefaultScmService implements ScmService {
     private static final Logger log = LoggerFactory.getLogger(DefaultBuildService.class);
-    private final Set<Builder> builders;
+    private final Set<Scm> scms;
 
     @Inject
-    public DefaultBuildService(Set<Builder> builders) {
+    public DefaultScmService(Set<Scm> scms) {
         super();
-        this.builders = builders;
+        this.scms = scms;
     }
 
     /** {@inheritDoc} */
     @Override
-    public void build(BuildRequest request) throws BuildException {
+    public String checkout(BuildRequest request) throws ScmException {
         final Path dir = request.getProjectRootDirectory();
-
-        for (Builder builder : builders) {
-            if (builder.canBuild(dir)) {
-                log.info("About to build project in {} using Builder {}", dir, builder.getClass().getName());
-                builder.setVersions(request);
-                builder.build(request);
-                return;
+        final String firstUrl = request.getScmUrls().iterator().next();
+        log.info("About to build request {}", request);
+        for (Scm scm : scms) {
+            if (scm.supports(firstUrl)) {
+                log.info("About to use Scm implementation {} to check out URL {} to directory {}",
+                        scm.getClass().getName(), firstUrl, dir);
+                return scm.checkout(request);
             }
         }
-        throw new BuildException(String.format("No Builder found for directory [%s]", dir));
+        throw new ScmException(String.format("No Scm found for URL [%s]", firstUrl));
     }
 
 }

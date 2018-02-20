@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,10 +37,11 @@ public interface Scm {
      *
      * @param request
      *            determines the project to checkout
+     * @return the {@code commitId} the {@code HEAD} points at
      * @throws ScmException
      *             on any SCM related problem
      */
-    void checkout(BuildRequest request) throws ScmException;
+    String checkout(BuildRequest request) throws ScmException;
 
     /**
      * @param url

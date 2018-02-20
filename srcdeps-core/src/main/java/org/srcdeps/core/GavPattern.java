@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
  */
 package org.srcdeps.core;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
@@ -32,7 +33,9 @@ import java.util.regex.Pattern;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
-public class GavPattern {
+public class GavPattern implements Serializable {
+    /**  */
+    private static final long serialVersionUID = 5570763687443531797L;
 
     public static class Builder {
 
@@ -194,7 +197,7 @@ public class GavPattern {
 
     private final Pattern artifactIdPattern;
     private final Pattern groupIdPattern;
-    private final String source;
+    private final transient String source;
     private final Pattern versionPattern;
 
     GavPattern(Pattern groupIdPattern, Pattern artifactIdPattern, Pattern versionPattern) {

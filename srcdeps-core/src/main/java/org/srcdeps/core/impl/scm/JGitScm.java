@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,6 +57,7 @@ import org.srcdeps.core.util.SrcdepsCoreUtils;
 public class JGitScm implements Scm {
     private static final Logger log = LoggerFactory.getLogger(JGitScm.class);
     private static final String SCM_GIT_PREFIX = "git:";
+
     public static String getScmGitPrefix() {
         return SCM_GIT_PREFIX;
     }
@@ -168,18 +169,20 @@ public class JGitScm implements Scm {
      *
      * @param request
      *            determines the project to checkout
+     * @return the {@code commitId} the {@code HEAD} points at
      * @throws ScmException
      *             on any SCM related problem
      * @see org.srcdeps.core.Scm#checkout(org.srcdeps.core.BuildRequest)
      */
     @Override
-    public void checkout(BuildRequest request) throws ScmException {
+    public String checkout(BuildRequest request) throws ScmException {
 
         Path dir = request.getProjectRootDirectory();
         boolean dirExists = Files.exists(dir);
+        final String result;
         if (dirExists && containsGitRepo(dir)) {
             /* there is a valid repo - try to fetch and reset */
-            fetchAndReset(request);
+            result = fetchAndReset(request);
         } else {
             /* there is no valid git repo in the directory */
             try {
@@ -187,11 +190,12 @@ public class JGitScm implements Scm {
             } catch (IOException e) {
                 throw new ScmException(String.format("srcdeps could not create directory [%s]", dir), e);
             }
-            cloneAndCheckout(request);
+            result = cloneAndCheckout(request);
         }
+        return result;
     }
 
-    void cloneAndCheckout(BuildRequest request) throws ScmException {
+    String cloneAndCheckout(BuildRequest request) throws ScmException {
         final Path dir = request.getProjectRootDirectory();
 
         final SrcVersion srcVersion = request.getSrcVersion();
@@ -204,7 +208,8 @@ public class JGitScm implements Scm {
 
             CloneCommand cmd = Git.cloneRepository().setURI(useUrl).setDirectory(dir.toFile());
 
-            switch (srcVersion.getWellKnownType()) {
+            final WellKnownType t = srcVersion.getWellKnownType();
+            switch (t) {
             case branch:
             case tag:
                 cmd.setBranch(srcVersion.getScmVersion());
@@ -213,20 +218,14 @@ public class JGitScm implements Scm {
                 cmd.setCloneAllBranches(true);
                 break;
             default:
-                throw new IllegalStateException("Unexpected " + WellKnownType.class.getName() + " value '"
-                        + srcVersion.getWellKnownType() + "'.");
+                throw new IllegalStateException("Unexpected " + WellKnownType.class.getName() + " value '" + t + "'.");
             }
 
             try (Git git = cmd.call()) {
                 git.checkout().setName(srcVersion.getScmVersion()).call();
-
-                /*
-                 * workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=474093
-                 */
-                git.getRepository().close();
-
                 /* return on the first success */
-                return;
+                final Ref ref = git.getRepository().exactRef("HEAD");
+                return ref.getObjectId().getName();
             } catch (Exception e) {
                 log.warn("srcdeps: could not checkout version {} from SCM URL {}: {}: {}", request.getSrcVersion(),
                         useUrl, e.getClass().getName(), e.getMessage());
@@ -236,7 +235,7 @@ public class JGitScm implements Scm {
         throw lastException;
     }
 
-    void fetchAndReset(BuildRequest request) throws ScmException {
+    String fetchAndReset(BuildRequest request) throws ScmException {
         final Path dir = request.getProjectRootDirectory();
         /* Forget local changes */
         try (Git git = Git.open(dir.toFile())) {
@@ -267,23 +266,25 @@ public class JGitScm implements Scm {
                 config.setString("remote", remoteAlias, "url", useUrl);
                 config.save();
 
+                final String scmVersion = srcVersion.getScmVersion();
                 final String startPoint;
                 final String refToFetch;
                 FetchCommand fetch = git.fetch().setRemote(remoteAlias);
                 switch (srcVersion.getWellKnownType()) {
                 case branch:
-                    refToFetch = "refs/heads/" + srcVersion.getScmVersion();
-                    fetch.setRefSpecs(new RefSpec(refToFetch));
-                    startPoint = remoteAlias + "/" + srcVersion.getScmVersion();
+                    refToFetch = "refs/heads/" + scmVersion;
+                    fetch.setRefSpecs(new RefSpec("+refs/heads/" + scmVersion + ":refs/remotes/" + remoteAlias + "/"
+                            + scmVersion));
+                    startPoint = remoteAlias + "/" + scmVersion;
                     break;
                 case tag:
-                    refToFetch = "refs/tags/" + srcVersion.getScmVersion();
+                    refToFetch = "refs/tags/" + scmVersion;
                     fetch.setRefSpecs(new RefSpec(refToFetch));
-                    startPoint = srcVersion.getScmVersion();
+                    startPoint = scmVersion;
                     break;
                 case revision:
                     refToFetch = null;
-                    startPoint = srcVersion.getScmVersion();
+                    startPoint = scmVersion;
                     break;
                 default:
                     throw new IllegalStateException("Unexpected " + WellKnownType.class.getName() + " value '"
@@ -306,7 +307,7 @@ public class JGitScm implements Scm {
                     assertRefFetched(advertisedRefs, refToFetch, url);
                     break;
                 case revision:
-                    assertRevisionFetched(git.getRepository(), advertisedRefs, srcVersion.getScmVersion(), url);
+                    assertRevisionFetched(git.getRepository(), advertisedRefs, scmVersion, url);
                     break;
                 default:
                     throw new IllegalStateException("Unexpected " + WellKnownType.class.getName() + " value '"
@@ -314,7 +315,8 @@ public class JGitScm implements Scm {
                 }
 
                 git.reset().setMode(ResetType.HARD).setRef(startPoint).call();
-                return;
+                final Ref ref = git.getRepository().exactRef("HEAD");
+                return ref.getObjectId().getName();
             } catch (ScmException e) {
                 log.warn("srcdeps: could not checkout version {} from SCM URL {}: {}: {}", request.getSrcVersion(),
                         useUrl, e.getClass().getName(), e.getMessage());
