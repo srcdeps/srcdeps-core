@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,8 +48,9 @@ public class AbstractBuildServiceTest extends InjectedTest {
         BuildRequestBuilder transform(BuildRequestBuilder builder);
     }
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractBuildServiceTest.class);
+    private static final Path dependentProjectRootDirectory;
 
+    private static final Logger log = LoggerFactory.getLogger(AbstractBuildServiceTest.class);
     private static final String mrmSettingsXmlPath = System.getProperty("mrm.settings.xml");
     protected static final MavenLocalRepository mvnLocalRepo;
     protected static final BuilderTransformer NO_TRANSFORMER = new BuilderTransformer() {
@@ -60,7 +61,7 @@ public class AbstractBuildServiceTest extends InjectedTest {
         }
     };
     private static final Path projectsDirectory;
-    private static final Path dependentProjectRootDirectory;
+
     private static final Path targetDirectory = Paths.get(System.getProperty("project.build.directory", "target"))
             .toAbsolutePath();
 
@@ -101,6 +102,9 @@ public class AbstractBuildServiceTest extends InjectedTest {
 
     protected String currentTestName;
 
+    @Inject
+    private ScmService scmService;
+
     @Rule
     public TestRule watcher = new TestWatcher() {
 
@@ -135,11 +139,14 @@ public class AbstractBuildServiceTest extends InjectedTest {
                 .buildArgument("-Dmaven.repo.local=" + mvnLocalRepo.getRootDirectory().toString()) //
                 .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
                 .gradleModelTransformer(CharStreamSource.defaultModelTransformer()) //
-                ;
+        ;
 
         builderTransformer.transform(requestBuilder);
 
-        buildService.build(requestBuilder.build());
+        BuildRequest request = requestBuilder.build();
+
+        scmService.checkout(request);
+        buildService.build(request);
 
         for (Path path : paths) {
             assertExists(path);

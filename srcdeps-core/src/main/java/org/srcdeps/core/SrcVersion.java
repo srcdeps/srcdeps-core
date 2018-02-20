@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,10 @@
  */
 package org.srcdeps.core;
 
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -25,13 +29,42 @@ import java.util.Objects;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
-public class SrcVersion {
+public class SrcVersion implements Serializable {
     /**
      * Some well known version types
      */
     public enum WellKnownType {
-        branch, revision, tag
+        branch(false), revision(true), tag(true);
+        private static final Map<String, WellKnownType> valueMap;
+        static {
+            Map<String, WellKnownType> m = new HashMap<>();
+            for (WellKnownType e : values()) {
+                m.put(e.name(), e);
+            }
+            valueMap = Collections.unmodifiableMap(m);
+        }
+
+        public static WellKnownType fastValueOf(String key) {
+            return valueMap.get(key);
+        }
+
+        private final boolean immutable;
+
+        WellKnownType(boolean immutable) {
+            this.immutable = immutable;
+        }
+
+        /**
+         * @return {@code true} if versions of this {@link WellKnownType} may be considered immutable accross fetches
+         *         from remotes; {@code false} otherwise
+         */
+        public boolean isImmutable() {
+            return immutable;
+        }
     }
+
+    /**  */
+    private static final long serialVersionUID = 615752908896299939L;
 
     private static final char SRC_VERSION_DELIMITER = '-';
     private static final String SRC_VERSION_INFIX = "-SRC-";
@@ -52,7 +85,8 @@ public class SrcVersion {
     };
 
     /**
-     * @param rawVersion the version string to decide about
+     * @param rawVersion
+     *            the version string to decide about
      * @return {@code true} if the given {@code rawVersion} is a srcdeps version string (i.e. when it contains the
      *         {@code -SRC-} infix); otherwise {@code false}
      */
@@ -94,12 +128,14 @@ public class SrcVersion {
      * See https://maven.apache.org/scm/maven-scm-plugin/checkout-mojo.html# scmVersionType
      */
     private final String scmVersionType;
+    private final WellKnownType wellKnownType;
 
     private SrcVersion(String rawString, String scmVersionType, String scmVersion) {
         super();
         this.rawString = rawString;
         this.scmVersionType = scmVersionType;
         this.scmVersion = scmVersion;
+        this.wellKnownType = WellKnownType.fastValueOf(scmVersionType);
     }
 
     @Override
@@ -129,12 +165,16 @@ public class SrcVersion {
      * @return {@code WellKnownType.valueOf(scmVersionType)}
      */
     public WellKnownType getWellKnownType() {
-        return WellKnownType.valueOf(scmVersionType);
+        return wellKnownType;
     }
 
     @Override
     public int hashCode() {
         return rawString.hashCode();
+    }
+
+    public boolean isImmutable() {
+        return wellKnownType != null && wellKnownType.immutable;
     }
 
     @Override

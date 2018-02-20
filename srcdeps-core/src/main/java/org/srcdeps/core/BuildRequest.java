@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -297,7 +297,7 @@ public class BuildRequest {
             this.versionsMavenPluginVersion = versionsMavenPluginVersion;
             return this;
         }
-    };
+    }
 
     /**
      * The verbosity level the appropriate {@link Builder} should use when executing a {@link BuildRequest}. The
@@ -352,6 +352,7 @@ public class BuildRequest {
     private final Set<String> forwardProperties;
     private final GavSet gavSet;
     private final CharStreamSource gradleModelTransformer;
+    private final BuildRequestId id;
     private final IoRedirects ioRedirects;
     private final Path projectRootDirectory;
 
@@ -397,6 +398,8 @@ public class BuildRequest {
         this.ioRedirects = ioRedirects;
         this.versionsMavenPluginVersion = versionsMavenPluginVersion;
         this.gradleModelTransformer = gradleModelTransformer;
+
+        this.id = BuildRequestId.of(this);
     }
 
     /**
@@ -456,6 +459,13 @@ public class BuildRequest {
      */
     public CharStreamSource getGradleModelTransformer() {
         return gradleModelTransformer;
+    }
+
+    /**
+     * @return the {@link BuildRequestId} that characterizes this {@link BuildRequest}
+     */
+    public BuildRequestId getId() {
+        return id;
     }
 
     /**

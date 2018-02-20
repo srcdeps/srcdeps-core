@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,15 +37,6 @@ public class GradleBuildServiceTest extends AbstractBuildServiceTest {
         assertBuild("git:https://github.com/srcdeps/srcdeps-test-artifact-gradle.git",
                 "0.0.1-SRC-revision-389765a9de4f8526b6b2776c39bb0de67668de62", //
                 "org.srcdeps.test.gradle:srcdeps-test-artifact-gradle:${version}:[pom,jar]" //
-        );
-    }
-
-    @Test
-    public void testGradleGitRevisionMultiModule() throws BuildException, IOException {
-        assertBuild("git:https://github.com/srcdeps/srcdeps-test-artifact-gradle.git",
-                "0.0.1-SRC-revision-e63539236a94e8f6c2d720f8bda0323d1ce4db0f", //
-                "org.srcdeps.test.gradle:srcdeps-test-artifact-gradle-api:${version}:[pom,jar]", //
-                "org.srcdeps.test.gradle:srcdeps-test-artifact-gradle-impl:${version}:[pom,jar]" //
         );
     }
 
@@ -124,6 +115,15 @@ public class GradleBuildServiceTest extends AbstractBuildServiceTest {
             Assert.assertFalse(String.format("File should not exist [%s]", path), Files.exists(path));
         }
 
+    }
+
+    @Test
+    public void testGradleGitRevisionMultiModule() throws BuildException, IOException {
+        assertBuild("git:https://github.com/srcdeps/srcdeps-test-artifact-gradle.git",
+                "0.0.1-SRC-revision-e63539236a94e8f6c2d720f8bda0323d1ce4db0f", //
+                "org.srcdeps.test.gradle:srcdeps-test-artifact-gradle-api:${version}:[pom,jar]", //
+                "org.srcdeps.test.gradle:srcdeps-test-artifact-gradle-impl:${version}:[pom,jar]" //
+        );
     }
 
 }
