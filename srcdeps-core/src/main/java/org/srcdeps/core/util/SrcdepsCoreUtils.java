@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystemException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,6 +42,7 @@ public class SrcdepsCoreUtils {
 
     /** The number of attempts to try when creating a new directory */
     private static final int CREATE_RETRY_COUNT = 256;
+    private static final long DELETE_RETRY_MILLIS = 5000L;
 
     private static final boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
 
@@ -109,7 +111,21 @@ public class SrcdepsCoreUtils {
 
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.delete(file);
+                    if (isWindows) {
+                        final long deadline = System.currentTimeMillis() + DELETE_RETRY_MILLIS;
+                        FileSystemException lastException = null;
+                        do {
+                            try {
+                                Files.delete(file);
+                                return FileVisitResult.CONTINUE;
+                            } catch (FileSystemException e) {
+                                lastException = e;
+                            }
+                        } while (System.currentTimeMillis() < deadline);
+                        throw new FileSystemException(String.format("Could not delete file [%s] after retrying for %d ms", file, DELETE_RETRY_MILLIS, lastException));
+                    } else {
+                        Files.delete(file);
+                    }
                     return FileVisitResult.CONTINUE;
                 }
 
