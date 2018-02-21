@@ -43,18 +43,20 @@ public class BuildRequestIdTest {
         props.add("prop2");
 
         BuildRequestId id1 = new BuildRequestId(true, true, Arrays.<String>asList("arg1", "arg2"), env1, props,
-                GavSet.builder().include("org.mygroup").build(), Arrays.asList("url1", "url2"), true,
-                SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), 50000, Verbosity.error);
+                GavSet.builder().include("org.mygroup").exclude("other-group").build(), Arrays.asList("url1", "url2"),
+                true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), 50000, Verbosity.error);
         BuildRequestId id2 = new BuildRequestId(true, true, new ArrayList<>(Arrays.<String>asList("arg1", "arg2")),
                 new LinkedHashMap<String, String>(env1), new LinkedHashSet<String>(props),
-                GavSet.builder().include("org.mygroup").build(), new ArrayList<>(Arrays.<String>asList("url1", "url2")),
-                true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), 50000, Verbosity.error);
+                GavSet.builder().include("org.mygroup").exclude("other-group").build(),
+                new ArrayList<>(Arrays.<String>asList("url1", "url2")), true,
+                SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), 50000, Verbosity.error);
 
         Assert.assertEquals(id1, id2);
         Assert.assertEquals(id1.hashCode(), id2.hashCode());
 
         Assert.assertEquals(id1.getHash(), id2.getHash());
-        Assert.assertEquals("c16cc8b4b89b965ce7dd32becc6b58d6bc1db14c", id1.getHash());
+        Assert.assertEquals("b1512c1bd3dedc99d1f0d58c9fdc1980af198419", id1.getHash());
+
     }
 
 }

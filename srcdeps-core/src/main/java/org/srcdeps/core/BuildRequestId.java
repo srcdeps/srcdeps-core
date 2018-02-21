@@ -19,6 +19,8 @@ package org.srcdeps.core;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -54,11 +56,12 @@ public class BuildRequestId {
     private final List<String> buildArguments;
 
     private final Map<String, String> buildEnvironment;
+
     private final Set<String> forwardProperties;
     private final GavSet gavSet;
     private final String hash;
-
     private final List<String> scmUrls;
+
     private final boolean skipTests;
     private final SrcVersion srcVersion;
     private final long timeoutMs;
@@ -86,23 +89,27 @@ public class BuildRequestId {
             out.writeBoolean(addDefaultBuildArguments);
             out.writeBoolean(addDefaultBuildEnvironment);
             for (String e : buildArguments) {
-                out.writeObject(e);
+                out.writeUTF(e);
             }
             for (Map.Entry<String, String> e : buildEnvironment.entrySet()) {
-                out.writeObject(e.getKey());
-                out.writeObject(e.getValue());
+                out.writeUTF(e.getKey());
+                out.writeUTF(e.getValue());
             }
             for (String e : forwardProperties) {
-                out.writeObject(e);
+                out.writeUTF(e);
             }
-            out.writeObject(gavSet);
+            out.flush();
+            try (OutputStreamWriter w = new OutputStreamWriter(baos, StandardCharsets.UTF_8)) {
+                gavSet.appendIncludes(w);
+                gavSet.appendExcludes(w);
+            }
             for (String e : scmUrls) {
-                out.writeObject(e);
+                out.writeUTF(e);
             }
             out.writeBoolean(skipTests);
-            out.writeObject(srcVersion);
+            out.writeUTF(srcVersion.toString());
             out.writeLong(timeoutMs);
-            out.writeObject(verbosity);
+            out.writeUTF(verbosity.name());
 
             out.flush();
 
@@ -264,6 +271,15 @@ public class BuildRequestId {
      */
     public boolean isSkipTests() {
         return skipTests;
+    }
+
+    @Override
+    public String toString() {
+        return "BuildRequestId [addDefaultBuildArguments=" + addDefaultBuildArguments + ", addDefaultBuildEnvironment="
+                + addDefaultBuildEnvironment + ", buildArguments=" + buildArguments + ", buildEnvironment="
+                + buildEnvironment + ", forwardProperties=" + forwardProperties + ", gavSet=" + gavSet + ", scmUrls="
+                + scmUrls + ", skipTests=" + skipTests + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs
+                + ", verbosity=" + verbosity + ", hash="+ hash +"]";
     }
 
 }
