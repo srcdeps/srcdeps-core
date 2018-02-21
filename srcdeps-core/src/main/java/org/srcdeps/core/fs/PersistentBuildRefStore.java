@@ -56,8 +56,7 @@ public class PersistentBuildRefStore implements BuildRefStore {
     /** {@inheritDoc} */
     @Override
     public String retrieve(BuildRequestId request) {
-
-        Path p = rootDirectory.resolve(request.getHash());
+        final Path p = rootDirectory.resolve(request.getHash());
         if (Files.exists(p)) {
             try {
                 final String commitId = new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
@@ -74,8 +73,9 @@ public class PersistentBuildRefStore implements BuildRefStore {
     /** {@inheritDoc} */
     @Override
     public void store(BuildRequestId request, String commitId) {
-        Path p = rootDirectory.resolve(request.getHash());
-        log.debug("{} path {} will point at commitId {}", BuildRequestId.class.getSimpleName(), p, commitId);
+        final Path p = rootDirectory.resolve(request.getHash());
+        log.debug("{} path {} will point at commitId {}; {}", BuildRequestId.class.getSimpleName(), p, commitId,
+                request);
         try {
             Files.write(p, commitId.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
