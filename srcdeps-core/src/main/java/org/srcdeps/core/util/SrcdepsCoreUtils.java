@@ -122,7 +122,7 @@ public class SrcdepsCoreUtils {
                                 lastException = e;
                             }
                         } while (System.currentTimeMillis() < deadline);
-                        throw new FileSystemException(String.format("Could not delete file [%s] after retrying for %d ms", file, DELETE_RETRY_MILLIS, lastException));
+                        throw new IOException(String.format("Could not delete file [%s] after retrying for %d ms", file, DELETE_RETRY_MILLIS), lastException);
                     } else {
                         Files.delete(file);
                     }
