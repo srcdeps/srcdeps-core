@@ -44,18 +44,18 @@ public class BuildRequestIdTest {
 
         BuildRequestId id1 = new BuildRequestId(true, true, Arrays.<String>asList("arg1", "arg2"), env1, props,
                 GavSet.builder().include("org.mygroup").exclude("other-group").build(), Arrays.asList("url1", "url2"),
-                true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), 50000, Verbosity.error);
+                true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", 50000, Verbosity.error);
         BuildRequestId id2 = new BuildRequestId(true, true, new ArrayList<>(Arrays.<String>asList("arg1", "arg2")),
                 new LinkedHashMap<String, String>(env1), new LinkedHashSet<String>(props),
                 GavSet.builder().include("org.mygroup").exclude("other-group").build(),
                 new ArrayList<>(Arrays.<String>asList("url1", "url2")), true,
-                SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), 50000, Verbosity.error);
+                SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", 50000, Verbosity.error);
 
         Assert.assertEquals(id1, id2);
         Assert.assertEquals(id1.hashCode(), id2.hashCode());
 
         Assert.assertEquals(id1.getHash(), id2.getHash());
-        Assert.assertEquals("b1512c1bd3dedc99d1f0d58c9fdc1980af198419", id1.getHash());
+        Assert.assertEquals("9b8e0768c20562f4637757b2227d93fabb0a6c3a", id1.getHash());
 
     }
 

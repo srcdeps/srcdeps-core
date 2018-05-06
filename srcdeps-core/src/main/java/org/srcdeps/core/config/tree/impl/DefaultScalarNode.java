@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@ import java.util.Stack;
 
 import org.srcdeps.core.config.tree.Node;
 import org.srcdeps.core.config.tree.ScalarNode;
+import org.srcdeps.core.util.Equals;
 
 /**
  * The default implementation of {@link ScalarNode}.
@@ -38,13 +39,14 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
         result.setValue(value);
         return result;
     }
-    private final List<String> commentBefore = new ArrayList<>();
 
+    private final List<String> commentBefore = new ArrayList<>();
     private T defaultValue;
     private final String name;
-
     private final Class<T> type;
     private T value;
+    private final Equals<T> equals;
+
     public DefaultScalarNode(String name, Class<T> type) {
         this(name, null, type);
     }
@@ -55,10 +57,15 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
     }
 
     public DefaultScalarNode(String name, T defaultValue, Class<T> type) {
+        this(name, defaultValue, type, Equals.EqualsImplementations.<T>equals());
+    }
+
+    public DefaultScalarNode(String name, T defaultValue, Class<T> type, Equals<T> equals) {
         super();
         this.name = name;
         this.defaultValue = defaultValue;
         this.type = type;
+        this.equals = equals;
     }
 
     /** {@inheritDoc} */
@@ -122,12 +129,12 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
             return true;
         } else {
             T inheritedValue = inheritFrom.getValue();
-            if (inheritedValue != null && inheritedValue.equals(this.value)) {
+            if (inheritedValue != null && equals.test(inheritedValue, this.value)) {
                 return true;
             } else if (inheritedValue == null) {
                 T inheritedDefault = inheritFrom.getDefaultValue();
                 return inheritedDefault == this.value
-                        || (inheritedDefault != null && inheritedDefault.equals(this.value));
+                        || (inheritedDefault != null && equals.test(inheritedDefault, this.value));
             }
         }
         return false;
@@ -136,7 +143,7 @@ public class DefaultScalarNode<T> implements ScalarNode<T> {
     /** {@inheritDoc} */
     @Override
     public boolean isInDefaultState(Stack<Node> configurationStack) {
-        return value == null || (value == defaultValue || (value != null && value.equals(defaultValue)));
+        return value == null || equals.test(value, defaultValue);
     }
 
     /** {@inheritDoc} */

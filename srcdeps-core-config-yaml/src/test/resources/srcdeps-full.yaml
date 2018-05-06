@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2017 Maven Source Dependencies
+# Copyright 2015-2018 Maven Source Dependencies
 # Plugin contributors as indicated by the @author tags.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-configModelVersion: 2.2
+configModelVersion: 2.3
 
 forwardProperties:
 - myProp1
@@ -33,6 +33,9 @@ sourcesDirectory: /home/me/.m2/srcdeps
 verbosity: debug
 
 buildTimeout: 35m
+
+buildVersionPattern: .*-SNAPSHOT
+buildRef: branch-3.x
 
 maven:
   versionsMavenPluginVersion: 1.2
@@ -77,6 +80,8 @@ repositories:
     skipTests: false
     buildTimeout: 64s
     verbosity: trace
+    buildVersionPattern: 3\.2\..*
+    buildRef: revision-deadbeef
     maven:
       versionsMavenPluginVersion: 2.2
     gradle:

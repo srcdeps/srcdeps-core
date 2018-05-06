@@ -1,11 +1,15 @@
-= Srcdeps Core
+image::doc/images/srcdeps-core.svg[ec4j,height=60,alt=srcdeps for Maven]
+
+{empty}
 
 ifdef::env-github[]
-[link=https://travis-ci.org/srcdeps/srcdeps-core]
-image:https://travis-ci.org/srcdeps/srcdeps-core.svg?branch=master["Build Status", link="https://travis-ci.org/srcdeps/srcdeps-core"]
+https://github.com/srcdeps/srcdeps-core/blob/master/LICENSE[image:https://img.shields.io/github/license/srcdeps/srcdeps-core.svg[License]]
+http://search.maven.org/#search%7Cga%7C1%7Corg.srcdeps.core[image:https://img.shields.io/maven-central/v/org.srcdeps.core/srcdeps-core.svg[Maven Central]]
+http://travis-ci.org/srcdeps/srcdeps-core[image:https://img.shields.io/travis/srcdeps/srcdeps-core/master.svg?logo=travis&color=white&label=Travis+CI[Travis CI build status]]
+https://ci.appveyor.com/project/ppalaga/srcdeps-core[image:https://img.shields.io/appveyor/ci/ppalaga/srcdeps-core/master.svg?logo=appveyor&color=white&label=AppVeyor+Windows+CI[AppVeyor Windows CI build status]]
 endif::[]
 
-A core library for building dependencies from their sources during the build.
+A core library for building dependency artifacts from their sources during the build of the dependent project.
 `srcdeps-core` is used by `https://github.com/srcdeps/srcdeps-maven[srcdeps-maven]`
 and by `https://github.com/srcdeps/srcdeps-gradle-plugin[srcdeps-gradle-plugin]`
 Contributions to support Ant and sbt are welcome!

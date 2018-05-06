@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2017 Maven Source Dependencies
+# Copyright 2015-2018 Maven Source Dependencies
 # Plugin contributors as indicated by the @author tags.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@
 # still supported.
 
 
-# `configModelVersion` exists to track the changes in the schema of of the srcdeps.yaml file.
+# `configModelVersion` exists to track the changes in the schema of the srcdeps.yaml file.
 #
 # = configModelVersion compatibility matrix
 #
@@ -38,10 +38,11 @@
 #  3.0.x        | 3.0.x         | 2.0
 #  3.1.x        | 3.1.x         | 2.1, 2.0
 #  3.2.x        | 3.2.x         | 2.2, 2.1, 2.0
+#  3.3.x        | 3.3.x         | 2.3, 2.2, 2.1, 2.0
 #
 # Required, no default
 # Since 1.0
-configModelVersion: 2.2
+configModelVersion: 2.3
 
 # `forwardProperties` - used rarely, mostly for debugging.
 # A list of property names that the top level builder A should pass as java system properties to every
@@ -118,6 +119,53 @@ verbosity: warn
 # Optional, default: 0x8000000000000000ms which is Long.MAX_VALUE milliseconds
 # Since 2.0
 buildTimeout: 14d
+
+# `buildVersionPattern` and `buildRef` represent a an alternative to defining source dependencies in pom.xml files
+# or Gradle scripts.
+#
+# In pom.xml, you would define your source dependency by using a special infix `-SRC-` followed by a
+# `<refType>-<refname>` pair - something like
+#
+#     <dependency>
+#       <groupId>org.my-org</groupId>
+#       <artifactId>my-artifact</artifactId>
+#       <version>0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b</version>
+#     </dependency>
+#
+# `buildVersionPattern` and `buildRef` of `srcdeps.yaml`  can be used to reach a similar result.
+#
+# `buildVersionPattern` is a regular expression to apply on versions of dependencies. In case of a match, the given
+# dependency is rebuilt based on `buildRef`.
+#
+# `buildVersionPattern` and `buildRef` are especially useful if you cannot or do not want to change pom.xml files.
+# Most notably they can be used to rebuild SNAPSHOTS - e.g. to rebuild any SNAPSHOT dependency, you could use
+#
+#     buildVersionPattern: .*-SNAPSHOT
+#
+# In case you have both `-SRC-` in the `pom.xml` or `build.gradle` version of an artifact and a matching
+# `buildVersionPattern` in `srcdeps.yaml`, the settings in `pom.xml` or `build.gradle` have a higher precedence.
+#
+# `buildVersionPattern` and `buildRef` can be overriden on the source repository level - see `buildRef` and
+# `buildVersionPattern` under `repositories` below.
+#
+# Optional, default: null
+# Since 2.3
+buildVersionPattern: .*-SNAPSHOT
+
+# `buildRef` - a SCM reference to use when building dependencies triggered by `buildVersionPattern`.
+#
+# `buildRef` can be overriden on the source repository level - see `buildRef` under `repositories` below.
+#
+# Format: `<refType>-<refname>` where:
+#
+# * `<refType>` is one of `revision`, `branch` or `tag`
+# * `<refName>` is an actual commitID, branch name or tag name
+#
+# Examples: revision-a867be19904e21e312ca3208dac42ab7a7de5c59, branch-3.x, tag-1.2.3
+#
+# Optional, default: branch-master
+# Since 2.3
+buildRef: branch-master
 
 # `maven` - Maven specific settings that apply both on the top level and for each source repository
 # (unless they are overriden at the repository level).
@@ -367,6 +415,30 @@ repositories:
     # Optional, default: inherited from the top level `verbosity`
     # Since 2.0
     verbosity: warn
+
+    # `buildVersionPattern` - a regular expression to apply on version strings of artifacts belonging to this
+    # source repository. In case of a match, this source repository will be rebuilt using `buildRef`.
+    #
+    # For more information, please refer to the top level `buildVersionPattern` property.
+    #
+    # Optional, default: inherited from the top level `buildVersionPattern`
+    # Since 2.3
+    buildVersionPattern: .*-SNAPSHOT
+
+    # `buildRef` - a SCM reference to use when building dependencies triggered by `buildVersionPattern`.
+    #
+    # `buildRef` can be overriden on the source repository level - see `buildRef` under `repositories` below.
+    #
+    # Format: `<refType>-<refname>` where:
+    #
+    # * `<refType>` is one of `revision`, `branch` or `tag`
+    # * `<refName>` is an actual commitID, branch name or tag name
+    #
+    # Examples: revision-a867be19904e21e312ca3208dac42ab7a7de5c59, branch-3.x, tag-1.2.3
+    #
+    # Optional, default: inherited from the top level `buildVersionPattern`
+    # Since 2.3
+    buildRef: branch-master
 
     # `maven` - Maven specific settings for this source repository.
     #

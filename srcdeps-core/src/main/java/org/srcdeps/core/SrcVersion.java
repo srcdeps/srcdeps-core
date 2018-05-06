@@ -65,9 +65,16 @@ public class SrcVersion implements Serializable {
 
     /**  */
     private static final long serialVersionUID = 615752908896299939L;
-
+    private static final SrcVersion BRANCH_MASTER = SrcVersion.parseRef("branch-master");
     private static final char SRC_VERSION_DELIMITER = '-';
     private static final String SRC_VERSION_INFIX = "-SRC-";
+
+    /**
+     * @return a singleton created using {@code SrcVersion.parseRef("branch-master")}
+     */
+    public static SrcVersion getBranchMaster() {
+        return BRANCH_MASTER;
+    }
 
     /**
      * @return the dash character that delimits the {@link #scmVersionType} from the {@link #scmVersion} in a raw
@@ -82,7 +89,7 @@ public class SrcVersion implements Serializable {
      */
     public static String getSrcVersionInfix() {
         return SRC_VERSION_INFIX;
-    };
+    }
 
     /**
      * @param rawVersion
@@ -96,7 +103,7 @@ public class SrcVersion implements Serializable {
 
     /**
      * @param rawVersion
-     *            the string to parse
+     *            the string such as {@code 1.2.3-SRC-revision-1234abcd} to parse
      * @return a new instance of {@link SrcVersion} as parsed from the given {@code rawString}
      */
     public static SrcVersion parse(String rawVersion) {
@@ -113,6 +120,34 @@ public class SrcVersion implements Serializable {
             }
         } else {
             return null;
+        }
+    }
+
+    /**
+     * Parse the {@code buildRef} attribute of {@code srcdeps.yaml}.
+     * <p>
+     * Format: {@code <refType>-<refname>} where:
+     * <ul>
+     * <li>{@code <refType>} is one of {@code revision}, {@code branch} or {@code tag}</li>
+     * <li>{@code <refName>} is an actual commitID, branch name or tag name</li>
+     * </ul>
+     *
+     * Examples: {@code revision-a867be19904e21e312ca3208dac42ab7a7de5c59}, {@code branch-3.x}, {@code tag-1.2.3}
+     *
+     * @param rawRef
+     *            the string such as {@code revision-1234abcd} to parse
+     * @return a new instance of {@link SrcVersion} as parsed from the given {@code rawRef}
+     * @throws RuntimeException
+     *             if {@code rawRef} does not contain a dash
+     */
+    public static SrcVersion parseRef(String rawRef) {
+        int versionTypeEnd = rawRef.indexOf(SRC_VERSION_DELIMITER);
+        if (versionTypeEnd >= 0) {
+            String versionType = rawRef.substring(0, versionTypeEnd);
+            return new SrcVersion(rawRef, versionType, rawRef.substring(versionTypeEnd + 1));
+        } else {
+            throw new RuntimeException(
+                    "SCM version ref '" + rawRef + "' does not contain delimiter '" + SRC_VERSION_DELIMITER + "' ");
         }
     }
 

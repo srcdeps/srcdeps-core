@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,15 +19,18 @@ package org.srcdeps.core.config;
 import java.util.Collections;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.SrcVersion;
 import org.srcdeps.core.config.BuilderIo.BuilderIoScheme;
 import org.srcdeps.core.config.ScmRepository.Builder;
 import org.srcdeps.core.config.scalar.Duration;
 import org.srcdeps.core.config.tree.Node;
 import org.srcdeps.core.config.tree.walk.DefaultsAndInheritanceVisitor;
+import org.srcdeps.core.util.Equals.EqualsImplementations;
 
 public class DefaultsAndInheritanceTest {
     @Test
@@ -47,6 +50,8 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(configBuilder.sourcesDirectory.getValue());
         Assert.assertNull(configBuilder.verbosity.getValue());
         Assert.assertNull(configBuilder.buildTimeout.getValue());
+        Assert.assertNull(configBuilder.buildVersionPattern.getValue());
+        Assert.assertNull(configBuilder.buildRef.getValue());
         Assert.assertNull(configBuilder.builderIo.stdin.getValue());
         Assert.assertNull(configBuilder.builderIo.stdout.getValue());
         Assert.assertNull(configBuilder.builderIo.stderr.getValue());
@@ -77,6 +82,8 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(repo1Builder.builderIo.stdout.getValue());
         Assert.assertNull(repo1Builder.builderIo.stderr.getValue());
         Assert.assertNull(repo1Builder.verbosity.getValue());
+        Assert.assertNull(repo1Builder.buildVersionPattern.getValue());
+        Assert.assertNull(repo1Builder.buildRef.getValue());
 
         configBuilder.accept(new DefaultsAndInheritanceVisitor());
 
@@ -89,6 +96,8 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(config.getSourcesDirectory());
         Assert.assertEquals(Verbosity.warn, configBuilder.verbosity.getValue());
         Assert.assertEquals(Duration.maxValue(), configBuilder.buildTimeout.getValue());
+        Assert.assertNull(configBuilder.buildVersionPattern.getValue());
+        Assert.assertEquals(SrcVersion.getBranchMaster(), configBuilder.buildRef.getValue());
 
         Assert.assertEquals(BuilderIoScheme.inherit.name(), configBuilder.builderIo.stdin.getValue());
         Assert.assertEquals(BuilderIoScheme.inherit.name(), configBuilder.builderIo.stdout.getValue());
@@ -113,11 +122,15 @@ public class DefaultsAndInheritanceTest {
                 repo1.getMaven().getVersionsMavenPluginVersion());
         Assert.assertEquals(org.srcdeps.core.config.scalar.CharStreamSource.defaultModelTransformer(),
                 repo1.getGradle().getModelTransformer());
+        Assert.assertEquals(Verbosity.warn, repo1.getVerbosity());
         Assert.assertEquals(Duration.maxValue(), repo1.getBuildTimeout());
+
+        Assert.assertNull(repo1.getBuildVersionPattern());
+        Assert.assertEquals(SrcVersion.getBranchMaster(), repo1.getBuildRef());
+
         Assert.assertEquals(BuilderIoScheme.inherit.name(), repo1.getBuilderIo().getStdin());
         Assert.assertEquals(BuilderIoScheme.inherit.name(), repo1.getBuilderIo().getStdout());
         Assert.assertEquals(BuilderIoScheme.inherit.name(), repo1.getBuilderIo().getStderr());
-        Assert.assertEquals(Verbosity.warn, repo1.getVerbosity());
 
     }
 
@@ -133,9 +146,11 @@ public class DefaultsAndInheritanceTest {
     @Test
     public void inheritance() {
 
-        Configuration.Builder config = Configuration.builder() //
+        Configuration.Builder configBuilder = Configuration.builder() //
                 .buildTimeout(Duration.of("32m")) //
-                .verbosity(Verbosity.trace)
+                .verbosity(Verbosity.trace) //
+                .buildVersionPattern(Pattern.compile(".*-SNAPSHOT"))
+                .buildRef(SrcVersion.parseRef("branch-3.x"))
                 .builderIo( //
                         BuilderIo.builder() //
                                 .stdin("read:/path/to/input-file.txt") //
@@ -152,37 +167,48 @@ public class DefaultsAndInheritanceTest {
                                 .url("file:///whereever") //
         );
 
-        Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), config.buildTimeout.getValue());
-        Assert.assertEquals(Verbosity.trace, config.verbosity.getValue());
-        Assert.assertEquals("0.1", config.maven.versionsMavenPluginVersion.getValue());
-        Assert.assertEquals("read:/path/to/input-file.txt", config.builderIo.stdin.getValue());
-        Assert.assertEquals("write:/path/to/log.txt", config.builderIo.stdout.getValue());
-        Assert.assertEquals("write:/path/to/err.txt", config.builderIo.stderr.getValue());
+        Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), configBuilder.buildTimeout.getValue());
+        Assert.assertEquals(Verbosity.trace, configBuilder.verbosity.getValue());
+        Assert.assertTrue(EqualsImplementations.equalsPattern().test(Pattern.compile(".*-SNAPSHOT"), configBuilder.buildVersionPattern.getValue()));
+        Assert.assertEquals(SrcVersion.parseRef("branch-3.x"), configBuilder.buildRef.getValue());
+        Assert.assertEquals("0.1", configBuilder.maven.versionsMavenPluginVersion.getValue());
+        Assert.assertEquals("read:/path/to/input-file.txt", configBuilder.builderIo.stdin.getValue());
+        Assert.assertEquals("write:/path/to/log.txt", configBuilder.builderIo.stdout.getValue());
+        Assert.assertEquals("write:/path/to/err.txt", configBuilder.builderIo.stderr.getValue());
 
-        Builder repo1 = config.repositories.getChildren().get("repo1");
-        Assert.assertNull(repo1.buildTimeout.getValue());
-        Assert.assertNull(repo1.maven.versionsMavenPluginVersion.getValue());
-        Assert.assertNull(repo1.gradle.modelTransformer.getValue());
-        Assert.assertNull(repo1.builderIo.stdin.getValue());
-        Assert.assertNull(repo1.builderIo.stdout.getValue());
-        Assert.assertNull(repo1.builderIo.stderr.getValue());
-        Assert.assertNull(repo1.verbosity.getValue());
+        Builder repo1Builder = configBuilder.repositories.getChildren().get("repo1");
+        Assert.assertNull(repo1Builder.buildTimeout.getValue());
+        Assert.assertNull(repo1Builder.maven.versionsMavenPluginVersion.getValue());
+        Assert.assertNull(repo1Builder.gradle.modelTransformer.getValue());
+        Assert.assertNull(repo1Builder.builderIo.stdin.getValue());
+        Assert.assertNull(repo1Builder.builderIo.stdout.getValue());
+        Assert.assertNull(repo1Builder.builderIo.stderr.getValue());
+        Assert.assertNull(repo1Builder.verbosity.getValue());
+        Assert.assertNull(repo1Builder.buildVersionPattern.getValue());
+        Assert.assertNull(repo1Builder.buildRef.getValue());
 
-        config.accept(new DefaultsAndInheritanceVisitor());
+        configBuilder.accept(new DefaultsAndInheritanceVisitor());
 
-        Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), config.buildTimeout.getValue());
-        Assert.assertEquals(Verbosity.trace, config.verbosity.getValue());
-        Assert.assertEquals("0.1", config.maven.versionsMavenPluginVersion.getValue());
-        Assert.assertEquals("read:/path/to/input-file.txt", config.builderIo.stdin.getValue());
-        Assert.assertEquals("write:/path/to/log.txt", config.builderIo.stdout.getValue());
-        Assert.assertEquals("write:/path/to/err.txt", config.builderIo.stderr.getValue());
+        Configuration config = configBuilder.build();
+        Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), configBuilder.buildTimeout.getValue());
+        Assert.assertEquals(Verbosity.trace, configBuilder.verbosity.getValue());
+        Assert.assertTrue(EqualsImplementations.equalsPattern().test(Pattern.compile(".*-SNAPSHOT"), configBuilder.buildVersionPattern.getValue()));
+        Assert.assertEquals(SrcVersion.parseRef("branch-3.x"), configBuilder.buildRef.getValue());
+        Assert.assertEquals("0.1", configBuilder.maven.versionsMavenPluginVersion.getValue());
+        Assert.assertEquals("read:/path/to/input-file.txt", configBuilder.builderIo.stdin.getValue());
+        Assert.assertEquals("write:/path/to/log.txt", configBuilder.builderIo.stdout.getValue());
+        Assert.assertEquals("write:/path/to/err.txt", configBuilder.builderIo.stderr.getValue());
 
-        Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), repo1.buildTimeout.getValue());
-        Assert.assertEquals(Verbosity.trace, repo1.verbosity.getValue());
-        Assert.assertEquals("0.1", repo1.maven.versionsMavenPluginVersion.getValue());
-        Assert.assertEquals("read:/path/to/input-file.txt", repo1.builderIo.stdin.getValue());
-        Assert.assertEquals("write:/path/to/log.txt", repo1.builderIo.stdout.getValue());
-        Assert.assertEquals("write:/path/to/err.txt", repo1.builderIo.stderr.getValue());
+        ScmRepository repo1 = config.getRepositories().iterator().next();
+        Assert.assertEquals("repo1", repo1.getId());
+        Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), repo1.getBuildTimeout());
+        Assert.assertEquals(Verbosity.trace, repo1.getVerbosity());
+        Assert.assertTrue(EqualsImplementations.equalsPattern().test(Pattern.compile(".*-SNAPSHOT"), repo1.getBuildVersionPattern()));
+        Assert.assertEquals(SrcVersion.parseRef("branch-3.x"), repo1.getBuildRef());
+        Assert.assertEquals("0.1", repo1.getMaven().getVersionsMavenPluginVersion());
+        Assert.assertEquals("read:/path/to/input-file.txt", repo1.getBuilderIo().getStdin());
+        Assert.assertEquals("write:/path/to/log.txt", repo1.getBuilderIo().getStdout());
+        Assert.assertEquals("write:/path/to/err.txt", repo1.getBuilderIo().getStderr());
 
     }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.regex.Pattern;
 
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.SrcVersion;
 import org.srcdeps.core.config.scalar.Duration;
 import org.srcdeps.core.config.tree.ListOfScalarsNode;
 import org.srcdeps.core.config.tree.Node;
@@ -37,6 +39,7 @@ import org.srcdeps.core.config.tree.impl.DefaultContainerNode;
 import org.srcdeps.core.config.tree.impl.DefaultListOfScalarsNode;
 import org.srcdeps.core.config.tree.impl.DefaultScalarNode;
 import org.srcdeps.core.config.tree.walk.TreeWalker;
+import org.srcdeps.core.util.Equals.EqualsImplementations;
 
 /**
  * A configuration suitable for a build system wanting to handle source dependencies.
@@ -47,7 +50,10 @@ public class Configuration {
     public static class Builder extends DefaultContainerNode<Node> {
 
         final BuilderIo.Builder builderIo = BuilderIo.builder();
+        final ScalarNode<SrcVersion> buildRef = new DefaultScalarNode<>("buildRef", SrcVersion.getBranchMaster());
         final ScalarNode<Duration> buildTimeout = new DefaultScalarNode<>("buildTimeout", Duration.maxValue());
+        final ScalarNode<Pattern> buildVersionPattern = new DefaultScalarNode<>("buildVersionPattern", null,
+                Pattern.class, EqualsImplementations.equalsPattern());
         final ScalarNode<String> configModelVersion = new DefaultScalarNode<>("configModelVersion",
                 LATEST_CONFIG_MODEL_VERSION);
         final ListOfScalarsNode<String> forwardProperties = new DefaultListOfScalarsNode<String>("forwardProperties",
@@ -82,6 +88,8 @@ public class Configuration {
                     sourcesDirectory, //
                     verbosity, //
                     buildTimeout, //
+                    buildRef, //
+                    buildVersionPattern, //
                     maven, //
                     repositories //
             );
@@ -116,8 +124,18 @@ public class Configuration {
             return this;
         }
 
+        public Builder buildRef(SrcVersion value) {
+            this.buildRef.setValue(value);
+            return this;
+        }
+
         public Builder buildTimeout(Duration buildTimeout) {
             this.buildTimeout.setValue(buildTimeout);
+            return this;
+        }
+
+        public Builder buildVersionPattern(Pattern value) {
+            this.buildVersionPattern.setValue(value);
             return this;
         }
 
@@ -190,12 +208,12 @@ public class Configuration {
     private static final Set<String> DEFAULT_FORWARD_PROPERTIES = Collections
             .unmodifiableSet(new LinkedHashSet<>(Arrays.asList(Maven.getSrcdepsMavenPropertiesPattern())));
 
-    private static final String LATEST_CONFIG_MODEL_VERSION = "2.2";
+    private static final String LATEST_CONFIG_MODEL_VERSION = "2.3";
 
     private static final String SRCDEPS_ENCODING_PROPERTY = "srcdeps.encoding";
 
     private static final Set<String> SUPPORTED_CONFIG_MODEL_VERSIONS = Collections
-            .unmodifiableSet(new LinkedHashSet<>(Arrays.asList("2.0", "2.1", LATEST_CONFIG_MODEL_VERSION)));
+            .unmodifiableSet(new LinkedHashSet<>(Arrays.asList("2.0", "2.1", "2.2", LATEST_CONFIG_MODEL_VERSION)));
 
     public static Builder builder() {
         return new Builder();
@@ -231,13 +249,10 @@ public class Configuration {
     }
 
     private final String configModelVersion;
-
     private final Set<String> forwardProperties;
     private final Maven maven;
     private final List<ScmRepository> repositories;
-
     private final boolean skip;
-
     private final Path sourcesDirectory;
 
     private Configuration(String configModelVersion, List<ScmRepository> repositories, Path sourcesDirectory,
@@ -290,6 +305,9 @@ public class Configuration {
         return true;
     }
 
+    /**
+     * @return the version of the configuration model
+     */
     public String getConfigModelVersion() {
         return configModelVersion;
     }

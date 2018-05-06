@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,9 @@ package org.srcdeps.config.yaml.internal;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
+import org.srcdeps.core.SrcVersion;
 import org.srcdeps.core.config.BuilderIo;
 import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.Maven;
@@ -42,12 +44,17 @@ public class SrcdepsConstructor extends Constructor {
     private class PathConstruct extends ConstructScalar {
         @Override
         public Object construct(Node node) {
-            if (node.getType() == Path.class) {
+            final Class<? extends Object> type = node.getType();
+            if (type == Path.class) {
                 return Paths.get(((ScalarNode) node).getValue());
-            } else if (node.getType() == Duration.class) {
+            } else if (type == Duration.class) {
                 return Duration.of(((ScalarNode) node).getValue());
-            } else if (node.getType() == CharStreamSource.class) {
+            } else if (type == CharStreamSource.class) {
                 return CharStreamSource.of(((ScalarNode) node).getValue());
+            } else if (type == SrcVersion.class) {
+                return SrcVersion.parseRef(((ScalarNode) node).getValue());
+            } else if (type == Pattern.class) {
+                return Pattern.compile(((ScalarNode) node).getValue());
             } else {
                 return super.construct(node);
             }

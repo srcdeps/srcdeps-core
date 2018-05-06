@@ -46,7 +46,7 @@ public class BuildRequestId {
         return new BuildRequestId(request.isAddDefaultBuildArguments(), request.isAddDefaultBuildEnvironment(),
                 request.getBuildArguments(), request.getBuildEnvironment(), request.getForwardProperties(),
                 request.getGavSet(), request.getScmUrls(), request.isSkipTests(), request.getSrcVersion(),
-                request.getTimeoutMs(), request.getVerbosity());
+                request.getVersion(), request.getTimeoutMs(), request.getVerbosity());
     }
 
     private final boolean addDefaultBuildArguments;
@@ -67,10 +67,12 @@ public class BuildRequestId {
     private final long timeoutMs;
     private final Verbosity verbosity;
 
+    private final String version;
+
     public BuildRequestId(boolean addDefaultBuildArguments, boolean addDefaultBuildEnvironment,
             List<String> buildArguments, Map<String, String> buildEnvironment, Set<String> forwardProperties,
-            GavSet gavSet, List<String> scmUrls, boolean skipTests, SrcVersion srcVersion, long timeoutMs,
-            Verbosity verbosity) {
+            GavSet gavSet, List<String> scmUrls, boolean skipTests, SrcVersion srcVersion, String version,
+            long timeoutMs, Verbosity verbosity) {
         super();
         this.addDefaultBuildArguments = addDefaultBuildArguments;
         this.addDefaultBuildEnvironment = addDefaultBuildEnvironment;
@@ -83,6 +85,7 @@ public class BuildRequestId {
         this.srcVersion = srcVersion;
         this.timeoutMs = timeoutMs;
         this.verbosity = verbosity;
+        this.version = version;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 ObjectOutputStream out = new ObjectOutputStream(baos)) {
@@ -108,6 +111,7 @@ public class BuildRequestId {
             }
             out.writeBoolean(skipTests);
             out.writeUTF(srcVersion.toString());
+            out.writeUTF(version);
             out.writeLong(timeoutMs);
             out.writeUTF(verbosity.name());
 
@@ -179,6 +183,11 @@ public class BuildRequestId {
             return false;
         if (verbosity != other.verbosity)
             return false;
+        if (version == null) {
+            if (other.version != null)
+                return false;
+        } else if (!version.equals(other.version))
+            return false;
         return true;
     }
 
@@ -246,6 +255,13 @@ public class BuildRequestId {
         return verbosity;
     }
 
+    /**
+     * @return see {@link BuildRequest#getVersion()}
+     */
+    public String getVersion() {
+        return version;
+    }
+
     /** {@inheritDoc} */
     @Override
     public int hashCode() {
@@ -277,9 +293,9 @@ public class BuildRequestId {
     public String toString() {
         return "BuildRequestId [addDefaultBuildArguments=" + addDefaultBuildArguments + ", addDefaultBuildEnvironment="
                 + addDefaultBuildEnvironment + ", buildArguments=" + buildArguments + ", buildEnvironment="
-                + buildEnvironment + ", forwardProperties=" + forwardProperties + ", gavSet=" + gavSet + ", scmUrls="
-                + scmUrls + ", skipTests=" + skipTests + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs
-                + ", verbosity=" + verbosity + ", hash="+ hash +"]";
+                + buildEnvironment + ", forwardProperties=" + forwardProperties + ", gavSet=" + gavSet + ", hash="
+                + hash + ", scmUrls=" + scmUrls + ", skipTests=" + skipTests + ", srcVersion=" + srcVersion
+                + ", timeoutMs=" + timeoutMs + ", verbosity=" + verbosity + ", version=" + version + "]";
     }
 
 }

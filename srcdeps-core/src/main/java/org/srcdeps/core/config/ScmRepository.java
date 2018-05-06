@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 import org.srcdeps.core.BuildRequest.Verbosity;
 import org.srcdeps.core.GavPattern;
 import org.srcdeps.core.GavSet;
+import org.srcdeps.core.SrcVersion;
 import org.srcdeps.core.config.scalar.Duration;
 import org.srcdeps.core.config.tree.ListOfScalarsNode;
 import org.srcdeps.core.config.tree.Node;
@@ -34,6 +36,7 @@ import org.srcdeps.core.config.tree.ScalarNode;
 import org.srcdeps.core.config.tree.impl.DefaultContainerNode;
 import org.srcdeps.core.config.tree.impl.DefaultListOfScalarsNode;
 import org.srcdeps.core.config.tree.impl.DefaultScalarNode;
+import org.srcdeps.core.util.Equals.EqualsImplementations;
 
 /**
  * A SCM repository entry of a {@link Configuration}.
@@ -48,6 +51,21 @@ public class ScmRepository {
 
         final ListOfScalarsNode<String> buildArguments = new DefaultListOfScalarsNode<>("buildArguments", String.class);
         final BuilderIo.Builder builderIo = BuilderIo.builder();
+        final ScalarNode<SrcVersion> buildRef = new DefaultScalarNode<SrcVersion>("buildRef", SrcVersion.class) {
+
+            @Override
+            public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                inheritFrom(configuratioBuilder.buildRef, configurationStack);
+            }
+
+            @Override
+            public boolean isInDefaultState(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                return isInDefaultState(configuratioBuilder.buildRef, configurationStack);
+            }
+
+        };
         final ScalarNode<Duration> buildTimeout = new DefaultScalarNode<Duration>("buildTimeout", Duration.class) {
 
             @Override
@@ -63,12 +81,30 @@ public class ScmRepository {
             }
 
         };
+        final ScalarNode<Pattern> buildVersionPattern = new DefaultScalarNode<Pattern>("buildVersionPattern", null,
+                Pattern.class, EqualsImplementations.equalsPattern()) {
+
+            @Override
+            public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                inheritFrom(configuratioBuilder.buildVersionPattern, configurationStack);
+            }
+
+            @Override
+            public boolean isInDefaultState(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                return isInDefaultState(configuratioBuilder.buildVersionPattern, configurationStack);
+            }
+
+        };
         final ListOfScalarsNode<String> excludes = new DefaultListOfScalarsNode<>("excludes", String.class);
         final ScmRepositoryGradle.Builder gradle = ScmRepositoryGradle.builder();
         final ListOfScalarsNode<String> includes = new DefaultListOfScalarsNode<>("includes", String.class);
         final ScmRepositoryMaven.Builder maven = ScmRepositoryMaven.builder();
         final ScalarNode<Boolean> skipTests = new DefaultScalarNode<>("skipTests", Boolean.TRUE);
+
         final ListOfScalarsNode<String> urls = new DefaultListOfScalarsNode<>("urls", String.class);
+
         final ScalarNode<Verbosity> verbosity = new DefaultScalarNode<Verbosity>("verbosity", Verbosity.class) {
 
             @Override
@@ -97,6 +133,8 @@ public class ScmRepository {
                     buildTimeout, //
                     builderIo, //
                     verbosity, //
+                    buildRef, //
+                    buildVersionPattern, //
                     maven, //
                     gradle);
         }
@@ -119,7 +157,10 @@ public class ScmRepository {
                     gradle.build(), //
                     buildTimeout.getValue(), //
                     builderIo.build(), //
-                    verbosity.getValue());
+                    verbosity.getValue(), //
+                    buildRef.getValue(), //
+                    buildVersionPattern.getValue() //
+            );
             return result;
         }
 
@@ -133,8 +174,18 @@ public class ScmRepository {
             return this;
         }
 
+        public Builder buildRef(SrcVersion value) {
+            this.buildRef.setValue(value);
+            return this;
+        }
+
         public Builder buildTimeout(Duration buildTimeout) {
             this.buildTimeout.setValue(buildTimeout);
+            return this;
+        }
+
+        public Builder buildVersionPattern(Pattern value) {
+            this.buildVersionPattern.setValue(value);
             return this;
         }
 
@@ -306,21 +357,24 @@ public class ScmRepository {
     private final boolean addDefaultBuildArguments;
     private final List<String> buildArguments;
     private final BuilderIo builderIo;
+    private final SrcVersion buildRef;
     private final Duration buildTimeout;
+    private final Pattern buildVersionPattern;
     private final List<String> excludes;
     private final GavSet gavSet;
     private final ScmRepositoryGradle gradle;
     private final String id;
+
     private final List<String> includes;
     private final ScmRepositoryMaven maven;
-
     private final boolean skipTests;
     private final List<String> urls;
     private final Verbosity verbosity;
 
     private ScmRepository(String id, List<String> includes, List<String> excludes, List<String> urls,
             List<String> buildArgs, boolean skipTests, boolean addDefaultBuildArguments, ScmRepositoryMaven maven,
-            ScmRepositoryGradle gradle, Duration buildTimeout, BuilderIo builderIo, Verbosity verbosity) {
+            ScmRepositoryGradle gradle, Duration buildTimeout, BuilderIo builderIo, Verbosity verbosity,
+            SrcVersion buildRef, Pattern buildVersionPattern) {
         super();
         this.id = id;
         this.includes = includes;
@@ -335,6 +389,8 @@ public class ScmRepository {
         this.buildTimeout = buildTimeout;
         this.builderIo = builderIo;
         this.verbosity = verbosity;
+        this.buildVersionPattern = buildVersionPattern;
+        this.buildRef = buildRef;
     }
 
     @Override
@@ -363,30 +419,45 @@ public class ScmRepository {
                 return false;
         } else if (!builderIo.equals(other.builderIo))
             return false;
-        if (id == null) {
-            if (other.id != null)
+        if (excludes == null) {
+            if (other.excludes != null)
                 return false;
-        } else if (!id.equals(other.id))
+        } else if (!excludes.equals(other.excludes))
             return false;
-        if (maven == null) {
-            if (other.maven != null)
+        if (gavSet == null) {
+            if (other.gavSet != null)
                 return false;
-        } else if (!maven.equals(other.maven))
+        } else if (!gavSet.equals(other.gavSet))
             return false;
         if (gradle == null) {
             if (other.gradle != null)
                 return false;
         } else if (!gradle.equals(other.gradle))
             return false;
+        if (id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!id.equals(other.id))
+            return false;
         if (includes == null) {
             if (other.includes != null)
                 return false;
         } else if (!includes.equals(other.includes))
             return false;
-        if (excludes == null) {
-            if (other.excludes != null)
+        if (maven == null) {
+            if (other.maven != null)
                 return false;
-        } else if (!excludes.equals(other.excludes))
+        } else if (!maven.equals(other.maven))
+            return false;
+        if (buildRef == null) {
+            if (other.buildRef != null)
+                return false;
+        } else if (!buildRef.equals(other.buildRef))
+            return false;
+        if (buildVersionPattern == null) {
+            if (other.buildVersionPattern != null)
+                return false;
+        } else if (!EqualsImplementations.equalsPattern().test(this.buildVersionPattern, other.buildVersionPattern))
             return false;
         if (skipTests != other.skipTests)
             return false;
@@ -415,11 +486,19 @@ public class ScmRepository {
         return builderIo;
     }
 
+    public SrcVersion getBuildRef() {
+        return buildRef;
+    }
+
     /**
      * @return the timeout to use when building source from this repository
      */
     public Duration getBuildTimeout() {
         return buildTimeout;
+    }
+
+    public Pattern getBuildVersionPattern() {
+        return buildVersionPattern;
     }
 
     /**
@@ -509,11 +588,14 @@ public class ScmRepository {
         result = prime * result + ((buildArguments == null) ? 0 : buildArguments.hashCode());
         result = prime * result + ((buildTimeout == null) ? 0 : buildTimeout.hashCode());
         result = prime * result + ((builderIo == null) ? 0 : builderIo.hashCode());
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
-        result = prime * result + ((maven == null) ? 0 : maven.hashCode());
-        result = prime * result + ((gradle == null) ? 0 : gradle.hashCode());
-        result = prime * result + ((includes == null) ? 0 : includes.hashCode());
         result = prime * result + ((excludes == null) ? 0 : excludes.hashCode());
+        result = prime * result + ((gavSet == null) ? 0 : gavSet.hashCode());
+        result = prime * result + ((gradle == null) ? 0 : gradle.hashCode());
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((includes == null) ? 0 : includes.hashCode());
+        result = prime * result + ((maven == null) ? 0 : maven.hashCode());
+        result = prime * result + ((buildRef == null) ? 0 : buildRef.hashCode());
+        result = prime * result + ((buildVersionPattern == null) ? 0 : buildVersionPattern.pattern().hashCode());
         result = prime * result + (skipTests ? 1231 : 1237);
         result = prime * result + ((urls == null) ? 0 : urls.hashCode());
         result = prime * result + ((verbosity == null) ? 0 : verbosity.hashCode());
@@ -544,9 +626,10 @@ public class ScmRepository {
     @Override
     public String toString() {
         return "ScmRepository [addDefaultBuildArguments=" + addDefaultBuildArguments + ", buildArguments="
-                + buildArguments + ", builderIo=" + builderIo + ", buildTimeout=" + buildTimeout + ", id=" + id
-                + ", maven=" + maven + ", gradle=" + gradle + ", includes=" + includes + ", excludes=" + excludes
-                + ", skipTests=" + skipTests + ", urls=" + urls + ", verbosity=" + verbosity + "]";
+                + buildArguments + ", builderIo=" + builderIo + ", buildTimeout=" + buildTimeout + ", excludes="
+                + excludes + ", gavSet=" + gavSet + ", gradle=" + gradle + ", id=" + id + ", includes=" + includes
+                + ", maven=" + maven + ", skipTests=" + skipTests + ", urls=" + urls + ", verbosity=" + verbosity
+                + ", buildRef=" + buildRef + ", buildVersionPattern=" + buildVersionPattern + "]";
     }
 
 }

@@ -43,10 +43,6 @@ public class BuildRequest {
      * A builder for {@link BuildRequest}s.
      *
      */
-    /**
-     * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
-     *
-     */
     public static class BuildRequestBuilder {
 
         private boolean addDefaultBuildArguments = true;
@@ -64,6 +60,7 @@ public class BuildRequest {
         private SrcVersion srcVersion;
         private long timeoutMs = DEFAULT_TIMEOUT_MS;
         private Verbosity verbosity = Verbosity.info;
+        private String version;
         private String versionsMavenPluginVersion;
 
         /**
@@ -90,7 +87,8 @@ public class BuildRequest {
          * @return a new {@link BuildRequest} based on the values stored in fields of this {@link BuildRequestBuilder}
          */
         public BuildRequest build() {
-            return new BuildRequest(dependentProjectRootDirectory, projectRootDirectory, srcVersion, gavSet,
+            final String useVersion = version == null ? srcVersion.toString() : version;
+            return new BuildRequest(dependentProjectRootDirectory, projectRootDirectory, srcVersion, useVersion, gavSet,
                     Collections.unmodifiableList(scmUrls), Collections.unmodifiableList(buildArguments), skipTests,
                     addDefaultBuildArguments, Collections.unmodifiableSet(forwardProperties),
                     Collections.unmodifiableMap(buildEnvironment), addDefaultBuildEnvironment, verbosity, ioRedirects,
@@ -289,6 +287,18 @@ public class BuildRequest {
         }
 
         /**
+         * If {@link #version} is not set using this method, {@link #srcVersion}.toString() will be used.
+         *
+         * @param version
+         *            see {@link BuildRequest#getVerbosity()}
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder version(String version) {
+            this.version = version;
+            return this;
+        }
+
+        /**
          * @param versionsMavenPluginVersion
          *            see {@link BuildRequest#getVersionsMavenPluginVersion()}
          * @return this {@link BuildRequestBuilder}
@@ -355,16 +365,16 @@ public class BuildRequest {
     private final BuildRequestId id;
     private final IoRedirects ioRedirects;
     private final Path projectRootDirectory;
-
     private final List<String> scmUrls;
     private final boolean skipTests;
     private final SrcVersion srcVersion;
     private final long timeoutMs;
     private final Verbosity verbosity;
+    private final String version;
     private final String versionsMavenPluginVersion;
 
     private BuildRequest(Path dependentProjectRootDirectory, Path projectRootDirectory, SrcVersion srcVersion,
-            GavSet gavSet, List<String> scmUrls, List<String> buildArguments, boolean skipTests,
+            String version, GavSet gavSet, List<String> scmUrls, List<String> buildArguments, boolean skipTests,
             boolean addDefaultBuildArguments, Set<String> forwardProperties, Map<String, String> buildEnvironment,
             boolean addDefaultBuildEnvironment, Verbosity verbosity, IoRedirects ioRedirects, long timeoutMs,
             String versionsMavenPluginVersion, CharStreamSource gradleModelTransformer) {
@@ -373,6 +383,7 @@ public class BuildRequest {
         SrcdepsCoreUtils.assertArgNotNull(dependentProjectRootDirectory, "dependentProjectRootDirectory");
         SrcdepsCoreUtils.assertArgNotNull(projectRootDirectory, "projectRootDirectory");
         SrcdepsCoreUtils.assertArgNotNull(srcVersion, "srcVersion");
+        SrcdepsCoreUtils.assertArgNotNull(version, "version");
         SrcdepsCoreUtils.assertArgNotNull(scmUrls, "scmUrls");
         SrcdepsCoreUtils.assertCollectionNotEmpty(scmUrls, "scmUrls");
         SrcdepsCoreUtils.assertArgNotNull(buildArguments, "buildArguments");
@@ -385,6 +396,7 @@ public class BuildRequest {
         this.dependentProjectRootDirectory = dependentProjectRootDirectory;
         this.projectRootDirectory = projectRootDirectory;
         this.srcVersion = srcVersion;
+        this.version = version;
         this.gavSet = gavSet;
         this.scmUrls = scmUrls;
         this.buildArguments = buildArguments;
@@ -493,7 +505,7 @@ public class BuildRequest {
     }
 
     /**
-     * @return the {@link SrcVersion} to checkout and build
+     * @return the {@link SrcVersion} to checkout
      */
     public SrcVersion getSrcVersion() {
         return srcVersion;
@@ -512,6 +524,13 @@ public class BuildRequest {
      */
     public Verbosity getVerbosity() {
         return verbosity;
+    }
+
+    /**
+     * @return the version of dependency artifacts to install to Local Maven Repository
+     */
+    public String getVersion() {
+        return version;
     }
 
     /**
@@ -549,11 +568,12 @@ public class BuildRequest {
     public String toString() {
         return "BuildRequest [addDefaultBuildArguments=" + addDefaultBuildArguments + ", addDefaultBuildEnvironment="
                 + addDefaultBuildEnvironment + ", buildArguments=" + buildArguments + ", buildEnvironment="
-                + buildEnvironment + ", forwardProperties=" + forwardProperties + ", ioRedirects=" + ioRedirects
-                + ", projectRootDirectory=" + projectRootDirectory + ", scmUrls=" + scmUrls + ", skipTests=" + skipTests
-                + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs + ", verbosity=" + verbosity
-                + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + ", gradleModelTransformer="
-                + gradleModelTransformer + "]";
+                + buildEnvironment + ", dependentProjectRootDirectory=" + dependentProjectRootDirectory
+                + ", forwardProperties=" + forwardProperties + ", gavSet=" + gavSet + ", gradleModelTransformer="
+                + gradleModelTransformer + ", id=" + id + ", ioRedirects=" + ioRedirects + ", projectRootDirectory="
+                + projectRootDirectory + ", scmUrls=" + scmUrls + ", skipTests=" + skipTests + ", srcVersion="
+                + srcVersion + ", timeoutMs=" + timeoutMs + ", verbosity=" + verbosity + ", version=" + version
+                + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + "]";
     }
 
 }

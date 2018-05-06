@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,10 +22,12 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.SrcVersion;
 import org.srcdeps.core.config.BuilderIo;
 import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.ConfigurationException;
@@ -56,7 +58,7 @@ public class YamlConfigurationIoTest {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full.yaml"), "utf-8")) {
             Configuration actual = new YamlConfigurationIo().read(in).build();
             Configuration expected = Configuration.builder() //
-                    .configModelVersion("2.2") //
+                    .configModelVersion("2.3") //
                     .forwardProperty("myProp1") //
                     .forwardProperty("myProp2") //
                     .builderIo(BuilderIo.builder().stdin("read:/path/to/input/file")
@@ -65,6 +67,8 @@ public class YamlConfigurationIoTest {
                     .sourcesDirectory(Paths.get("/home/me/.m2/srcdeps")) //
                     .verbosity(Verbosity.debug) //
                     .buildTimeout(new Duration(35, TimeUnit.MINUTES)) //
+                    .buildVersionPattern(Pattern.compile(".*-SNAPSHOT")) //
+                    .buildRef(SrcVersion.parseRef("branch-3.x")) //
                     .maven( //
                             Maven.builder() //
                                     .versionsMavenPluginVersion("1.2") //
@@ -103,6 +107,8 @@ public class YamlConfigurationIoTest {
                                     .addDefaultBuildArguments(false) //
                                     .skipTests(false) //
                                     .buildTimeout(new Duration(64, TimeUnit.SECONDS)) //
+                                    .buildVersionPattern(Pattern.compile("3\\.2\\..*")) //
+                                    .buildRef(SrcVersion.parseRef("revision-deadbeef")) //
                                     .maven( //
                                             ScmRepositoryMaven.builder() //
                                                     .versionsMavenPluginVersion("2.2") //
@@ -124,6 +130,9 @@ public class YamlConfigurationIoTest {
                                     .skipTests(false)) //
                     .build();
             Assert.assertEquals(expected, actual);
+            final ScmRepository repo1 = actual.getRepositories().iterator().next();
+            Assert.assertTrue(repo1.getBuildVersionPattern().matcher("3.2.1").matches());
+            Assert.assertFalse(repo1.getBuildVersionPattern().matcher("3.3.1").matches());
         }
     }
 

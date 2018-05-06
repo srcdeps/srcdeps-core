@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -141,7 +141,7 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     public void setVersions(BuildRequest request) throws BuildException {
         final List<String> args = new ArrayList<>();
         args.add("org.codehaus.mojo:versions-maven-plugin:" + request.getVersionsMavenPluginVersion() + ":set");
-        args.add("-DnewVersion=" + request.getSrcVersion().toString());
+        args.add("-DnewVersion=" + request.getVersion().toString());
         args.add("-DartifactId=*");
         args.add("-DgroupId=*");
         args.add("-DoldVersion=*");
