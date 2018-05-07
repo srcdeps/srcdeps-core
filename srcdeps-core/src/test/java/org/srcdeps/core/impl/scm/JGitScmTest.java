@@ -100,7 +100,9 @@ public class JGitScmTest {
                 .gradleModelTransformer(CharStreamSource.defaultModelTransformer()) //
                 .build();
 
-        commitId = jGitScm.fetchAndReset(fetchingRequest);
+        try (Git git = Git.open(dir.toFile())) {
+            commitId = jGitScm.fetchAndReset(fetchingRequest, git);
+        }
         Assert.assertEquals("0a5ab902099b24c2b13ed1dad8c5f537458bcc89", commitId);
 
         /* ensure that the WC's HEAD has the known commit hash */
@@ -115,7 +117,9 @@ public class JGitScmTest {
                 .gradleModelTransformer(CharStreamSource.defaultModelTransformer()) //
                 .build();
 
-        commitId = jGitScm.fetchAndReset(fetchBranchRequest);
+        try (Git git = Git.open(dir.toFile())) {
+            commitId = jGitScm.fetchAndReset(fetchBranchRequest, git);
+        }
         Assert.assertEquals("a84403b6fb44c5a588a9fe39d939c977e1e5c6a4", commitId);
 
         /* ensure that the WC's HEAD has the known commit hash */
@@ -133,7 +137,9 @@ public class JGitScmTest {
 
         System.out.println("expectedCommit = "+ expectedCommit);
 
-        commitId = jGitScm.fetchAndReset(fetchBranchRequest);
+        try (Git git = Git.open(dir.toFile())) {
+            commitId = jGitScm.fetchAndReset(fetchBranchRequest, git);
+        }
         Assert.assertEquals(expectedCommit, commitId);
 
         /* Reset back the morning-branch */
@@ -141,7 +147,9 @@ public class JGitScmTest {
             git.reset().setMode(ResetType.HARD).setRef("a84403b6fb44c5a588a9fe39d939c977e1e5c6a4").call();
         }
 
-        commitId = jGitScm.fetchAndReset(fetchBranchRequest);
+        try (Git git = Git.open(dir.toFile())) {
+            commitId = jGitScm.fetchAndReset(fetchBranchRequest, git);
+        }
         Assert.assertEquals("a84403b6fb44c5a588a9fe39d939c977e1e5c6a4", commitId);
         assertCommit(dir, "a84403b6fb44c5a588a9fe39d939c977e1e5c6a4");
 

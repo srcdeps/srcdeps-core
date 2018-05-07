@@ -179,10 +179,22 @@ public class JGitScm implements Scm {
 
         Path dir = request.getProjectRootDirectory();
         boolean dirExists = Files.exists(dir);
-        final String result;
-        if (dirExists && containsGitRepo(dir)) {
+        String result = null;
+        try (Git git = Git.open(dir.toFile())) {
             /* there is a valid repo - try to fetch and reset */
-            result = fetchAndReset(request);
+            result = fetchAndReset(request, git);
+        } catch (IOException e1) {
+            /* there is no valid git repo in the directory */
+            log.warn(String.format("Git repository in [%s] either does not exist or is broken. Will try to clean the directory and clone anew.", dir), e1);
+            try {
+                SrcdepsCoreUtils.ensureDirectoryExistsAndEmpty(dir);
+            } catch (IOException e) {
+                throw new ScmException(String.format("srcdeps could not create directory [%s]", dir), e);
+            }
+            result = cloneAndCheckout(request);
+        }
+
+        if (dirExists && containsGitRepo(dir)) {
         } else {
             /* there is no valid git repo in the directory */
             try {
@@ -235,10 +247,10 @@ public class JGitScm implements Scm {
         throw lastException;
     }
 
-    String fetchAndReset(BuildRequest request) throws ScmException {
+    String fetchAndReset(BuildRequest request, Git git) throws ScmException {
         final Path dir = request.getProjectRootDirectory();
         /* Forget local changes */
-        try (Git git = Git.open(dir.toFile())) {
+        try {
             Set<String> removedFiles = git.clean().setCleanDirectories(true).call();
             for (String removedFile : removedFiles) {
                 log.debug("srcdeps: removed an unstaged file {}", removedFile);
@@ -250,7 +262,7 @@ public class JGitScm implements Scm {
             git.checkout().setName(SRCDEPS_WORKING_BRANCH).call();
 
         } catch (Exception e) {
-            log.warn(String.format("Srcdeps could not forget local changes in [%s]", dir), e);
+            throw new ScmException(String.format("Srcdeps could not forget local changes in [%s]", dir), e);
         }
 
         final SrcVersion srcVersion = request.getSrcVersion();
@@ -260,7 +272,7 @@ public class JGitScm implements Scm {
             String useUrl = stripUriPrefix(url);
             log.info("srcdeps: attempting to fetch version {} from SCM URL {}", request.getSrcVersion(), useUrl);
             String remoteAlias = i == 0 ? "origin" : "origin" + i;
-            try (Git git = Git.open(dir.toFile())) {
+            try {
 
                 StoredConfig config = git.getRepository().getConfig();
                 config.setString("remote", remoteAlias, "url", useUrl);
