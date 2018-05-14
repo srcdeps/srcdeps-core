@@ -29,6 +29,7 @@ import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
+import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -81,17 +82,17 @@ public class JGitScm implements Scm {
         Path gitDir = dir.resolve(".git");
         if (!Files.exists(gitDir)) {
             return false;
-        }
-        try (Git git = Git.open(dir.toFile())) {
-            /* there is a valid repo - try to fetch and reset */
-            return true;
-        } catch (IOException e1) {
-            log.warn(String.format("Could not check if [%s] contains a git repository", dir));
-            /*
-             * We could perhaps throw e out of this method rather than return false. Returning false sounds as a better
-             * idea in case the repo is somehow damaged.
-             */
-            return false;
+        } else {
+            try (FileRepository repo = new FileRepository(gitDir.toFile())) {
+                return repo.getObjectDatabase().exists();
+            } catch (IOException e) {
+                log.warn(String.format("Could not check if [%s] contains a git repository", dir), e);
+                /*
+                 * We could perhaps throw e out of this method rather than return false. Returning false sounds as a
+                 * better idea in case the repo is somehow damaged.
+                 */
+                return false;
+            }
         }
     }
 
@@ -272,8 +273,8 @@ public class JGitScm implements Scm {
                 switch (srcVersion.getWellKnownType()) {
                 case branch:
                     refToFetch = "refs/heads/" + scmVersion;
-                    fetch.setRefSpecs(new RefSpec(
-                            "+refs/heads/" + scmVersion + ":refs/remotes/" + remoteAlias + "/" + scmVersion));
+                    fetch.setRefSpecs(new RefSpec("+refs/heads/" + scmVersion + ":refs/remotes/" + remoteAlias + "/"
+                            + scmVersion));
                     startPoint = remoteAlias + "/" + scmVersion;
                     break;
                 case tag:
