@@ -20,37 +20,47 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * A facility to ensure that we do not fetch and build the same SCM repo multiple times during a single outer build.
- * This is especially important with branch srcdeps versions, where fetching twice might lead to two builds out of two
- * different commits. The remote branch might have changed between the two fetch operations.
+ * A facility to ensure that we do not fetch and build the same SCM repo multiple times during a single outer build. If
+ * a build of a SCM repo produces multiple artifacts, we want to build them only once pre outer build. This not only
+ * saves time but is also especially important with branch srcdeps versions, where fetching twice might lead to two
+ * builds out of two different commits. The remote branch might have changed between the two fetch operations.
  * <p>
  * {@link FetchLog} uses an in-memory store and does not require a fetch from a remote SMC repository.
- * {@link BuildRefStore} on the other hand requires both persistent storage and a fetch from the remote.
+ * {@link BuildMetadataStore} on the other hand requires both persistent storage and a fetch from the remote.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  * @since 3.2.1
  */
 public class FetchLog {
-    private final Set<FetchId> log = Collections.newSetFromMap(new ConcurrentHashMap<FetchId, Boolean>());
+    private static final Logger log = LoggerFactory.getLogger(FetchLog.class);
+
+    private final Set<FetchId> fetchIds = Collections.newSetFromMap(new ConcurrentHashMap<FetchId, Boolean>());
 
     /**
      * @param fetchId
-     *            the {@link FetchId} to query
+     *                    the {@link FetchId} to query
      * @return {@code true} if the repository identified by the given {@link FetchId} can be considered up-to-date (i.e.
      *         fetched) and built in the current JVM; {@code false} otherwise
      */
     public boolean contains(FetchId fetchId) {
-        return log.contains(fetchId);
+        final boolean result = fetchIds.contains(fetchId);
+        log.debug("srcdeps SCM repo {} in {}: {}", (result ? "present" : "absent"), FetchLog.class.getSimpleName(),
+                fetchId);
+        return result;
     }
 
     /**
-     * Mark the given {@link FetchId} as having been up-to-date (i.e. fetched) and built in the current JVM.
+     * Mark the given {@link FetchId} as being up-to-date (i.e. fetched) and eventually re-built in the current JVM.
      *
      * @param fetchId
-     *            the {@link FetchId} to add
+     *                    the {@link FetchId} to add
      */
     public void add(FetchId fetchId) {
-        log.add(fetchId);
+        log.debug("srcdeps adds SCM repo to {}: {}", FetchLog.class.getSimpleName(), fetchId);
+        fetchIds.add(fetchId);
     }
 }

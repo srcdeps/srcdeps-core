@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ import java.util.StringTokenizer;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
-public class Gav {
+public class Gav implements Comparable<Gav> {
 
     /**
      * Returns a new {@link Gav} instance parsed out of the given {@code gavString}.
@@ -63,6 +63,21 @@ public class Gav {
         this.artifactId = artifactId;
         this.version = version;
         this.hashCode = 31 * (31 * (31 + artifactId.hashCode()) + groupId.hashCode()) + version.hashCode();
+    }
+
+    @Override
+    public int compareTo(Gav o) {
+        int result = this.groupId.compareTo(o.groupId);
+        if (result != 0) {
+            return result;
+        } else {
+            result = this.artifactId.compareTo(o.artifactId);
+            if (result != 0) {
+                return result;
+            } else {
+                return this.version.compareTo(o.version);
+            }
+        }
     }
 
     @Override

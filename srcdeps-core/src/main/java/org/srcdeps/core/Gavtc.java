@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,8 @@ public class Gavtc extends Gav {
      * Returns a new {@link Gavtc} instance parsed out of the given {@code gavtcString}.
      *
      * @param gavtcString
-     *            the string to parse, something of the form {@code groupId:artifactId:version:type:classifier}
+     *                        the string to parse, something of the form
+     *                        {@code groupId:artifactId:version:type:classifier}
      * @return a new {@link Gavtc} instance parsed out of the given {@code gavtcString}
      */
     public static Gavtc of(String gavtcString) {
@@ -113,9 +114,7 @@ public class Gavtc extends Gav {
     }
 
     private final String classifier;
-
     private final int hashCode;
-
     private final String type;
 
     public Gavtc(String groupId, String artifactId, String version, String type) {
@@ -125,9 +124,33 @@ public class Gavtc extends Gav {
     public Gavtc(String groupId, String artifactId, String version, String type, String classifier) {
         super(groupId, artifactId, version);
         this.type = type;
-        this.classifier = classifier;
+        this.classifier = "".equals(classifier) ? null : classifier;
         this.hashCode = 31 * (31 * super.hashCode() + type.hashCode())
                 + ((classifier == null) ? 0 : classifier.hashCode());
+    }
+
+    @Override
+    public int compareTo(Gav other) {
+        Gavtc o = (Gavtc) other;
+        int result = super.compareTo(o);
+        if (result != 0) {
+            return result;
+        } else {
+            result = this.type.compareTo(o.type);
+            if (result != 0) {
+                return result;
+            } else if (this.classifier == null) {
+                if (o.classifier == null) {
+                    return 0;
+                } else {
+                    return -1;
+                }
+            } else if (o.classifier == null) {
+                return 1;
+            } else {
+                return this.classifier.compareTo(o.classifier);
+            }
+        }
     }
 
     @Override
@@ -157,6 +180,13 @@ public class Gavtc extends Gav {
     }
 
     /**
+     * @return a canonical colon delimited string
+     */
+    public String getGavtcString() {
+        return super.toString() + ":" + type + (classifier == null ? "" : ":" + classifier);
+    }
+
+    /**
      * @return the artifact type, such as {@code jar} or {@code pom}
      */
     public String getType() {
@@ -170,7 +200,7 @@ public class Gavtc extends Gav {
 
     @Override
     public String toString() {
-        return super.toString() + ":" + type + (classifier == null ? "" : ":" + classifier);
+        return getGavtcString();
     }
 
 }

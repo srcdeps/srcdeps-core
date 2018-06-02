@@ -155,6 +155,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <systemProperties>
+            <project.basedir>${project.basedir}</project.basedir>
             <project.build.directory>${project.build.directory}</project.build.directory>
             <mrm.settings.xml>${project.build.directory}/settings-mrm.xml</mrm.settings.xml>
           </systemProperties>

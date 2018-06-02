@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -157,18 +157,21 @@ public class MavenLocalRepository {
 
     /**
      * @param gav
-     *            the {@link Gavtc} to resolve
+     *                the {@link Gavtc} to resolve
      * @return a {@link Path} under which the given artifact should exist in this {@link MavenLocalRepository}
      */
     public Path resolve(Gavtc gav) {
-        return resolveGroup(gav.getGroupId()).resolve(gav.getArtifactId()).resolve(gav.getVersion())
-                .resolve(gav.getArtifactId() + "-" + gav.getVersion()
-                        + (gav.getClassifier() == null ? "" : "-" + gav.getClassifier()) + "." + gav.getType());
+        return resolveGavDirectory(gav).resolve(gav.getArtifactId() + "-" + gav.getVersion()
+                + (gav.getClassifier() == null ? "" : "-" + gav.getClassifier()) + "." + gav.getType());
+    }
+
+    public Path resolveGavDirectory(Gav gav) {
+        return resolveGroup(gav.getGroupId()).resolve(gav.getArtifactId()).resolve(gav.getVersion());
     }
 
     /**
      * @param groupId
-     *            the {@code groupId} to resolve
+     *                    the {@code groupId} to resolve
      * @return a {@link Path} under which the given {@code groupId} lives in this {@link MavenLocalRepository}
      */
     public Path resolveGroup(String groupId) {
