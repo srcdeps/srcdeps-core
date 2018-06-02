@@ -31,6 +31,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 
 /**
@@ -65,10 +67,25 @@ public class SrcdepsCoreUtils {
     }
 
     /**
+     * @param bytes
+     *                  the bytes to format
+     * @return the given {@code bytes} formatted as a hex string
+     */
+    public static String bytesToHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
+    /**
      * Copy the given {@code src} directory to the given {@code destination} directory.
      *
-     * @param src the directory to copy
-     * @param destination where to copy
+     * @param src
+     *                        the directory to copy
+     * @param destination
+     *                        where to copy
      * @throws IOException
      */
     public static void copyDirectory(final Path src, final Path destination) throws IOException {
@@ -89,10 +106,10 @@ public class SrcdepsCoreUtils {
     }
 
     /**
-     * Deletes a file or directory recursivelly if it exists.
+     * Deletes a file or directory recursively if it exists.
      *
      * @param directory
-     *            the directory to delete
+     *                      the directory to delete
      * @throws IOException
      */
     public static void deleteDirectory(Path directory) throws IOException {
@@ -122,7 +139,8 @@ public class SrcdepsCoreUtils {
                                 lastException = e;
                             }
                         } while (System.currentTimeMillis() < deadline);
-                        throw new IOException(String.format("Could not delete file [%s] after retrying for %d ms", file, DELETE_RETRY_MILLIS), lastException);
+                        throw new IOException(String.format("Could not delete file [%s] after retrying for %d ms", file,
+                                DELETE_RETRY_MILLIS), lastException);
                     } else {
                         Files.delete(file);
                     }
@@ -145,9 +163,9 @@ public class SrcdepsCoreUtils {
      * Makes sure that the given directory exists. Tries creating {@link #CREATE_RETRY_COUNT} times.
      *
      * @param dir
-     *            the directory {@link Path} to check
+     *                the directory {@link Path} to check
      * @throws IOException
-     *             if the directory could not be created or accessed
+     *                         if the directory could not be created or accessed
      */
     public static void ensureDirectoryExists(Path dir) throws IOException {
         Throwable toThrow = null;
@@ -184,9 +202,9 @@ public class SrcdepsCoreUtils {
      * recursively deletes all subpaths in the given directory.
      *
      * @param dir
-     *            the directory to check
+     *                the directory to check
      * @throws IOException
-     *             if the directory could not be created, accessed or its children deleted
+     *                         if the directory could not be created, accessed or its children deleted
      */
     public static void ensureDirectoryExistsAndEmpty(Path dir) throws IOException {
         if (Files.exists(dir)) {
@@ -227,9 +245,9 @@ public class SrcdepsCoreUtils {
      * Returns the content of the given {@code reader} as string.
      *
      * @param reader
-     *            the {@link Reader} to read from
+     *                   the {@link Reader} to read from
      * @param buf
-     *            a properly dimensioned buffer to use when reading
+     *                   a properly dimensioned buffer to use when reading
      * @return the content read from the given {@code reader}
      * @throws IOException
      */
@@ -246,15 +264,32 @@ public class SrcdepsCoreUtils {
      * Opens am {@link InputStream} out of the given {@code url} and returns the content as a UTF-8 string.
      *
      * @param url
-     *            the {@link URL} to read from
+     *                the {@link URL} to read from
      * @param buf
-     *            a properly dimensioned buffer to use when reading
+     *                a properly dimensioned buffer to use when reading
      * @return the content read from the given {@code url}
      * @throws IOException
      */
     public static String read(URL url, char[] buf) throws IOException {
         try (Reader in = new InputStreamReader(url.openStream(), StandardCharsets.UTF_8)) {
             return read(in, buf);
+        }
+    }
+
+    /**
+     * @param artifactPath
+     *                         the {@link Path} of the file whose sha1 should be computed
+     * @return the sha1 of the file formatted as a hex string
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     */
+    public static String sha1HexString(Path artifactPath) throws IOException, NoSuchAlgorithmException {
+        if (Files.exists(artifactPath)) {
+            final MessageDigest sha1Digest = MessageDigest.getInstance("SHA-1");
+            final byte[] localMvnRepoArtifactSha1Bytes = sha1Digest.digest(Files.readAllBytes(artifactPath));
+            return SrcdepsCoreUtils.bytesToHexString(localMvnRepoArtifactSha1Bytes);
+        } else {
+            return null;
         }
     }
 

@@ -22,7 +22,8 @@ import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
 /**
- * A general purpose pattern for matching GAVs (the {@code groupId}, {@code artifactId}, {@code version} triples).
+ * A general purpose pattern for matching GAVs (i.e. triples consisting of {@code groupId}, {@code artifactId} and
+ * {@code version}).
  * <p>
  * To create a new {@link GavPattern}, use either {@link #of(String)} or {@link #builder()}, both of which accept
  * wildcard patterns (rather than regular expression patterns). See the JavaDocs of the two respective methods for more
@@ -34,14 +35,15 @@ import java.util.regex.Pattern;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class GavPattern implements Serializable {
-    /**  */
-    private static final long serialVersionUID = 5570763687443531797L;
 
+    /**
+     * A {@link GavPattern} builder.
+     */
     public static class Builder {
 
-        private Pattern artifactIdPattern = MATCH_ALL_PATTERN;
-        private Pattern groupIdPattern = MATCH_ALL_PATTERN;
-        private Pattern versionPattern = MATCH_ALL_PATTERN;
+        private GavSegmentPattern artifactIdPattern = GavSegmentPattern.MATCH_ALL;
+        private GavSegmentPattern groupIdPattern = GavSegmentPattern.MATCH_ALL;
+        private GavSegmentPattern versionPattern = GavSegmentPattern.MATCH_ALL;
 
         private Builder() {
         }
@@ -50,11 +52,11 @@ public class GavPattern implements Serializable {
          * Sets the pattern for {@code artifactId}
          *
          * @param wildcardPattern
-         *            a pattern that can contain string literals and asterisk {@code *} wildcards
+         *                            a pattern that can contain string literals and asterisk {@code *} wildcards
          * @return this {@link Builder}
          */
         public Builder artifactIdPattern(String wildcardPattern) {
-            this.artifactIdPattern = toPattern(wildcardPattern);
+            this.artifactIdPattern = new GavSegmentPattern(wildcardPattern);
             return this;
         }
 
@@ -66,11 +68,11 @@ public class GavPattern implements Serializable {
          * Sets the pattern for {@code groupId}
          *
          * @param wildcardPattern
-         *            a pattern that can contain string literals and asterisk {@code *} wildcards
+         *                            a pattern that can contain string literals and asterisk {@code *} wildcards
          * @return this {@link Builder}
          */
         public Builder groupIdPattern(String wildcardPattern) {
-            this.groupIdPattern = toPattern(wildcardPattern);
+            this.groupIdPattern = new GavSegmentPattern(wildcardPattern);
             return this;
         }
 
@@ -78,32 +80,99 @@ public class GavPattern implements Serializable {
          * Sets the pattern for {@code version}
          *
          * @param wildcardPattern
-         *            a pattern that can contain string literals and asterisk {@code *} wildcards
+         *                            a pattern that can contain string literals and asterisk {@code *} wildcards
          * @return this {@link Builder}
          */
         public Builder versionPattern(String wildcardPattern) {
-            this.versionPattern = toPattern(wildcardPattern);
+            this.versionPattern = new GavSegmentPattern(wildcardPattern);
             return this;
         }
 
     }
 
+    /**
+     * A pair of a {@link Pattern} and its wildcard source.
+     */
+    static class GavSegmentPattern implements Serializable {
+        private static final GavSegmentPattern MATCH_ALL = new GavSegmentPattern(GavPattern.MULTI_WILDCARD);
+        private static final String MATCH_ALL_PATTERN_SOURCE = ".*";
+        /**  */
+        private static final long serialVersionUID = 1063634992004995585L;
+        private final transient Pattern pattern;
+        private final String source;
+
+        GavSegmentPattern(String wildcardSource) {
+            super();
+            final StringBuilder sb = new StringBuilder(wildcardSource.length() + 2);
+            final StringTokenizer st = new StringTokenizer(wildcardSource, GavPattern.MULTI_WILDCARD, true);
+            while (st.hasMoreTokens()) {
+                String token = st.nextToken();
+                if (GavPattern.MULTI_WILDCARD.equals(token)) {
+                    sb.append(MATCH_ALL_PATTERN_SOURCE);
+                } else {
+                    sb.append(Pattern.quote(token));
+                }
+            }
+            this.pattern = Pattern.compile(sb.toString());
+            this.source = wildcardSource;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            GavSegmentPattern other = (GavSegmentPattern) obj;
+            return source.equals(other.source);
+        }
+
+        /**
+         * @return the wildcard source of the {@link #pattern}
+         */
+        public String getSource() {
+            return source;
+        }
+
+        @Override
+        public int hashCode() {
+            return source.hashCode();
+        }
+
+        public boolean matches(String input) {
+            return pattern.matcher(input).matches();
+        }
+
+        /**
+         * @return {@code true} if this {@link GavSegmentPattern} is equal to {@link #MATCH_ALL}; {@code false}
+         *         otherwise
+         */
+        public boolean matchesAll() {
+            return MATCH_ALL.equals(this);
+        }
+
+        @Override
+        public String toString() {
+            return source;
+        }
+    }
+
     private static final char DELIMITER = ':';
     private static final String DELIMITER_STRING;
     private static final GavPattern MATCH_ALL;
-    private static final Pattern MATCH_ALL_PATTERN;
-    private static final String MATCH_ALL_PATTERN_SOURCE = ".*";
-
     private static final GavPattern MATCH_SNAPSHOTS;
-    private static final String MULTI_WILDCARD = "*";
+    static final String MULTI_WILDCARD;
+    static final String MULTI_WILDCARD_CHAR = "*";
+    private static final long serialVersionUID = 5570763687443531797L;
     private static final String SNAPSHOT_SUFFIX = "-SNAPSHOT";
 
     static {
-        MATCH_ALL_PATTERN = Pattern.compile(MATCH_ALL_PATTERN_SOURCE);
+        MULTI_WILDCARD = String.valueOf(MULTI_WILDCARD_CHAR);
         DELIMITER_STRING = String.valueOf(DELIMITER);
-        MATCH_ALL = new GavPattern(MATCH_ALL_PATTERN, MATCH_ALL_PATTERN, MATCH_ALL_PATTERN);
-        MATCH_SNAPSHOTS = new GavPattern(MATCH_ALL_PATTERN, MATCH_ALL_PATTERN,
-                toPattern(MULTI_WILDCARD + SNAPSHOT_SUFFIX));
+        MATCH_ALL = new GavPattern(GavSegmentPattern.MATCH_ALL, GavSegmentPattern.MATCH_ALL,
+                GavSegmentPattern.MATCH_ALL);
+        MATCH_SNAPSHOTS = new GavPattern(GavSegmentPattern.MATCH_ALL, GavSegmentPattern.MATCH_ALL,
+                new GavSegmentPattern(MULTI_WILDCARD + SNAPSHOT_SUFFIX));
     }
 
     /**
@@ -148,75 +217,55 @@ public class GavPattern implements Serializable {
      * {@code org.my-group:my-artifact}.
      *
      * @param wildcardPattern
-     *            a string pattern to parse and create a new {@link GavPattern} from
+     *                            a string pattern to parse and create a new {@link GavPattern} from
      * @return a new {@link GavPattern}
      */
     public static GavPattern of(String wildcardPattern) {
-        final Pattern groupIdPattern;
+        final GavSegmentPattern groupIdPattern;
         StringTokenizer st = new StringTokenizer(wildcardPattern, DELIMITER_STRING);
         if (st.hasMoreTokens()) {
-            groupIdPattern = toPattern(st.nextToken());
+            groupIdPattern = new GavSegmentPattern(st.nextToken());
         } else {
-            groupIdPattern = MATCH_ALL_PATTERN;
+            groupIdPattern = GavSegmentPattern.MATCH_ALL;
         }
-        final Pattern artifactIdPattern;
+        final GavSegmentPattern artifactIdPattern;
         if (st.hasMoreTokens()) {
-            artifactIdPattern = toPattern(st.nextToken());
+            artifactIdPattern = new GavSegmentPattern(st.nextToken());
         } else {
-            artifactIdPattern = MATCH_ALL_PATTERN;
+            artifactIdPattern = GavSegmentPattern.MATCH_ALL;
         }
-        final Pattern versionPattern;
+        final GavSegmentPattern versionPattern;
         if (st.hasMoreTokens()) {
-            versionPattern = toPattern(st.nextToken());
+            versionPattern = new GavSegmentPattern(st.nextToken());
         } else {
-            versionPattern = MATCH_ALL_PATTERN;
+            versionPattern = GavSegmentPattern.MATCH_ALL;
         }
         return new GavPattern(groupIdPattern, artifactIdPattern, versionPattern);
     }
 
-    /**
-     * Transforms the given {@code wildcardPattern} to a new {@link Pattern}.
-     *
-     * @param wildcardPattern
-     * @return a new {@link Pattern}
-     */
-    private static Pattern toPattern(String wildcardPattern) {
-        return Pattern.compile(wildcardPattern.replace(MULTI_WILDCARD, MATCH_ALL_PATTERN_SOURCE));
-    }
-
-    /**
-     * Transforms the given {@code pattern} to its wildcard representation.
-     *
-     * @param pattern
-     *            the {@link Pattern} to transform
-     * @return a wildcard representation of the given {@code pattern}
-     */
-    private static String toWildcard(Pattern pattern) {
-        return pattern.pattern().replace(MATCH_ALL_PATTERN_SOURCE, MULTI_WILDCARD);
-    }
-
-    private final Pattern artifactIdPattern;
-    private final Pattern groupIdPattern;
+    final GavSegmentPattern artifactIdPattern;
+    final GavSegmentPattern groupIdPattern;
     private final transient String source;
-    private final Pattern versionPattern;
+    final GavSegmentPattern versionPattern;
 
-    GavPattern(Pattern groupIdPattern, Pattern artifactIdPattern, Pattern versionPattern) {
+    GavPattern(GavSegmentPattern groupIdPattern, GavSegmentPattern artifactIdPattern,
+            GavSegmentPattern versionPattern) {
         super();
         this.groupIdPattern = groupIdPattern;
         this.artifactIdPattern = artifactIdPattern;
         this.versionPattern = versionPattern;
 
-        StringBuilder source = new StringBuilder(groupIdPattern.pattern().length()
-                + artifactIdPattern.pattern().length() + versionPattern.pattern().length() + 2);
+        StringBuilder source = new StringBuilder(groupIdPattern.getSource().length()
+                + artifactIdPattern.getSource().length() + versionPattern.getSource().length() + 2);
 
-        source.append(toWildcard(groupIdPattern));
-        final boolean artifactMatchesAll = MATCH_ALL_PATTERN_SOURCE.equals(artifactIdPattern.pattern());
-        final boolean versionMatchesAll = MATCH_ALL_PATTERN_SOURCE.equals(versionPattern.pattern());
+        source.append(groupIdPattern.getSource());
+        final boolean artifactMatchesAll = artifactIdPattern.matchesAll();
+        final boolean versionMatchesAll = versionPattern.matchesAll();
         if (!versionMatchesAll) {
-            source.append(DELIMITER).append(toWildcard(artifactIdPattern));
-            source.append(DELIMITER).append(toWildcard(versionPattern));
+            source.append(DELIMITER).append(artifactIdPattern.getSource());
+            source.append(DELIMITER).append(versionPattern.getSource());
         } else if (!artifactMatchesAll) {
-            source.append(DELIMITER).append(toWildcard(artifactIdPattern));
+            source.append(DELIMITER).append(artifactIdPattern.getSource());
         }
         this.source = source.toString();
     }
@@ -248,9 +297,9 @@ public class GavPattern implements Serializable {
      *         {@code version} triple and {@code false otherwise}
      */
     public boolean matches(String groupId, String artifactId, String version) {
-        return groupIdPattern.matcher(groupId).matches() && //
-                artifactIdPattern.matcher(artifactId).matches() && //
-                versionPattern.matcher(version).matches();
+        return groupIdPattern.matches(groupId) && //
+                artifactIdPattern.matches(artifactId) && //
+                versionPattern.matches(version);
     }
 
     @Override

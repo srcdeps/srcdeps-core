@@ -29,10 +29,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.srcdeps.core.BuildRequest.Verbosity;
 
-public class BuildRequestIdTest {
+public class BuildRequestTest {
 
     @Test
-    public void hashCodeEquals() {
+    public void getHash() {
 
         final Map<String, String> env1 = new HashMap<>();
         env1.put("k1", "v1");
@@ -42,10 +42,10 @@ public class BuildRequestIdTest {
         props.add("prop1");
         props.add("prop2");
 
-        BuildRequestId id1 = new BuildRequestId(true, true, Arrays.<String>asList("arg1", "arg2"), env1, props,
+        String id1 = BuildRequest.computeHash(true, true, Arrays.<String>asList("arg1", "arg2"), env1, props,
                 GavSet.builder().include("org.mygroup").exclude("other-group").build(), Arrays.asList("url1", "url2"),
                 true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", 50000, Verbosity.error);
-        BuildRequestId id2 = new BuildRequestId(true, true, new ArrayList<>(Arrays.<String>asList("arg1", "arg2")),
+        String id2 = BuildRequest.computeHash(true, true, new ArrayList<>(Arrays.<String>asList("arg1", "arg2")),
                 new LinkedHashMap<String, String>(env1), new LinkedHashSet<String>(props),
                 GavSet.builder().include("org.mygroup").exclude("other-group").build(),
                 new ArrayList<>(Arrays.<String>asList("url1", "url2")), true,
@@ -53,9 +53,7 @@ public class BuildRequestIdTest {
 
         Assert.assertEquals(id1, id2);
         Assert.assertEquals(id1.hashCode(), id2.hashCode());
-
-        Assert.assertEquals(id1.getHash(), id2.getHash());
-        Assert.assertEquals("9b8e0768c20562f4637757b2227d93fabb0a6c3a", id1.getHash());
+        Assert.assertEquals("f1e6ff1667a2fb9cb8a6419fe9b33accac619479", id1);
 
     }
 

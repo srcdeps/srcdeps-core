@@ -508,13 +508,17 @@ See the License for the specific language governing permissions and
 limitations under the License.</inlineHeader>
           <excludes>
             <exclude>**/*.adoc</exclude>
+            <exclude>**/*.asc</exclude>
             <exclude>**/*.expected</exclude>
+            <exclude>**/*.htm</exclude>
+            <exclude>**/*.html</exclude>
+            <exclude>**/*.md5</exclude>
+            <exclude>**/*.sha1</exclude>
+            <exclude>**/_remote.repositories</exclude>
             <exclude>**/pom.xml.versionsBackup</exclude>
             <exclude>**/README</exclude>
             <exclude>**/README.*</exclude>
             <exclude>**/LICENSE.*</exclude>
-            <exclude>**/*.html</exclude>
-            <exclude>**/*.htm</exclude>
             <exclude>mvnw</exclude>
             <exclude>mvnw.cmd</exclude>
           </excludes>
