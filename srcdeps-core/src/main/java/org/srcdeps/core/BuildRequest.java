@@ -17,7 +17,11 @@
 package org.srcdeps.core;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -381,32 +385,35 @@ public class BuildRequest {
             long timeoutMs, Verbosity verbosity) {
 
         try (DigestOutputStream digester = new DigestOutputStream(MessageDigest.getInstance("SHA-1"))) {
-            try (ObjectOutputStream out = new ObjectOutputStream(digester)) {
-                out.writeBoolean(addDefaultBuildArguments);
-                out.writeBoolean(addDefaultBuildEnvironment);
+            digester.write(addDefaultBuildArguments ? 1 : 0);
+            digester.write(addDefaultBuildEnvironment ? 1 : 0);
+            digester.write(skipTests ? 1 : 0);
+            ByteBuffer buffer = ByteBuffer.allocate(Long.SIZE / Byte.SIZE);
+            buffer.putLong(timeoutMs);
+            digester.write(buffer.array());
+            digester.flush();
+            final Charset utf8 = StandardCharsets.UTF_8;
+            try (Writer w = new OutputStreamWriter(digester, utf8)) {
                 for (String e : buildArguments) {
-                    out.writeUTF(e);
+                    w.write(e);
                 }
                 for (Map.Entry<String, String> e : buildEnvironment.entrySet()) {
-                    out.writeUTF(e.getKey());
-                    out.writeUTF(e.getValue());
+                    w.write(e.getKey());
+                    w.write(e.getValue());
                 }
                 for (String e : forwardProperties) {
-                    out.writeUTF(e);
+                    w.write(e);
                 }
 
-                StringBuilder sb = new StringBuilder();
-                gavSet.appendIncludes(sb);
-                gavSet.appendExcludes(sb);
-                out.writeUTF(sb.toString());
+                gavSet.appendIncludes(w);
+                gavSet.appendExcludes(w);
                 for (String e : scmUrls) {
-                    out.writeUTF(e);
+                    w.write(e);
                 }
-                out.writeBoolean(skipTests);
-                out.writeUTF(srcVersion.toString());
-                out.writeUTF(version);
-                out.writeLong(timeoutMs);
-                out.writeUTF(verbosity.name());
+
+                w.write(srcVersion.toString());
+                w.write(version);
+                w.write(verbosity.name());
             }
             final byte[] sha1Bytes = digester.digest();
             return SrcdepsCoreUtils.bytesToHexString(sha1Bytes);
