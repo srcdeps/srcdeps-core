@@ -81,7 +81,7 @@
     <version.com.google.inject>4.0</version.com.google.inject>
     <version.junit>4.12</version.junit>
     <version.org.codehaus.groovy>2.4.10</version.org.codehaus.groovy>
-    <version.org.eclipse.jgit>4.5.0.201609210915-r</version.org.eclipse.jgit>
+    <version.org.eclipse.jgit>4.11.0.201803080745-r</version.org.eclipse.jgit>
     <!-- keep in sync with sisuInjectVersion in maven
          around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
     <version.org.eclipse.sisu>0.3.3</version.org.eclipse.sisu>
