@@ -53,7 +53,7 @@ public class BuildRequestTest {
 
         Assert.assertEquals(id1, id2);
         Assert.assertEquals(id1.hashCode(), id2.hashCode());
-        Assert.assertEquals("f1e6ff1667a2fb9cb8a6419fe9b33accac619479", id1);
+        Assert.assertEquals("efbef7fe51d6b6e2217c2712a9533063bce32adb", id1);
 
     }
 
