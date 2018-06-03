@@ -8,5 +8,14 @@ cache:
   directories:
   - $HOME/.m2/repository
   - $HOME/.m2/wrapper
+install:
+- ./mvnw -version
+# license plugin requires full git history
+- git fetch --unshallow
 script:
-- ./mvnw -Prun-its clean install
+- ./mvnw clean install -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+# - cd $HOME/build/srcdeps
+# - git clone https://github.com/ppalaga/srcdeps-maven.git
+# - cd srcdeps-maven
+# - git checkout -b 180603-hash
+# - ./mvnw clean install -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
