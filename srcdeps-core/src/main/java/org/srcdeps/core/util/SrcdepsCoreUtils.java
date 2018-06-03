@@ -29,6 +29,7 @@ import java.nio.file.FileSystemException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
@@ -256,6 +257,14 @@ public class SrcdepsCoreUtils {
     }
 
     /**
+     * For manual testing of {@link #sha1HexString(Path)} of files larger than the limit for reading the file all at
+     * once.
+     */
+    public static void main(String[] args) throws NoSuchAlgorithmException, IOException {
+        System.out.println(sha1HexString(Paths.get(args[0])));
+    }
+
+    /**
      * Returns the content of the given {@code reader} as string.
      *
      * @param reader
@@ -300,7 +309,21 @@ public class SrcdepsCoreUtils {
     public static String sha1HexString(Path artifactPath) throws IOException, NoSuchAlgorithmException {
         if (Files.exists(artifactPath)) {
             final MessageDigest sha1Digest = MessageDigest.getInstance("SHA-1");
-            final byte[] localMvnRepoArtifactSha1Bytes = sha1Digest.digest(Files.readAllBytes(artifactPath));
+            final int bufferSize = 4096;
+            final byte[] localMvnRepoArtifactSha1Bytes;
+            if (Files.size(artifactPath) <= bufferSize) {
+                localMvnRepoArtifactSha1Bytes = sha1Digest.digest(Files.readAllBytes(artifactPath));
+            } else {
+                try (InputStream in = Files.newInputStream(artifactPath);
+                        DigestOutputStream out = new DigestOutputStream(sha1Digest)) {
+                    byte[] buffer = new byte[bufferSize];
+                    int len;
+                    while ((len = in.read(buffer)) >= 0) {
+                        out.write(buffer, 0, len);
+                    }
+                }
+                localMvnRepoArtifactSha1Bytes = sha1Digest.digest();
+            }
             return SrcdepsCoreUtils.bytesToHexString(localMvnRepoArtifactSha1Bytes);
         } else {
             return null;
