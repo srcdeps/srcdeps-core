@@ -31,6 +31,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.srcdeps.core.config.scalar.CharStreamSource;
 import org.srcdeps.core.shell.IoRedirects;
 import org.srcdeps.core.util.DigestOutputStream;
@@ -42,6 +44,7 @@ import org.srcdeps.core.util.SrcdepsCoreUtils;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class BuildRequest {
+    private static final Logger log = LoggerFactory.getLogger(BuildRequest.class);
 
     /**
      *
@@ -405,7 +408,6 @@ public class BuildRequest {
                 out.writeLong(timeoutMs);
                 out.writeUTF(verbosity.name());
             }
-            digester.flush();
             final byte[] sha1Bytes = digester.digest();
             return SrcdepsCoreUtils.bytesToHexString(sha1Bytes);
         } catch (IOException | NoSuchAlgorithmException e) {
@@ -480,6 +482,7 @@ public class BuildRequest {
         this.hash = computeHash(addDefaultBuildArguments, addDefaultBuildEnvironment, buildArguments, buildEnvironment,
                 forwardProperties, gavSet, scmUrls, skipTests, srcVersion, versionsMavenPluginVersion, timeoutMs,
                 verbosity);
+        log.debug("Computed hash {} of {}", hash, this);
     }
 
     /**

@@ -72,8 +72,22 @@ public class SrcdepsCoreUtils {
      * @return the given {@code bytes} formatted as a hex string
      */
     public static String bytesToHexString(byte[] bytes) {
-        StringBuilder sb = new StringBuilder(bytes.length * 2);
-        for (byte b : bytes) {
+        return bytesToHexString(bytes, 0, bytes.length);
+    }
+
+    /**
+     * @param bytes
+     *                   the bytes to format
+     * @param offset
+     *                   the offset to start at
+     * @param length
+     *                   how many bytes from offset to format
+     * @return the given {@code bytes} formatted as a hex string
+     */
+    public static String bytesToHexString(byte[] bytes, int offset, int length) {
+        StringBuilder sb = new StringBuilder(length * 2);
+        for (int i = offset; i < offset + length; i++) {
+            byte b = bytes[i];
             sb.append(String.format("%02x", b));
         }
         return sb.toString();
