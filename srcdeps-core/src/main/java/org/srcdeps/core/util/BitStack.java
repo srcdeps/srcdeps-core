@@ -31,8 +31,7 @@ public class BitStack {
     /**
      * Pushes an item onto the top of this stack.
      *
-     * @param item
-     *                 the item to push
+     * @param item the item to push
      * @return the {@code item} argument.
      */
     public boolean push(boolean item) {
@@ -44,8 +43,7 @@ public class BitStack {
      * Removes the object at the top of this stack and returns it.
      *
      * @return The object at the top of this stack
-     * @throws EmptyStackException
-     *                                 if this stack is empty.
+     * @throws EmptyStackException if this stack is empty.
      */
     public synchronized boolean pop() {
         boolean result = peek();
@@ -57,8 +55,7 @@ public class BitStack {
      * Returns the object at the top of this stack without removing it from the stack.
      *
      * @return the object at the top of this stack
-     * @throws EmptyStackException
-     *                                 if this stack is empty.
+     * @throws EmptyStackException if this stack is empty.
      */
     public synchronized boolean peek() {
         if (size == 0)

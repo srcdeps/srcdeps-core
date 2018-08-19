@@ -35,15 +35,17 @@ public class Gav implements Comparable<Gav> {
     public static Gav of(String gavString) {
         StringTokenizer st = new StringTokenizer(gavString, ":");
         if (!st.hasMoreTokens()) {
-            throw new IllegalStateException(String.format("Cannot parse [%s] to a "+ Gav.class.getName(), gavString));
+            throw new IllegalStateException(String.format("Cannot parse [%s] to a " + Gav.class.getName(), gavString));
         } else {
             final String g = st.nextToken();
             if (!st.hasMoreTokens()) {
-                throw new IllegalStateException(String.format("Cannot parse [%s] to a "+ Gav.class.getName(), gavString));
+                throw new IllegalStateException(
+                        String.format("Cannot parse [%s] to a " + Gav.class.getName(), gavString));
             } else {
                 final String a = st.nextToken();
                 if (!st.hasMoreTokens()) {
-                    throw new IllegalStateException(String.format("Cannot parse [%s] to a "+ Gav.class.getName(), gavString));
+                    throw new IllegalStateException(
+                            String.format("Cannot parse [%s] to a " + Gav.class.getName(), gavString));
                 } else {
                     final String v = st.nextToken();
                     return new Gav(g, a, v);

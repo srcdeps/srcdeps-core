@@ -154,6 +154,7 @@ public class PersistentBuildMetadataStore implements BuildMetadataStore {
         return null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String retrieveSha1(String buildRequestIdHash, Gavtc gavtc) {
         final String gavtcString = gavtc.getGavtcString().replace(':', '_');
@@ -179,6 +180,7 @@ public class PersistentBuildMetadataStore implements BuildMetadataStore {
         store(p, commitId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void storeSha1(String buildRequestIdHash, Gavtc gavtc, String sha1) {
         final String gavtcString = gavtc.getGavtcString().replace(':', '_');

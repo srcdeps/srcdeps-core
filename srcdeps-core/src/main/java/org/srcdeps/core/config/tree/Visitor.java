@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,8 +30,7 @@ public interface Visitor {
     /**
      * Check whether the children of the given {@link ContainerNode} should be visited.
      *
-     * @param node
-     *            the current {@link ContainerNode}
+     * @param node the current {@link ContainerNode}
      * @return {@code true} if the calling walker should traverse the children of the given {@code node}; {@code false}
      *         otherwise
      */
@@ -46,8 +45,7 @@ public interface Visitor {
     /**
      * Check whether the elements of the given {@link ListNode} should be visited.
      *
-     * @param node
-     *            the current {@link ListNode}
+     * @param node the current {@link ListNode}
      * @return {@code true} if the calling walker should traverse the elements of the given {@code node}; {@code false}
      *         otherwise
      */
@@ -62,8 +60,7 @@ public interface Visitor {
     /**
      * Visit the given {@link ScalarNode}.
      *
-     * @param node
-     *            the {@link ScalarNode} to visit
+     * @param node the {@link ScalarNode} to visit
      */
     void scalar(ScalarNode<Object> node);
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -145,13 +145,11 @@ public class CharStreamSource {
      * Opens a {@link Reader} based on the {@link #scheme} and {@link #resource} using
      * {@link Scheme#openReader(String, Charset, Path)}.
      *
-     * @param encoding
-     *            the encoding to use when creating the reader. Required only for {@link Scheme#file}.
-     * @param resolveAgainst
-     *            the directory to resolve the {@link #resource} against. Required only for {@link Scheme#file}.
+     * @param encoding       the encoding to use when creating the reader. Required only for {@link Scheme#file}.
+     * @param resolveAgainst the directory to resolve the {@link #resource} against. Required only for
+     *                       {@link Scheme#file}.
      * @return a {@link Reader}
-     * @throws IOException
-     *             when the {@code cannot be opened}.
+     * @throws IOException when the {@code cannot be opened}.
      */
     public Reader openReader(Charset encoding, Path resolveAgainst) throws IOException {
         return scheme.openReader(resource, encoding, resolveAgainst);

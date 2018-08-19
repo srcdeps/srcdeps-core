@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,8 +36,7 @@ public abstract class AbstractVisitor implements Visitor {
     /**
      * Pushes the given node to the {@link #stack}.
      *
-     * @param node
-     *            {@inheritDoc}
+     * @param node {@inheritDoc}
      * @return {@inheritDoc}
      */
     @Override
@@ -57,9 +56,8 @@ public abstract class AbstractVisitor implements Visitor {
     /**
      * A helper method to tell if some of the present node's ancestors is a {@link ListNode}.
      *
-     * @param distance
-     *            the numer of steps to take from the last element in the {@link #stack}. {@code 0} means the last
-     *            {@link #stack} element.
+     * @param distance the numer of steps to take from the last element in the {@link #stack}. {@code 0} means the last
+     *                 {@link #stack} element.
      * @return {@code true} if the ancestor in the given {@code distance} is a {@link ListNode}
      */
     protected boolean hasListAncestor(int distance) {
@@ -74,8 +72,7 @@ public abstract class AbstractVisitor implements Visitor {
     /**
      * Pushes the given node to the {@link #stack}.
      *
-     * @param node
-     *            {@inheritDoc}
+     * @param node {@inheritDoc}
      * @return {@inheritDoc}
      */
     @Override

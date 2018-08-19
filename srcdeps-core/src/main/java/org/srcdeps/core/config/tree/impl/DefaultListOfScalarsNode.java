@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,8 +31,7 @@ import org.srcdeps.core.config.tree.ScalarNode;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  *
- * @param <E>
- *            the type of the scalar values stored in this list
+ * @param <E> the type of the scalar values stored in this list
  */
 public class DefaultListOfScalarsNode<E> extends DefaultListNode<ScalarNode<E>> implements ListOfScalarsNode<E> {
     private final Class<E> elementType;

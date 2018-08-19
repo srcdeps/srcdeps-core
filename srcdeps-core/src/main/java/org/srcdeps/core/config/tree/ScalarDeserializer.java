@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,8 +24,7 @@ public interface ScalarDeserializer {
      * Deserialize the given {@link String} value to an object of another type such as int, Integer, boolean, Boolean,
      * etc.
      *
-     * @param value
-     *            the {@link String} value to deserialize.
+     * @param value the {@link String} value to deserialize.
      * @return the deserialized value
      */
     Object deserialize(String value);

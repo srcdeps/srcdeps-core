@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -145,8 +145,10 @@ public class YamlWriterVisitor extends AbstractVisitor implements Closeable {
     @Override
     public void scalar(ScalarNode<Object> node) {
         try {
-            if ("configModelVersion"
-                    .equals(node.getName()) /* We want configModelVersion always to be present in the output */
+            if ("configModelVersion".equals(node.getName()) /*
+                                                             * We want configModelVersion always to be present in the
+                                                             * output
+                                                             */
                     || !node.isInDefaultState(stack)) {
                 writeComment(node.getCommentBefore());
                 if (hasListAncestor(0)) {

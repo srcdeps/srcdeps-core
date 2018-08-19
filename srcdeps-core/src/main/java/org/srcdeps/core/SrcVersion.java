@@ -34,7 +34,7 @@ public class SrcVersion implements Serializable {
      * Some well known version types
      */
     public enum WellKnownType {
-        branch(false), revision(true), tag(true);
+    branch(false), revision(true), tag(true);
         private static final Map<String, WellKnownType> valueMap;
         static {
             Map<String, WellKnownType> m = new HashMap<>();
@@ -92,8 +92,7 @@ public class SrcVersion implements Serializable {
     }
 
     /**
-     * @param rawVersion
-     *            the version string to decide about
+     * @param rawVersion the version string to decide about
      * @return {@code true} if the given {@code rawVersion} is a srcdeps version string (i.e. when it contains the
      *         {@code -SRC-} infix); otherwise {@code false}
      */
@@ -102,8 +101,7 @@ public class SrcVersion implements Serializable {
     }
 
     /**
-     * @param rawVersion
-     *            the string such as {@code 1.2.3-SRC-revision-1234abcd} to parse
+     * @param rawVersion the string such as {@code 1.2.3-SRC-revision-1234abcd} to parse
      * @return a new instance of {@link SrcVersion} as parsed from the given {@code rawString}
      */
     public static SrcVersion parse(String rawVersion) {
@@ -134,11 +132,9 @@ public class SrcVersion implements Serializable {
      *
      * Examples: {@code revision-a867be19904e21e312ca3208dac42ab7a7de5c59}, {@code branch-3.x}, {@code tag-1.2.3}
      *
-     * @param rawRef
-     *            the string such as {@code revision-1234abcd} to parse
+     * @param rawRef the string such as {@code revision-1234abcd} to parse
      * @return a new instance of {@link SrcVersion} as parsed from the given {@code rawRef}
-     * @throws RuntimeException
-     *             if {@code rawRef} does not contain a dash
+     * @throws RuntimeException if {@code rawRef} does not contain a dash
      */
     public static SrcVersion parseRef(String rawRef) {
         int versionTypeEnd = rawRef.indexOf(SRC_VERSION_DELIMITER);

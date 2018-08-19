@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@ import org.srcdeps.core.config.scalar.Scalars;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  *
- * @param <T>
- *            the type of the value stored in this {@link ScalarNode}.
+ * @param <T> the type of the value stored in this {@link ScalarNode}.
  *
  * @see Scalars
  */
@@ -47,8 +46,7 @@ public interface ScalarNode<T> extends Node {
     /**
      * Sets the value stored in this {@link ScalarNode}.
      *
-     * @param value
-     *            the value to set
+     * @param value the value to set
      */
     void setValue(T value);
 }

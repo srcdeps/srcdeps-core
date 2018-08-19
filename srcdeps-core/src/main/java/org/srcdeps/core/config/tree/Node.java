@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,8 +32,7 @@ public interface Node {
      * Apply the defaults or apply some kind of inheritance in case the values of some attributes were not set
      * explicitly. See also {@link DefaultsAndInheritanceVisitor}.
      *
-     * @param configurationStack
-     *            the stack of ancestor configuration nodes. Can be queried to inherit values.
+     * @param configurationStack the stack of ancestor configuration nodes. Can be queried to inherit values.
      */
     void applyDefaultsAndInheritance(Stack<Node> configurationStack);
 
@@ -51,14 +50,12 @@ public interface Node {
     /**
      * Fully reset the state of this {@link Node} using the given {@code source} {@link Node}.
      *
-     * @param source
-     *            the {@link Node} to take the values from
+     * @param source the {@link Node} to take the values from
      */
     void init(Node source);
 
     /**
-     * @param stack
-     *            the ancestor hierarchy of this {@link Node}
+     * @param stack the ancestor hierarchy of this {@link Node}
      * @return {@code true} if this {@link Node}'s internal state has not been set yet or if the state is in the
      *         instance or implementation specific default state. Otherwise returns {@code false}
      */

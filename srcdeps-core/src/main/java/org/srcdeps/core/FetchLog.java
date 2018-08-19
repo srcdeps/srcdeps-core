@@ -41,8 +41,7 @@ public class FetchLog {
     private final Set<FetchId> fetchIds = Collections.newSetFromMap(new ConcurrentHashMap<FetchId, Boolean>());
 
     /**
-     * @param fetchId
-     *                    the {@link FetchId} to query
+     * @param fetchId the {@link FetchId} to query
      * @return {@code true} if the repository identified by the given {@link FetchId} can be considered up-to-date (i.e.
      *         fetched) and built in the current JVM; {@code false} otherwise
      */
@@ -56,8 +55,7 @@ public class FetchLog {
     /**
      * Mark the given {@link FetchId} as being up-to-date (i.e. fetched) and eventually re-built in the current JVM.
      *
-     * @param fetchId
-     *                    the {@link FetchId} to add
+     * @param fetchId the {@link FetchId} to add
      */
     public void add(FetchId fetchId) {
         log.debug("srcdeps: Adding SCM repo to {}: {}", FetchLog.class.getSimpleName(), fetchId);

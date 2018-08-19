@@ -68,8 +68,7 @@ public class SrcdepsCoreUtils {
     }
 
     /**
-     * @param bytes
-     *                  the bytes to format
+     * @param bytes the bytes to format
      * @return the given {@code bytes} formatted as a hex string
      */
     public static String bytesToHexString(byte[] bytes) {
@@ -77,12 +76,9 @@ public class SrcdepsCoreUtils {
     }
 
     /**
-     * @param bytes
-     *                   the bytes to format
-     * @param offset
-     *                   the offset to start at
-     * @param length
-     *                   how many bytes from offset to format
+     * @param bytes  the bytes to format
+     * @param offset the offset to start at
+     * @param length how many bytes from offset to format
      * @return the given {@code bytes} formatted as a hex string
      */
     public static String bytesToHexString(byte[] bytes, int offset, int length) {
@@ -97,10 +93,8 @@ public class SrcdepsCoreUtils {
     /**
      * Copy the given {@code src} directory to the given {@code destination} directory.
      *
-     * @param src
-     *                        the directory to copy
-     * @param destination
-     *                        where to copy
+     * @param src         the directory to copy
+     * @param destination where to copy
      * @throws IOException
      */
     public static void copyDirectory(final Path src, final Path destination) throws IOException {
@@ -123,8 +117,7 @@ public class SrcdepsCoreUtils {
     /**
      * Deletes a file or directory recursively if it exists.
      *
-     * @param directory
-     *                      the directory to delete
+     * @param directory the directory to delete
      * @throws IOException
      */
     public static void deleteDirectory(Path directory) throws IOException {
@@ -177,10 +170,8 @@ public class SrcdepsCoreUtils {
     /**
      * Makes sure that the given directory exists. Tries creating {@link #CREATE_RETRY_COUNT} times.
      *
-     * @param dir
-     *                the directory {@link Path} to check
-     * @throws IOException
-     *                         if the directory could not be created or accessed
+     * @param dir the directory {@link Path} to check
+     * @throws IOException if the directory could not be created or accessed
      */
     public static void ensureDirectoryExists(Path dir) throws IOException {
         Throwable toThrow = null;
@@ -216,10 +207,8 @@ public class SrcdepsCoreUtils {
      * If the given directory does not exist, creates it using {@link #ensureDirectoryExists(Path)}. Otherwise
      * recursively deletes all subpaths in the given directory.
      *
-     * @param dir
-     *                the directory to check
-     * @throws IOException
-     *                         if the directory could not be created, accessed or its children deleted
+     * @param dir the directory to check
+     * @throws IOException if the directory could not be created, accessed or its children deleted
      */
     public static void ensureDirectoryExistsAndEmpty(Path dir) throws IOException {
         if (Files.exists(dir)) {
@@ -267,10 +256,8 @@ public class SrcdepsCoreUtils {
     /**
      * Returns the content of the given {@code reader} as string.
      *
-     * @param reader
-     *                   the {@link Reader} to read from
-     * @param buf
-     *                   a properly dimensioned buffer to use when reading
+     * @param reader the {@link Reader} to read from
+     * @param buf    a properly dimensioned buffer to use when reading
      * @return the content read from the given {@code reader}
      * @throws IOException
      */
@@ -286,10 +273,8 @@ public class SrcdepsCoreUtils {
     /**
      * Opens am {@link InputStream} out of the given {@code url} and returns the content as a UTF-8 string.
      *
-     * @param url
-     *                the {@link URL} to read from
-     * @param buf
-     *                a properly dimensioned buffer to use when reading
+     * @param url the {@link URL} to read from
+     * @param buf a properly dimensioned buffer to use when reading
      * @return the content read from the given {@code url}
      * @throws IOException
      */
@@ -300,8 +285,7 @@ public class SrcdepsCoreUtils {
     }
 
     /**
-     * @param artifactPath
-     *                         the {@link Path} of the file whose sha1 should be computed
+     * @param artifactPath the {@link Path} of the file whose sha1 should be computed
      * @return the sha1 of the file formatted as a hex string
      * @throws IOException
      * @throws NoSuchAlgorithmException

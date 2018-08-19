@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -170,8 +170,7 @@ public final class Scalars {
     }
 
     /**
-     * @param type
-     *            the type to get a {@link ScalarDeserializer} for
+     * @param type the type to get a {@link ScalarDeserializer} for
      * @return a {@link ScalarDeserializer} for the given {@code type} or null if the given {@code type} is not a scalar
      *         type
      */
@@ -182,8 +181,7 @@ public final class Scalars {
     /**
      * A shorthand for {@code getDeserializer(type) != null}.
      *
-     * @param type
-     *            the type to get a {@link ScalarDeserializer} for
+     * @param type the type to get a {@link ScalarDeserializer} for
      * @return {@code true} if the given {@code type} is not a scalar type or {@code false} otherwise
      */
     public static boolean isScalarType(Class<?> type) {

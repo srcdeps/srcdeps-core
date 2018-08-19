@@ -29,8 +29,7 @@ import org.srcdeps.core.util.Equals;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  *
- * @param <T>
- *            the type of the value stored in this {@link ScalarNode}.
+ * @param <T> the type of the value stored in this {@link ScalarNode}.
  */
 public class DefaultScalarNode<T> implements ScalarNode<T> {
     public static <V> ScalarNode<V> of(V value) {

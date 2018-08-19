@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,9 +51,8 @@ public final class Duration {
     }
 
     /**
-     * @param rawDuration
-     *            a string consisting of a number and unit abbreviation. Valid unit abbreviations are liste in
-     *            {@link #UNIT_TO_STRING_MAP}.
+     * @param rawDuration a string consisting of a number and unit abbreviation. Valid unit abbreviations are liste in
+     *                    {@link #UNIT_TO_STRING_MAP}.
      * @return a new {@link Duration} parsed out of the given {@code rawDuration}
      * @throws IllegalArgumentException on any parse problems
      */

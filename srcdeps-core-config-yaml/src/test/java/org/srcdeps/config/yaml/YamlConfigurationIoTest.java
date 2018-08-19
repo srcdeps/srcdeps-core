@@ -81,7 +81,7 @@ public class YamlConfigurationIoTest {
                                                     .profile("profile2") //
                                                     .property("property1") //
                                                     .property("property2") //
-                            ) //
+                                    ) //
                                     .failWithout( //
                                             MavenAssertions.failWithoutBuilder() //
                                                     .goal("goalA") //
@@ -90,7 +90,7 @@ public class YamlConfigurationIoTest {
                                                     .profile("profileB") //
                                                     .property("propertyA") //
                                                     .property("propertyB") //
-                            ) //
+                                    ) //
                     ) //
                     .repository( //
                             ScmRepository.builder() //
@@ -112,11 +112,11 @@ public class YamlConfigurationIoTest {
                                     .maven( //
                                             ScmRepositoryMaven.builder() //
                                                     .versionsMavenPluginVersion("2.2") //
-                            ) //
+                                    ) //
                                     .gradle( //
                                             ScmRepositoryGradle.builder() //
                                                     .modelTransformer(CharStreamSource.of("file:my/file")) //
-                            ) //
+                                    ) //
                     ) //
                     .repository( //
                             ScmRepository.builder() //
@@ -136,10 +136,10 @@ public class YamlConfigurationIoTest {
         }
     }
 
-
     @Test
     public void readFull21Selectors() throws ConfigurationException, UnsupportedEncodingException, IOException {
-        try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full-2.1-selectors.yaml"), "utf-8")) {
+        try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full-2.1-selectors.yaml"),
+                "utf-8")) {
             Configuration actual = new YamlConfigurationIo().read(in).build();
             Configuration expected = Configuration.builder() //
                     .configModelVersion("2.1") //
@@ -163,7 +163,7 @@ public class YamlConfigurationIoTest {
                                                     .profile("profile2") //
                                                     .property("property1") //
                                                     .property("property2") //
-                            ) //
+                                    ) //
                                     .failWithout( //
                                             MavenAssertions.failWithoutBuilder() //
                                                     .goal("goalA") //
@@ -172,7 +172,7 @@ public class YamlConfigurationIoTest {
                                                     .profile("profileB") //
                                                     .property("propertyA") //
                                                     .property("propertyB") //
-                            ) //
+                                    ) //
                     ) //
                     .repository( //
                             ScmRepository.builder() //
@@ -190,7 +190,7 @@ public class YamlConfigurationIoTest {
                                     .maven( //
                                             ScmRepositoryMaven.builder() //
                                                     .versionsMavenPluginVersion("2.2") //
-                            ) //
+                                    ) //
                     ) //
                     .repository( //
                             ScmRepository.builder() //
@@ -206,6 +206,7 @@ public class YamlConfigurationIoTest {
             Assert.assertEquals(expected, actual);
         }
     }
+
     @Test
     public void readMinimal() throws ConfigurationException, UnsupportedEncodingException, IOException {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-minimal.yaml"), "utf-8")) {

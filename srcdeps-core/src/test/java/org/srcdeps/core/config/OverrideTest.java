@@ -38,7 +38,7 @@ public class OverrideTest {
                                 .id("org.repo1") //
                                 .include("org.example") //
                                 .url("file:///whereever") //
-        );
+                );
         ScmRepository.Builder nonOverlayedRepo = config.repositories.getChildren().get("org.repo1");
         Assert.assertEquals("org.repo1", nonOverlayedRepo.getName());
         Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.includes.asListOfValues());
@@ -73,8 +73,8 @@ public class OverrideTest {
                                                 .goal("g1") //
                                                 .profile("p1") //
                                                 .property("prop1") //
-                        ) //
-        );
+                                ) //
+                );
         Assert.assertEquals(Arrays.asList("fwd1", "fwd2"), config.forwardProperties.asListOfValues());
 
         MavenAssertions.FailWithBuilder failWith = config.maven.failWith;
@@ -199,7 +199,7 @@ public class OverrideTest {
                                 .id("repo1") //
                                 .include("org.example") //
                                 .url("file:///whereever") //
-        );
+                );
         ScmRepository.Builder nonOverlayedRepo = config.repositories.getChildren().get("repo1");
         Assert.assertEquals("repo1", nonOverlayedRepo.getName());
         Assert.assertEquals(Collections.singletonList("org.example"), nonOverlayedRepo.includes.asListOfValues());

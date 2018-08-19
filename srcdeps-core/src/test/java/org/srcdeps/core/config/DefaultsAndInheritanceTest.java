@@ -42,7 +42,7 @@ public class DefaultsAndInheritanceTest {
                                 .id("repo1") //
                                 .include("org.example") //
                                 .url("file:///whereever") //
-        );
+                );
 
         Assert.assertNull(configBuilder.configModelVersion.getValue());
         Assert.assertEquals(Collections.emptySet(), configBuilder.forwardProperties.asSetOfValues());
@@ -149,8 +149,7 @@ public class DefaultsAndInheritanceTest {
         Configuration.Builder configBuilder = Configuration.builder() //
                 .buildTimeout(Duration.of("32m")) //
                 .verbosity(Verbosity.trace) //
-                .buildVersionPattern(Pattern.compile(".*-SNAPSHOT"))
-                .buildRef(SrcVersion.parseRef("branch-3.x"))
+                .buildVersionPattern(Pattern.compile(".*-SNAPSHOT")).buildRef(SrcVersion.parseRef("branch-3.x"))
                 .builderIo( //
                         BuilderIo.builder() //
                                 .stdin("read:/path/to/input-file.txt") //
@@ -165,11 +164,12 @@ public class DefaultsAndInheritanceTest {
                                 .id("repo1") //
                                 .include("org.example") //
                                 .url("file:///whereever") //
-        );
+                );
 
         Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), configBuilder.buildTimeout.getValue());
         Assert.assertEquals(Verbosity.trace, configBuilder.verbosity.getValue());
-        Assert.assertTrue(EqualsImplementations.equalsPattern().test(Pattern.compile(".*-SNAPSHOT"), configBuilder.buildVersionPattern.getValue()));
+        Assert.assertTrue(EqualsImplementations.equalsPattern().test(Pattern.compile(".*-SNAPSHOT"),
+                configBuilder.buildVersionPattern.getValue()));
         Assert.assertEquals(SrcVersion.parseRef("branch-3.x"), configBuilder.buildRef.getValue());
         Assert.assertEquals("0.1", configBuilder.maven.versionsMavenPluginVersion.getValue());
         Assert.assertEquals("read:/path/to/input-file.txt", configBuilder.builderIo.stdin.getValue());
@@ -192,7 +192,8 @@ public class DefaultsAndInheritanceTest {
         Configuration config = configBuilder.build();
         Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), configBuilder.buildTimeout.getValue());
         Assert.assertEquals(Verbosity.trace, configBuilder.verbosity.getValue());
-        Assert.assertTrue(EqualsImplementations.equalsPattern().test(Pattern.compile(".*-SNAPSHOT"), configBuilder.buildVersionPattern.getValue()));
+        Assert.assertTrue(EqualsImplementations.equalsPattern().test(Pattern.compile(".*-SNAPSHOT"),
+                configBuilder.buildVersionPattern.getValue()));
         Assert.assertEquals(SrcVersion.parseRef("branch-3.x"), configBuilder.buildRef.getValue());
         Assert.assertEquals("0.1", configBuilder.maven.versionsMavenPluginVersion.getValue());
         Assert.assertEquals("read:/path/to/input-file.txt", configBuilder.builderIo.stdin.getValue());
@@ -203,7 +204,8 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals("repo1", repo1.getId());
         Assert.assertEquals(new Duration(32, TimeUnit.MINUTES), repo1.getBuildTimeout());
         Assert.assertEquals(Verbosity.trace, repo1.getVerbosity());
-        Assert.assertTrue(EqualsImplementations.equalsPattern().test(Pattern.compile(".*-SNAPSHOT"), repo1.getBuildVersionPattern()));
+        Assert.assertTrue(EqualsImplementations.equalsPattern().test(Pattern.compile(".*-SNAPSHOT"),
+                repo1.getBuildVersionPattern()));
         Assert.assertEquals(SrcVersion.parseRef("branch-3.x"), repo1.getBuildRef());
         Assert.assertEquals("0.1", repo1.getMaven().getVersionsMavenPluginVersion());
         Assert.assertEquals("read:/path/to/input-file.txt", repo1.getBuilderIo().getStdin());

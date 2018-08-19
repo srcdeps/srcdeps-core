@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,15 +26,13 @@ import java.util.Set;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  *
- * @param <E>
- *            the type of the scalar values stored in this list
+ * @param <E> the type of the scalar values stored in this list
  */
 public interface ListOfScalarsNode<E> extends ListNode<ScalarNode<E>> {
     /**
      * Creates a new {@link ScalarNode} out of the given scalar {@code value} and adds it to this list.
      *
-     * @param value
-     *            the scalar value to add
+     * @param value the scalar value to add
      */
     void add(E value);
 
@@ -42,8 +40,7 @@ public interface ListOfScalarsNode<E> extends ListNode<ScalarNode<E>> {
      * For each of the given {@code values}, creates a new {@link ScalarNode} out of the given scalar value and adds it
      * to this list.
      *
-     * @param values
-     *            the scalar values to add
+     * @param values the scalar values to add
      */
     void addAll(Collection<E> values);
 

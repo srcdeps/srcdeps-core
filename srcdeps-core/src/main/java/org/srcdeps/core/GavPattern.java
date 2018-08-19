@@ -51,8 +51,7 @@ public class GavPattern implements Serializable {
         /**
          * Sets the pattern for {@code artifactId}
          *
-         * @param wildcardPattern
-         *                            a pattern that can contain string literals and asterisk {@code *} wildcards
+         * @param wildcardPattern a pattern that can contain string literals and asterisk {@code *} wildcards
          * @return this {@link Builder}
          */
         public Builder artifactIdPattern(String wildcardPattern) {
@@ -67,8 +66,7 @@ public class GavPattern implements Serializable {
         /**
          * Sets the pattern for {@code groupId}
          *
-         * @param wildcardPattern
-         *                            a pattern that can contain string literals and asterisk {@code *} wildcards
+         * @param wildcardPattern a pattern that can contain string literals and asterisk {@code *} wildcards
          * @return this {@link Builder}
          */
         public Builder groupIdPattern(String wildcardPattern) {
@@ -79,8 +77,7 @@ public class GavPattern implements Serializable {
         /**
          * Sets the pattern for {@code version}
          *
-         * @param wildcardPattern
-         *                            a pattern that can contain string literals and asterisk {@code *} wildcards
+         * @param wildcardPattern a pattern that can contain string literals and asterisk {@code *} wildcards
          * @return this {@link Builder}
          */
         public Builder versionPattern(String wildcardPattern) {
@@ -216,8 +213,7 @@ public class GavPattern implements Serializable {
      * {@code org.my-group:my-artifact:1.2.3} - will match just the version 1.2.3 of artifacts
      * {@code org.my-group:my-artifact}.
      *
-     * @param wildcardPattern
-     *                            a string pattern to parse and create a new {@link GavPattern} from
+     * @param wildcardPattern a string pattern to parse and create a new {@link GavPattern} from
      * @return a new {@link GavPattern}
      */
     public static GavPattern of(String wildcardPattern) {

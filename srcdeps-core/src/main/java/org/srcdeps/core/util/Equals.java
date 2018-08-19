@@ -24,8 +24,7 @@ import java.util.regex.Pattern;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  *
- * @param <T>
- *            the type to compare
+ * @param <T> the type to compare
  */
 public interface Equals<T> {
     class EqualsImplementations {
@@ -70,10 +69,8 @@ public interface Equals<T> {
      * otherwise the implementations have to come up with some alternative which obey the contact of
      * {@link Object#equals(Object)}.
      *
-     * @param value1
-     *            the first value to compare
-     * @param value2
-     *            the second value to compare
+     * @param value1 the first value to compare
+     * @param value2 the second value to compare
      * @return {@code true} of {@code value1} and {@code value2} are equal
      */
     boolean test(T value1, T value2);
