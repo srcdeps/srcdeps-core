@@ -14,6 +14,29 @@ A core library for building dependency artifacts from their sources during the b
 and by `https://github.com/srcdeps/srcdeps-gradle-plugin[srcdeps-gradle-plugin]`
 Contributions to support Ant and sbt are welcome!
 
+
+== How to build
+
+Prerequisites:
+
+* Java 8
+* Optionally Maven 3.5.x unless you do not want to rely on the provided Maven Wrapper, a.k.a. `mvnw`
+
+To build with tests on Linux
+
+[source,shell]
+----
+./mvnw clean install
+----
+
+On Windows
+
+[source,shell]
+----
+mvnw clean install
+----
+
+
 == Misc.
 
 * All code and contributions are under link:/LICENSE.txt[Apache License]
