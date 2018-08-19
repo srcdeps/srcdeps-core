@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -91,7 +91,7 @@ public class PathLocker<M> {
             try {
                 lockFile.close();
             } catch (IOException e1) {
-                log.warn(String.format("Could not close lock file [%s]", lockFilePath), e1);
+                log.warn(String.format("srcdeps: Could not close lock file [%s]", lockFilePath), e1);
             }
         }
         threadLevelLock.unlock();
@@ -171,7 +171,7 @@ public class PathLocker<M> {
             final M oldMd = mdPair.getMetadata();
             if (oldMd.equals(pathMetadata)) {
                 lock.lock();
-                log.debug("Locked on thread level {}", path);
+                log.debug("srcdeps: Locked on thread level [{}]", path);
                 return lockInFilesystem(path, lock);
             } else {
                 /*
@@ -179,7 +179,7 @@ public class PathLocker<M> {
                  * change the md only if we succeed
                  */
                 if (lock.tryLock()) {
-                    log.debug("Locked on thread level {}", path);
+                    log.debug("srcdeps: Locked on thread level [{}]", path);
                     mdPair.setMetadata(pathMetadata);
                     return lockInFilesystem(path, lock);
                 } else {
@@ -196,7 +196,7 @@ public class PathLocker<M> {
         try {
             lockFile = new RandomAccessFile(lockFilePath.toFile(), "rw");
             FileLock fsLock = lockFile.getChannel().tryLock();
-            log.debug("Locked on FS {} with lock {}", path, fsLock);
+            log.debug("srcdeps: Locked on FS {} with lock {}", path, fsLock);
             if (fsLock == null) {
                 throw new CannotAcquireLockException(
                         String.format("Could not acquire filesystem level lock on [%s]", lockFilePath));
@@ -216,7 +216,7 @@ public class PathLocker<M> {
                     String.format("Could not acquire filesystem level lock on [%s]", lockFilePath), e);
         } catch (Throwable e) {
             /* All other Exceptions are rather unexpected - log those */
-            log.warn(String.format("Could not acquire a lock for path [%s]", lockFilePath), e);
+            log.warn(String.format("srcdeps: Could not acquire a lock for path [%s]", lockFilePath), e);
             close(lockFile, lockFilePath, lock);
             throw new CannotAcquireLockException(
                     String.format("Could not acquire filesystem level lock on [%s]", lockFilePath), e);

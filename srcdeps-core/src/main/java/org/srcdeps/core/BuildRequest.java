@@ -489,7 +489,7 @@ public class BuildRequest {
         this.hash = computeHash(addDefaultBuildArguments, addDefaultBuildEnvironment, buildArguments, buildEnvironment,
                 forwardProperties, gavSet, scmUrls, skipTests, srcVersion, versionsMavenPluginVersion, timeoutMs,
                 verbosity);
-        log.debug("Computed hash {} of {}", hash, this);
+        log.debug("srcdeps: Computed hash {} of {}", hash, this);
     }
 
     /**

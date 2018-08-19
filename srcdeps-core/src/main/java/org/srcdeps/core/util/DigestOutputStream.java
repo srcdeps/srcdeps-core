@@ -46,24 +46,24 @@ public class DigestOutputStream extends OutputStream {
 
     @Override
     public void write(byte[] b) throws IOException {
-        if (log.isDebugEnabled()) {
-            log.debug("srcdeps updates digest with "+ SrcdepsCoreUtils.bytesToHexString(b));
+        if (log.isTraceEnabled()) {
+            log.trace("srcdeps: Updating digest with "+ SrcdepsCoreUtils.bytesToHexString(b));
         }
         write(b, 0, b.length);
     }
 
     @Override
     public void write(byte[] input, int offset, int len) throws IOException {
-        if (log.isDebugEnabled()) {
-            log.debug("srcdeps updates digest with "+ SrcdepsCoreUtils.bytesToHexString(input, offset, len));
+        if (log.isTraceEnabled()) {
+            log.trace("srcdeps: Updating digest with "+ SrcdepsCoreUtils.bytesToHexString(input, offset, len));
         }
         digest.update(input, offset, len);
     }
 
     @Override
     public void write(int b) throws IOException {
-        if (log.isDebugEnabled()) {
-            log.debug("srcdeps updates digest with "+ SrcdepsCoreUtils.bytesToHexString(new byte[] {(byte) b}));
+        if (log.isTraceEnabled()) {
+            log.trace("srcdeps: Updating digest with "+ SrcdepsCoreUtils.bytesToHexString(new byte[] {(byte) b}));
         }
         digest.update((byte) b);
     }

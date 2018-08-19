@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -142,7 +142,7 @@ public class Shell {
         String cmdArrayString = Arrays.toString(cmdArray);
         final IoRedirects redirects = command.getIoRedirects();
         final Map<String, String> env = command.getEnvironment();
-        log.info("About to execute command {} using redirects {} and env {}", cmdArrayString, redirects, env);
+        log.info("srcdeps: Executing command {} using redirects {} and env {}", cmdArrayString, redirects, env);
         ProcessBuilder builder = new ProcessBuilder(cmdArray) //
                 .directory(command.getWorkingDirectory().toFile()) //
                 .redirectInput(redirects.getStdin()) //

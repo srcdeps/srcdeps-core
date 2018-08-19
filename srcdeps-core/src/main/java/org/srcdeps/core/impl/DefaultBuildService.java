@@ -55,7 +55,7 @@ public class DefaultBuildService implements BuildService {
 
         for (Builder builder : builders) {
             if (builder.canBuild(dir)) {
-                log.info("About to build project in {} using Builder {}", dir, builder.getClass().getName());
+                log.info("srcdeps: Building project in {} using Builder {}", dir, builder.getClass().getName());
                 builder.setVersions(request);
                 builder.build(request);
                 return;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +37,7 @@ public class SrcdepsInner {
     final GavSet gavSet;
 
     SrcdepsInner() {
-        log.debug("srcdeps: initializing " + SrcdepsInner.class.getSimpleName());
+        log.debug("srcdeps: Initializing " + SrcdepsInner.class.getSimpleName());
         this.version = System.getProperty("srcdeps.inner.version");
         this.gavSet = GavSet.builder() //
                 .includes(System.getProperty("srcdeps.inner.includes")) //

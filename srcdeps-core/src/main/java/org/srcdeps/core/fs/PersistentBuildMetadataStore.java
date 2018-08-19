@@ -144,13 +144,13 @@ public class PersistentBuildMetadataStore implements BuildMetadataStore {
         if (Files.exists(p)) {
             try {
                 String result = new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
-                log.debug("srcdeps path {} points at commitId {}", p, result);
+                log.debug("srcdeps: Path [{}] points at commitId [{}]", p, result);
                 return result;
             } catch (IOException e) {
                 throw new RuntimeException(String.format("Could not read %s", p), e);
             }
         }
-        log.debug("srcdeps commitId path {} does not exist", p);
+        log.debug("srcdeps: commitId path [{}] does not exist", p);
         return null;
     }
 
@@ -161,13 +161,13 @@ public class PersistentBuildMetadataStore implements BuildMetadataStore {
         if (Files.exists(p)) {
             try {
                 final String result = new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
-                log.debug("srcdeps path {} points at sha1 {}", p, result);
+                log.debug("srcdeps: Path [{}] points at sha1 [{}]", p, result);
                 return result;
             } catch (IOException e) {
                 throw new RuntimeException(String.format("Could not read %s", p), e);
             }
         }
-        log.debug("srcdeps sha1 path {} does not exist", p);
+        log.debug("srcdeps: sha1 path [{}] does not exist", p);
         return null;
     }
 
@@ -175,7 +175,7 @@ public class PersistentBuildMetadataStore implements BuildMetadataStore {
     @Override
     public void storeCommitId(String buildRequestIdHash, String commitId) {
         final Path p = createBuildRequestIdPath(buildRequestIdHash).resolve(COMMIT_ID);
-        log.debug("srcdeps path {} will point at commitId {}", p, commitId);
+        log.debug("srcdeps: Path [{}] will point at commitId [{}]", p, commitId);
         store(p, commitId);
     }
 
@@ -183,7 +183,7 @@ public class PersistentBuildMetadataStore implements BuildMetadataStore {
     public void storeSha1(String buildRequestIdHash, Gavtc gavtc, String sha1) {
         final String gavtcString = gavtc.getGavtcString().replace(':', '_');
         final Path p = createBuildRequestIdPath(buildRequestIdHash).resolve(gavtcString);
-        log.debug("srcdeps path {} will point at sha1 {}", p, sha1);
+        log.debug("srcdeps: Path [{}] will point at sha1 [{}]", p, sha1);
         store(p, sha1);
     }
 
