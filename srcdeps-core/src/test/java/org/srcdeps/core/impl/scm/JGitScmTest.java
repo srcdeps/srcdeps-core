@@ -51,7 +51,6 @@ public class JGitScmTest {
             Assert.assertEquals(String.format("Git repository in [%s] not at the expected revision", dir), expectedSha1,
                     foundSha1);
         }
-
     }
 
     @Test
@@ -100,7 +99,7 @@ public class JGitScmTest {
                 .gradleModelTransformer(CharStreamSource.defaultModelTransformer()) //
                 .build();
 
-        commitId = jGitScm.fetchAndReset(fetchingRequest);
+        commitId = jGitScm.checkout(fetchingRequest);
         Assert.assertEquals("0a5ab902099b24c2b13ed1dad8c5f537458bcc89", commitId);
 
         /* ensure that the WC's HEAD has the known commit hash */
@@ -115,7 +114,7 @@ public class JGitScmTest {
                 .gradleModelTransformer(CharStreamSource.defaultModelTransformer()) //
                 .build();
 
-        commitId = jGitScm.fetchAndReset(fetchBranchRequest);
+        commitId = jGitScm.checkout(fetchBranchRequest);
         Assert.assertEquals("a84403b6fb44c5a588a9fe39d939c977e1e5c6a4", commitId);
 
         /* ensure that the WC's HEAD has the known commit hash */
@@ -131,9 +130,7 @@ public class JGitScmTest {
             expectedCommit = git.commit().setMessage("Added test.txt").call().getId().getName();
         }
 
-        System.out.println("expectedCommit = "+ expectedCommit);
-
-        commitId = jGitScm.fetchAndReset(fetchBranchRequest);
+        commitId = jGitScm.checkout(fetchBranchRequest);
         Assert.assertEquals(expectedCommit, commitId);
 
         /* Reset back the morning-branch */
@@ -141,9 +138,91 @@ public class JGitScmTest {
             git.reset().setMode(ResetType.HARD).setRef("a84403b6fb44c5a588a9fe39d939c977e1e5c6a4").call();
         }
 
-        commitId = jGitScm.fetchAndReset(fetchBranchRequest);
+        commitId = jGitScm.checkout(fetchBranchRequest);
         Assert.assertEquals("a84403b6fb44c5a588a9fe39d939c977e1e5c6a4", commitId);
         assertCommit(dir, "a84403b6fb44c5a588a9fe39d939c977e1e5c6a4");
 
+    }
+
+    @Test
+    public void testCheckoutMultiUrl() throws IOException, ScmException, NoHeadException, GitAPIException {
+
+        /* Create a local clone */
+        final Path localGitRepos = targetDir.resolve("local-git-repos");
+        final Path srcdepsTestArtifactDirectory0 = localGitRepos.resolve("srcdeps-test-artifact-testCheckoutMultiUrl-0");
+        SrcdepsCoreUtils.deleteDirectory(srcdepsTestArtifactDirectory0);
+        final Path srcdepsTestArtifactDirectory1 = localGitRepos.resolve("srcdeps-test-artifact-testCheckoutMultiUrl-1");
+        SrcdepsCoreUtils.deleteDirectory(srcdepsTestArtifactDirectory1);
+
+        final String remoteGitUri = "https://github.com/srcdeps/srcdeps-test-artifact.git";
+        final String mornigBranch = "morning-branch";
+        try (Git git = Git.cloneRepository().setURI(remoteGitUri).setDirectory(srcdepsTestArtifactDirectory0.toFile())
+                .setCloneAllBranches(true).call()) {
+            git.checkout().setName(mornigBranch).setCreateBranch(true).setStartPoint("origin/" + mornigBranch).call();
+        }
+        SrcdepsCoreUtils.copyDirectory(srcdepsTestArtifactDirectory0, srcdepsTestArtifactDirectory1);
+
+        final String localGitUri0 = srcdepsTestArtifactDirectory0.resolve(".git").toUri().toString();
+        final String localGitUri1 = srcdepsTestArtifactDirectory1.resolve(".git").toUri().toString();
+
+        /* Add a commit to repo 1 */
+        final Path testTxtPath = srcdepsTestArtifactDirectory1.resolve("test.txt");
+        Files.write(testTxtPath, "Test0".getBytes(StandardCharsets.UTF_8));
+
+        final Path dir = targetDir.resolve("test-repo-testCheckoutMultiUrl");
+        SrcdepsCoreUtils.ensureDirectoryExistsAndEmpty(dir);
+        {
+            final String addedCommitId;
+            try (Git git = Git.init().setDirectory(srcdepsTestArtifactDirectory1.toFile()).call()) {
+                git.add().addFilepattern(testTxtPath.getFileName().toString()).call();
+                addedCommitId = git.commit().setMessage("Added test.txt").call().getId().getName();
+            }
+
+            /* first clone */
+            final BuildRequest cloningRequest = BuildRequest.builder() //
+                    .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-"+ addedCommitId)) //
+                    .dependentProjectRootDirectory(dir) //
+                    .projectRootDirectory(dir) //
+                    .scmUrl("git:" + localGitUri0) //
+                    .scmUrl("git:" + localGitUri1) //
+                    .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
+                    .gradleModelTransformer(CharStreamSource.defaultModelTransformer()) //
+                    .build();
+            final JGitScm jGitScm = new JGitScm();
+
+            final String commitId = jGitScm.checkout(cloningRequest);
+            Assert.assertEquals(addedCommitId, commitId);
+        }
+
+        /* Add one more commit to repo 1 */
+        Files.write(testTxtPath, "Test1".getBytes(StandardCharsets.UTF_8));
+        {
+            final String addedCommitId;
+            try (Git git = Git.init().setDirectory(srcdepsTestArtifactDirectory1.toFile()).call()) {
+                git.add().addFilepattern(testTxtPath.getFileName().toString()).call();
+                addedCommitId = git.commit().setMessage("Changed test.txt").call().getId().getName();
+            }
+
+            /* fetch and reset */
+            final BuildRequest fetchResetRequest = BuildRequest.builder() //
+                    .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-"+ addedCommitId)) //
+                    .dependentProjectRootDirectory(dir) //
+                    .projectRootDirectory(dir) //
+                    .scmUrl("git:" + localGitUri0) //
+                    .scmUrl("git:" + localGitUri1) //
+                    .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
+                    .gradleModelTransformer(CharStreamSource.defaultModelTransformer()) //
+                    .build();
+            final JGitScm jGitScm = new JGitScm();
+
+            final String commitId = jGitScm.checkout(fetchResetRequest);
+            Assert.assertEquals(addedCommitId, commitId);
+        }
+
+    }
+
+    @Test
+    public void toRemoteAlias() {
+        Assert.assertEquals("origin-OracyX45LTLgEE14zEKVWpi-CTg=", JGitScm.toRemoteAlias("https://github.com/srcdeps/srcdeps-test-artifact.git"));
     }
 }
