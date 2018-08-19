@@ -215,10 +215,13 @@ public class JGitScm implements Scm {
             } catch (IOException e) {
                 throw new ScmException(String.format("Could not create directory [%s]", dir), e);
             }
+            log.warn("srcdeps: git init in [{}]", dir);
             try (Git git = Git.init().setDirectory(dir.toFile()).call()) {
+                log.warn("srcdeps: git init successful in [{}]; work tree [{}]", git.getRepository().getDirectory(), git.getRepository().getWorkTree());
             } catch (GitAPIException e) {
                 throw new ScmException(String.format("Could not init a git repository in [%s]", dir), e);
             }
+            log.warn("srcdeps: contains git repo [{}]: [{}]", containsGitRepo(dir), dir);
         }
         for (String url : urls) {
             final String useUrl = stripUriPrefix(url);
