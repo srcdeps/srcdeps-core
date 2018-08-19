@@ -54,10 +54,10 @@ public class DefaultScmService implements ScmService {
     public String checkout(BuildRequest request) throws ScmException {
         final Path dir = request.getProjectRootDirectory();
         final String firstUrl = request.getScmUrls().iterator().next();
-        log.info("About to build request {}", request);
+        log.info("srcdeps: Executing build request [{}]", request);
         for (Scm scm : scms) {
             if (scm.supports(firstUrl)) {
-                log.info("About to use Scm implementation {} to check out URL {} to directory {}",
+                log.info("srcdeps: Using SCM implementation [{}] to check out URL [{}] to directory [{}]",
                         scm.getClass().getName(), firstUrl, dir);
                 return scm.checkout(request);
             }

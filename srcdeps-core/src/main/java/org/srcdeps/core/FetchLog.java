@@ -48,7 +48,7 @@ public class FetchLog {
      */
     public boolean contains(FetchId fetchId) {
         final boolean result = fetchIds.contains(fetchId);
-        log.debug("srcdeps SCM repo {} in {}: {}", (result ? "present" : "absent"), FetchLog.class.getSimpleName(),
+        log.debug("srcdeps: SCM repo {} in {}: {}", (result ? "present" : "absent"), FetchLog.class.getSimpleName(),
                 fetchId);
         return result;
     }
@@ -60,7 +60,7 @@ public class FetchLog {
      *                    the {@link FetchId} to add
      */
     public void add(FetchId fetchId) {
-        log.debug("srcdeps adds SCM repo to {}: {}", FetchLog.class.getSimpleName(), fetchId);
+        log.debug("srcdeps: Adding SCM repo to {}: {}", FetchLog.class.getSimpleName(), fetchId);
         fetchIds.add(fetchId);
     }
 }

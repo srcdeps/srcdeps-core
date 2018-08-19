@@ -86,7 +86,7 @@ public class JGitScm implements Scm {
             try (FileRepository repo = new FileRepository(gitDir.toFile())) {
                 return repo.getObjectDatabase().exists();
             } catch (IOException e) {
-                log.warn(String.format("Could not check if [%s] contains a git repository", dir), e);
+                log.warn(String.format("srcdeps: Could not check if [%s] contains a git repository", dir), e);
                 /*
                  * We could perhaps throw e out of this method rather than return false. Returning false sounds as a
                  * better idea in case the repo is somehow damaged.
@@ -204,7 +204,7 @@ public class JGitScm implements Scm {
         /* Try the urls one after another and exit on the first success */
         for (String url : request.getScmUrls()) {
             String useUrl = stripUriPrefix(url);
-            log.info("srcdeps: attempting to clone version {} from SCM URL {}", request.getSrcVersion(), useUrl);
+            log.info("srcdeps: Attempting to clone ref [{}] from SCM URL [{}]", request.getSrcVersion(), useUrl);
 
             CloneCommand cmd = Git.cloneRepository().setURI(useUrl).setDirectory(dir.toFile());
 
@@ -227,7 +227,7 @@ public class JGitScm implements Scm {
                 final Ref ref = git.getRepository().exactRef("HEAD");
                 return ref.getObjectId().getName();
             } catch (Exception e) {
-                log.warn("srcdeps: could not checkout version {} from SCM URL {}: {}: {}", request.getSrcVersion(),
+                log.warn("srcdeps: Could not checkout version [{}] from SCM URL [{}]: [{}]: [{}]", request.getSrcVersion(),
                         useUrl, e.getClass().getName(), e.getMessage());
                 lastException = new ScmException(String.format("Could not checkout from URL [%s]", useUrl), e);
             }
@@ -241,7 +241,7 @@ public class JGitScm implements Scm {
         try (Git git = Git.open(dir.toFile())) {
             Set<String> removedFiles = git.clean().setCleanDirectories(true).call();
             for (String removedFile : removedFiles) {
-                log.debug("srcdeps: removed an unstaged file {}", removedFile);
+                log.debug("srcdeps: Removed an unstaged file [{}]", removedFile);
             }
             git.reset().setMode(ResetType.HARD).call();
 
@@ -250,7 +250,7 @@ public class JGitScm implements Scm {
             git.checkout().setName(SRCDEPS_WORKING_BRANCH).call();
 
         } catch (Exception e) {
-            log.warn(String.format("Srcdeps could not forget local changes in [%s]", dir), e);
+            log.warn(String.format("srcdeps: Could not forget local changes in [%s]", dir), e);
         }
 
         final SrcVersion srcVersion = request.getSrcVersion();
@@ -258,7 +258,7 @@ public class JGitScm implements Scm {
         int i = 0;
         for (String url : request.getScmUrls()) {
             String useUrl = stripUriPrefix(url);
-            log.info("srcdeps: attempting to fetch version {} from SCM URL {}", request.getSrcVersion(), useUrl);
+            log.info("srcdeps: Attempting to fetch version [{}] from SCM URL [{}]", request.getSrcVersion(), useUrl);
             String remoteAlias = i == 0 ? "origin" : "origin" + i;
             try (Git git = Git.open(dir.toFile())) {
 
@@ -318,11 +318,11 @@ public class JGitScm implements Scm {
                 final Ref ref = git.getRepository().exactRef("HEAD");
                 return ref.getObjectId().getName();
             } catch (ScmException e) {
-                log.warn("srcdeps: could not checkout version {} from SCM URL {}: {}: {}", request.getSrcVersion(),
+                log.warn("srcdeps: Could not checkout version [{}] from SCM URL [{}]: [{}]: [{}]", request.getSrcVersion(),
                         useUrl, e.getClass().getName(), e.getMessage());
                 lastException = e;
             } catch (Exception e) {
-                log.warn("srcdeps: could not checkout version {} from SCM URL {}: {}: {}", request.getSrcVersion(),
+                log.warn("srcdeps: Could not checkout version [{}] from SCM URL [{}]: [{}]: [{}]", request.getSrcVersion(),
                         useUrl, e.getClass().getName(), e.getMessage());
                 lastException = new ScmException(String.format("Could not checkout from URL [%s]", useUrl), e);
             }
