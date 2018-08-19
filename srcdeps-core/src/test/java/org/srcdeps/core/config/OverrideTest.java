@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -163,6 +163,17 @@ public class OverrideTest {
         Assert.assertEquals("1.3", nonOverlayedRepo.maven.versionsMavenPluginVersion.getValue());
         Assert.assertEquals(CharStreamSource.of("literal: foo"), nonOverlayedRepo.gradle.modelTransformer.getValue());
 
+    }
+
+    @Test
+    public void overrideValuelessBooleanProperty() {
+        Configuration.Builder config = Configuration.builder().skip(true);
+        Assert.assertEquals(true, config.skip.getValue());
+
+        Properties props = new Properties();
+        props.put("srcdeps.skip", "");
+        config.accept(new OverrideVisitor(props));
+        Assert.assertEquals(true, config.skip.getValue());
     }
 
     @Test

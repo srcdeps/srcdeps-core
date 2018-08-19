@@ -229,9 +229,16 @@ public class OverrideVisitor extends AbstractVisitor {
             final String joinedPath = joinPath();
             final String newValue = overrideSource.getProperty(joinedPath);
             if (newValue != null) {
-                ScalarDeserializer deserializer = Scalars.getDeserializer(node.getType());
-                log.info("srcdeps: Configuration override [{}] = [{}].", joinedPath, newValue);
-                node.setValue(deserializer.deserialize(newValue));
+                if (newValue.isEmpty() && node.getType().equals(Boolean.class)) {
+                    /* -DmyProp set on commandline results in System.getProperty("myProp") returning an empty string
+                     * We want to interpret this case as true */
+                    log.info("srcdeps: Configuration override [{}] = [<empty> -> true].", joinedPath, newValue);
+                    node.setValue(Boolean.TRUE);
+                } else {
+                    ScalarDeserializer deserializer = Scalars.getDeserializer(node.getType());
+                    log.info("srcdeps: Configuration override [{}] = [{}].", joinedPath, newValue);
+                    node.setValue(deserializer.deserialize(newValue));
+                }
             }
             path.pop();
         }
