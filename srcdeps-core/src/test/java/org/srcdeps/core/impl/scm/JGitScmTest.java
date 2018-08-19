@@ -149,9 +149,11 @@ public class JGitScmTest {
 
         /* Create a local clone */
         final Path localGitRepos = targetDir.resolve("local-git-repos");
-        final Path srcdepsTestArtifactDirectory0 = localGitRepos.resolve("srcdeps-test-artifact-testCheckoutMultiUrl-0");
+        final Path srcdepsTestArtifactDirectory0 = localGitRepos
+                .resolve("srcdeps-test-artifact-testCheckoutMultiUrl-0");
         SrcdepsCoreUtils.deleteDirectory(srcdepsTestArtifactDirectory0);
-        final Path srcdepsTestArtifactDirectory1 = localGitRepos.resolve("srcdeps-test-artifact-testCheckoutMultiUrl-1");
+        final Path srcdepsTestArtifactDirectory1 = localGitRepos
+                .resolve("srcdeps-test-artifact-testCheckoutMultiUrl-1");
         SrcdepsCoreUtils.deleteDirectory(srcdepsTestArtifactDirectory1);
 
         final String remoteGitUri = "https://github.com/srcdeps/srcdeps-test-artifact.git";
@@ -180,7 +182,7 @@ public class JGitScmTest {
 
             /* first clone */
             final BuildRequest cloningRequest = BuildRequest.builder() //
-                    .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-"+ addedCommitId)) //
+                    .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-" + addedCommitId)) //
                     .dependentProjectRootDirectory(dir) //
                     .projectRootDirectory(dir) //
                     .scmUrl("git:" + localGitUri0) //
@@ -205,7 +207,7 @@ public class JGitScmTest {
 
             /* fetch and reset */
             final BuildRequest fetchResetRequest = BuildRequest.builder() //
-                    .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-"+ addedCommitId)) //
+                    .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-" + addedCommitId)) //
                     .dependentProjectRootDirectory(dir) //
                     .projectRootDirectory(dir) //
                     .scmUrl("git:" + localGitUri0) //
@@ -223,6 +225,7 @@ public class JGitScmTest {
 
     @Test
     public void toRemoteAlias() {
-        Assert.assertEquals("origin-OracyX45LTLgEE14zEKVWpi-CTg=", JGitScm.toRemoteAlias("https://github.com/srcdeps/srcdeps-test-artifact.git"));
+        Assert.assertEquals("origin-OracyX45LTLgEE14zEKVWpi-CTg=",
+                JGitScm.toRemoteAlias("https://github.com/srcdeps/srcdeps-test-artifact.git"));
     }
 }

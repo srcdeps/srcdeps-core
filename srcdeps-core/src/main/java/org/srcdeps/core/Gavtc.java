@@ -32,9 +32,7 @@ public class Gavtc extends Gav {
     /**
      * Returns a new {@link Gavtc} instance parsed out of the given {@code gavtcString}.
      *
-     * @param gavtcString
-     *                        the string to parse, something of the form
-     *                        {@code groupId:artifactId:version:type:classifier}
+     * @param gavtcString the string to parse, something of the form {@code groupId:artifactId:version:type:classifier}
      * @return a new {@link Gavtc} instance parsed out of the given {@code gavtcString}
      */
     public static Gavtc of(String gavtcString) {

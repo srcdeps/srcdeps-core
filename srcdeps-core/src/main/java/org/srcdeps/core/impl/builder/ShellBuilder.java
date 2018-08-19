@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,8 +45,7 @@ public abstract class ShellBuilder implements Builder {
     protected long restTimeoutMs = Long.MIN_VALUE;
 
     /**
-     * @param executable
-     *            the executable such as {@code mvn}
+     * @param executable the executable such as {@code mvn}
      */
     public ShellBuilder(String executable) {
         super();
@@ -118,8 +117,7 @@ public abstract class ShellBuilder implements Builder {
      * Always returns {@link #executable}. Subclasses may choose to return some thing else depending on the given
      * {@code request}.
      *
-     * @param request
-     *            the request to build
+     * @param request the request to build
      * @return the path to the executable
      */
     protected String locateExecutable(BuildRequest request) {
@@ -136,8 +134,7 @@ public abstract class ShellBuilder implements Builder {
      * <li>{@code getForwardPropertiesArguments(request.getForwardProperties())}</li>
      * </ul>
      *
-     * @param request
-     *            the request for which we are merging the arguments
+     * @param request the request for which we are merging the arguments
      * @return a new {@link List}, never {@code null}
      */
     protected List<String> mergeArguments(BuildRequest request) {
@@ -161,8 +158,7 @@ public abstract class ShellBuilder implements Builder {
      * <li>{@code request.getBuildEnvironment()}</li>
      * </ul>
      *
-     * @param request
-     *            the request for which we are merging the arguments
+     * @param request the request for which we are merging the arguments
      * @return a new {@link Map}, never {@code null}
      */
     protected Map<String, String> mergeEnvironment(BuildRequest request) {

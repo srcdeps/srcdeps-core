@@ -31,8 +31,8 @@ import org.srcdeps.core.BuildService;
 import org.srcdeps.core.Builder;
 
 /**
- * The default implementation of {@link BuildService} that makes use of the {@link Builder}s injected
- * by the DI container.
+ * The default implementation of {@link BuildService} that makes use of the {@link Builder}s injected by the DI
+ * container.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */

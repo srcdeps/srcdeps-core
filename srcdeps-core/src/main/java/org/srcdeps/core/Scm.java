@@ -35,17 +35,14 @@ public interface Scm {
      * Checkout the source tree of a project to build, esp. using {@link BuildRequest#getScmUrls()} and
      * {@link BuildRequest#getSrcVersion()} of the given {@code request}.
      *
-     * @param request
-     *            determines the project to checkout
+     * @param request determines the project to checkout
      * @return the {@code commitId} the {@code HEAD} points at
-     * @throws ScmException
-     *             on any SCM related problem
+     * @throws ScmException on any SCM related problem
      */
     String checkout(BuildRequest request) throws ScmException;
 
     /**
-     * @param url
-     *            the URL to decide about
+     * @param url the URL to decide about
      * @return {@code true} if the present {@link Scm} implementation can checkout from the given {@code url},
      *         {@code false} otherwise.
      */

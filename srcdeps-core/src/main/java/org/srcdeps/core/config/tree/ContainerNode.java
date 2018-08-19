@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@ import java.util.Map;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  *
- * @param <C>
- *            the type of child nodes
+ * @param <C> the type of child nodes
  */
 public interface ContainerNode<C extends Node> extends Node {
     /**

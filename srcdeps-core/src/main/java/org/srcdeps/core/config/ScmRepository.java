@@ -217,8 +217,7 @@ public class ScmRepository {
         /**
          * Sets the {@link #id} after checking it using {@link ScmRepository#assertValidId(String)}.
          *
-         * @param id
-         *            the id string
+         * @param id the id string
          * @return this {@link Builder}
          */
         public Builder id(String id) {
@@ -284,11 +283,9 @@ public class ScmRepository {
      * Valid IDs are much like Java packages: they are sequences of Java identifiers concatenad by {@code '.'}
      * character.
      *
-     * @param id
-     *            the ID to check
+     * @param id the ID to check
      * @return the {@code id} passed to this method
-     * @throws IllegalArgumentException
-     *             is the given {@code id} violates some of the requirements
+     * @throws IllegalArgumentException is the given {@code id} violates some of the requirements
      */
     public static String assertValidId(String id) {
         if (id == null) {

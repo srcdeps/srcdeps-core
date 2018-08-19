@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +25,8 @@ import org.srcdeps.core.util.SrcdepsCoreUtils;
 /**
  * A triple of {@link Redirect}s to use when creating a new {@link Process}.
  * <p>
- * Note that {@link #stderr} can be {@code null} and that a {@code null} {@link #stderr} means that stdErr should be merged
- * with stdOut.
+ * Note that {@link #stderr} can be {@code null} and that a {@code null} {@link #stderr} means that stdErr should be
+ * merged with stdOut.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
@@ -57,6 +57,7 @@ public class IoRedirects {
             return this;
         }
     }
+
     /**
      * An enum of prefixes to use when encoding {@link Redirect}s as URI {@link String}s. See
      * {@link IoRedirects#parseUri(String)}.
@@ -85,11 +86,9 @@ public class IoRedirects {
      * prefixes. Examples of valid valid URIs: {@code read:/path/to/input-file.txt}, {@code write:/path/to/log.txt},
      * {@code append:/path/to/log.txt}, {@code inherit} {@code err2out}.
      *
-     * @param uri
-     *            the URI to parse
+     * @param uri the URI to parse
      * @return a new {@link Redirect}
-     * @throws IllegalArgumentException
-     *             if the given {@code uri} is not in proper format
+     * @throws IllegalArgumentException if the given {@code uri} is not in proper format
      */
     public static Redirect parseUri(String uri) {
         SrcdepsCoreUtils.assertArgNotNull(uri, "uri");
@@ -184,8 +183,7 @@ public class IoRedirects {
 
     /**
      * @return the {@link Redirect} to use for stdErr. Check {@link #isErr2Out()} before calling this method.
-     * @throws IllegalStateException
-     *             if {@link #isErr2Out()} returns {@code true}.
+     * @throws IllegalStateException if {@link #isErr2Out()} returns {@code true}.
      */
     public Redirect getStderr() {
         if (stderr == null) {

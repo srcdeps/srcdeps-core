@@ -76,8 +76,7 @@ public class BuildRequest {
         private String versionsMavenPluginVersion;
 
         /**
-         * @param addDefaultBuildArguments
-         *                                     see {@link BuildRequest#isAddDefaultBuildArguments()}
+         * @param addDefaultBuildArguments see {@link BuildRequest#isAddDefaultBuildArguments()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder addDefaultBuildArguments(boolean addDefaultBuildArguments) {
@@ -86,8 +85,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param addDefaultBuildEnvironment
-         *                                       see {@link BuildRequest#isAddDefaultBuildEnvironment()}
+         * @param addDefaultBuildEnvironment see {@link BuildRequest#isAddDefaultBuildEnvironment()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder addDefaultBuildEnvironment(boolean addDefaultBuildEnvironment) {
@@ -108,9 +106,8 @@ public class BuildRequest {
         }
 
         /**
-         * @param argument
-         *                     the single build argument to add to {@link #buildArguments}; see
-         *                     {@link BuildRequest#getBuildArguments()}
+         * @param argument the single build argument to add to {@link #buildArguments}; see
+         *                 {@link BuildRequest#getBuildArguments()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder buildArgument(String argument) {
@@ -119,9 +116,8 @@ public class BuildRequest {
         }
 
         /**
-         * @param arguments
-         *                      the arguments to add to {@link #buildArguments}; see
-         *                      {@link BuildRequest#getBuildArguments()}
+         * @param arguments the arguments to add to {@link #buildArguments}; see
+         *                  {@link BuildRequest#getBuildArguments()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder buildArguments(List<String> buildArguments) {
@@ -130,9 +126,8 @@ public class BuildRequest {
         }
 
         /**
-         * @param arguments
-         *                      the arguments to add to {@link #buildArguments}; see
-         *                      {@link BuildRequest#getBuildArguments()}
+         * @param arguments the arguments to add to {@link #buildArguments}; see
+         *                  {@link BuildRequest#getBuildArguments()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder buildArguments(String... arguments) {
@@ -143,8 +138,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param buildEnvironment
-         *                             see {@link BuildRequest#getBuildEnvironment()}
+         * @param buildEnvironment see {@link BuildRequest#getBuildEnvironment()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder buildEnvironment(Map<String, String> buildEnvironment) {
@@ -156,10 +150,8 @@ public class BuildRequest {
          * Add an environment variable of the given {@code name} and {@code value} to {@link #buildEnvironment}.
          *
          * @see BuildRequest#getBuildEnvironment()
-         * @param name
-         *                  the name of the environment variable to add to {@link #buildEnvironment}
-         * @param value
-         *                  the value of the environment variable to add to {@link #buildEnvironment}
+         * @param name  the name of the environment variable to add to {@link #buildEnvironment}
+         * @param value the value of the environment variable to add to {@link #buildEnvironment}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder buildEnvironmentVariable(String name, String value) {
@@ -168,8 +160,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param dependentProjectRootDirectory
-         *                                          see {@link BuildRequest#getDependentProjectRootDirectory()}
+         * @param dependentProjectRootDirectory see {@link BuildRequest#getDependentProjectRootDirectory()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder dependentProjectRootDirectory(Path dependentProjectRootDirectory) {
@@ -179,8 +170,7 @@ public class BuildRequest {
 
         /**
          * @see BuildRequest#getForwardProperties()
-         * @param values
-         *                   the property names or patterns to forward
+         * @param values the property names or patterns to forward
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder forwardProperties(Collection<String> values) {
@@ -190,8 +180,7 @@ public class BuildRequest {
 
         /**
          * @see BuildRequest#getForwardProperties()
-         * @param value
-         *                  the property name or pattern to forward
+         * @param value the property name or pattern to forward
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder forwardProperty(String value) {
@@ -201,8 +190,7 @@ public class BuildRequest {
 
         /**
          * @see BuildRequest#getGavSet()
-         * @param gavSet
-         *                   the {@link GavSet} to set
+         * @param gavSet the {@link GavSet} to set
          * @return this builder
          */
         public BuildRequestBuilder gavSet(GavSet gavSet) {
@@ -211,8 +199,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param gradleModelTransformer
-         *                                   see {@link BuildRequest#getGradleModelTransformer()}
+         * @param gradleModelTransformer see {@link BuildRequest#getGradleModelTransformer()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder gradleModelTransformer(CharStreamSource gradleModelTransformer) {
@@ -221,8 +208,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param ioRedirects
-         *                        see {@link BuildRequest#getIoRedirects()}
+         * @param ioRedirects see {@link BuildRequest#getIoRedirects()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder ioRedirects(IoRedirects ioRedirects) {
@@ -231,8 +217,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param projectRootDirectory
-         *                                 see {@link BuildRequest#getProjectRootDirectory()}
+         * @param projectRootDirectory see {@link BuildRequest#getProjectRootDirectory()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder projectRootDirectory(Path projectRootDirectory) {
@@ -241,8 +226,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param scmUrl
-         *                   a SCM url to add to {@link #scmUrls}. See {@link BuildRequest#getScmUrls()}
+         * @param scmUrl a SCM url to add to {@link #scmUrls}. See {@link BuildRequest#getScmUrls()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder scmUrl(String scmUrl) {
@@ -251,8 +235,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param scmUrls
-         *                    SCM urls to add to {@link #scmUrls}. See {@link BuildRequest#getScmUrls()}
+         * @param scmUrls SCM urls to add to {@link #scmUrls}. See {@link BuildRequest#getScmUrls()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder scmUrls(Collection<String> scmUrls) {
@@ -261,8 +244,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param skipTests
-         *                      see {@link BuildRequest#isSkipTests()}
+         * @param skipTests see {@link BuildRequest#isSkipTests()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder skipTests(boolean skipTests) {
@@ -271,8 +253,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param srcVersion
-         *                       see {@link BuildRequest#getSrcVersion()}
+         * @param srcVersion see {@link BuildRequest#getSrcVersion()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder srcVersion(SrcVersion srcVersion) {
@@ -281,8 +262,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param timeoutMs
-         *                      see {@link BuildRequest#getTimeoutMs()}
+         * @param timeoutMs see {@link BuildRequest#getTimeoutMs()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder timeoutMs(long timeoutMs) {
@@ -291,8 +271,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param verbosity
-         *                      see {@link BuildRequest#getVerbosity()}
+         * @param verbosity see {@link BuildRequest#getVerbosity()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder verbosity(Verbosity verbosity) {
@@ -303,8 +282,7 @@ public class BuildRequest {
         /**
          * If {@link #version} is not set using this method, {@link #srcVersion}.toString() will be used.
          *
-         * @param version
-         *                    see {@link BuildRequest#getVerbosity()}
+         * @param version see {@link BuildRequest#getVerbosity()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder version(String version) {
@@ -313,8 +291,7 @@ public class BuildRequest {
         }
 
         /**
-         * @param versionsMavenPluginVersion
-         *                                       see {@link BuildRequest#getVersionsMavenPluginVersion()}
+         * @param versionsMavenPluginVersion see {@link BuildRequest#getVersionsMavenPluginVersion()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder versionsMavenPluginVersion(String versionsMavenPluginVersion) {

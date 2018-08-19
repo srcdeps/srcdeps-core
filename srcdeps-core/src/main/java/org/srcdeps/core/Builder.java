@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,10 +27,8 @@ public interface Builder {
     /**
      * Build the project as required in the given {@code request}.
      *
-     * @param request
-     *            the request to build
-     * @throws BuildException
-     *             on any build related problem
+     * @param request the request to build
+     * @throws BuildException on any build related problem
      */
     void build(BuildRequest request) throws BuildException;
 
@@ -39,8 +37,7 @@ public interface Builder {
      * {@link Builder}, {@code false} otherwise. This method is used to auto-select a {@link Builder} implementation for
      * the given project.
      *
-     * @param projectRootDirectory
-     *            the root directory of the project's source tree
+     * @param projectRootDirectory the root directory of the project's source tree
      * @return {@code true} if the project in the given {@code projectRootDirectory} can be built by this
      *         {@link Builder} , {@code false} otherwise.
      */
@@ -50,10 +47,8 @@ public interface Builder {
      * Sets the versions in {@code pom.xml} files or other files as appropriate for the project named in the given
      * {@code request}.
      *
-     * @param request
-     *            the request to build
-     * @throws BuildException
-     *             on any build related problem
+     * @param request the request to build
+     * @throws BuildException on any build related problem
      */
     void setVersions(BuildRequest request) throws BuildException;
 

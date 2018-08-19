@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@ import java.util.List;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  *
- * @param <E>
- *            the type of this list's elements
+ * @param <E> the type of this list's elements
  */
 public interface ListNode<E extends Node> extends Node {
     /**

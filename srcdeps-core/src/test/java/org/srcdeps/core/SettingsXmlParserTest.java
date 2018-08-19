@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,22 +36,15 @@ public class SettingsXmlParserTest {
 
     @Test
     public void parseWithLocalRepositorySet() throws SAXException, IOException, ParserConfigurationException {
-        String settingsXml = "<?xml version=\"1.0\"?>\n" +
-                "\n" +
-                "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.0.0\"\n" +
-                "    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
-                "    xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.0.0\n" +
-                "                              http://maven.apache.org/xsd/settings-1.0.0.xsd\">\n" +
-                "    <localRepository>/my/local-repository</localRepository>\n" +
-                "\n" +
-                "    <servers>\n" +
-                "        <server>\n" +
-                "            <id>ossrh</id>\n" +
-                "            <username>foo</username>\n" +
-                "            <password>secret</password>\n" +
-                "        </server>\n" +
-                "    </servers>\n" +
-                "</settings>";
+        String settingsXml = "<?xml version=\"1.0\"?>\n" + "\n"
+                + "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.0.0\"\n"
+                + "    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
+                + "    xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.0.0\n"
+                + "                              http://maven.apache.org/xsd/settings-1.0.0.xsd\">\n"
+                + "    <localRepository>/my/local-repository</localRepository>\n" + "\n" + "    <servers>\n"
+                + "        <server>\n" + "            <id>ossrh</id>\n" + "            <username>foo</username>\n"
+                + "            <password>secret</password>\n" + "        </server>\n" + "    </servers>\n"
+                + "</settings>";
         try (Reader in = new StringReader(settingsXml)) {
             Path actual = new MavenLocalRepository.SettingsXmlParser().parse(in, null);
             Assert.assertEquals(Paths.get("/my/local-repository"), actual);
@@ -61,20 +54,14 @@ public class SettingsXmlParserTest {
 
     @Test
     public void parseWithoutLocalRepository() throws SAXException, IOException, ParserConfigurationException {
-        String settingsXml = "<?xml version=\"1.0\"?>\n" +
-                "\n" +
-                "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.0.0\"\n" +
-                "    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
-                "    xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.0.0\n" +
-                "                              http://maven.apache.org/xsd/settings-1.0.0.xsd\">\n" +
-                "    <servers>\n" +
-                "        <server>\n" +
-                "            <id>ossrh</id>\n" +
-                "            <username>foo</username>\n" +
-                "            <password>secret</password>\n" +
-                "        </server>\n" +
-                "    </servers>\n" +
-                "</settings>";
+        String settingsXml = "<?xml version=\"1.0\"?>\n" + "\n"
+                + "<settings xmlns=\"http://maven.apache.org/SETTINGS/1.0.0\"\n"
+                + "    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
+                + "    xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.0.0\n"
+                + "                              http://maven.apache.org/xsd/settings-1.0.0.xsd\">\n"
+                + "    <servers>\n" + "        <server>\n" + "            <id>ossrh</id>\n"
+                + "            <username>foo</username>\n" + "            <password>secret</password>\n"
+                + "        </server>\n" + "    </servers>\n" + "</settings>";
         try (Reader in = new StringReader(settingsXml)) {
             Path actual = new MavenLocalRepository.SettingsXmlParser().parse(in, Paths.get("/my/default-repository"));
             Assert.assertEquals(Paths.get("/my/default-repository"), actual);

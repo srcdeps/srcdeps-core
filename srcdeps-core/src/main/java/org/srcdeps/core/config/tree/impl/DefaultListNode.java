@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,8 +30,7 @@ import org.srcdeps.core.config.tree.walk.DefaultsAndInheritanceVisitor;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  *
- * @param <E>
- *            the type of this list's elements
+ * @param <E> the type of this list's elements
  */
 public class DefaultListNode<E extends Node> implements ListNode<E> {
 
@@ -49,8 +48,7 @@ public class DefaultListNode<E extends Node> implements ListNode<E> {
      * Does nothing in this default implementation because the state of a {@link ContainerNode} is typically given by
      * the states of its child nodes and {@link DefaultsAndInheritanceVisitor} visits the children separately.
      *
-     * @param configurationStack
-     *            the stack of ancestor configuration nodes. Can be queried to inherit values.
+     * @param configurationStack the stack of ancestor configuration nodes. Can be queried to inherit values.
      */
     @Override
     public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
@@ -89,8 +87,7 @@ public class DefaultListNode<E extends Node> implements ListNode<E> {
     /**
      * Note that this implementation calls {@link #isInDefaultState(Stack)} of all children.
      *
-     * @param stack
-     *            the ancestor hierarchy of this {@link Node}
+     * @param stack the ancestor hierarchy of this {@link Node}
      * @return {@inheritDoc}
      */
     @Override

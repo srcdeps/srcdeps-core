@@ -29,11 +29,9 @@ public interface ScmService {
      * build, esp. using {@link BuildRequest#getScmUrls()} and {@link BuildRequest#getSrcVersion()} of the given
      * {@code request}.
      *
-     * @param request
-     *            determines the project to checkout
+     * @param request determines the project to checkout
      * @return the {@code commitId} the {@code HEAD} points at
-     * @throws ScmException
-     *             on any SCM related problem
+     * @throws ScmException on any SCM related problem
      */
     String checkout(BuildRequest request) throws ScmException;
 

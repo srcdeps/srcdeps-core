@@ -69,18 +69,18 @@ public class BuildDirectoriesManager {
      * <p>
      * The returned {@link PathLock} should be released using its {@link Closeable#close()} method.
      *
-     * @param projectBuildHome
-     *            the given project's build home (something like {@code Paths.get("org", "project", "component")})
-     *            relative to {@link #rootDirectory} under which a subdirectory will be taken or created and
-     *            subsequently locked via {@link PathLocker#tryLockDirectory(Path)}
+     * @param projectBuildHome the given project's build home (something like
+     *                         {@code Paths.get("org", "project", "component")}) relative to {@link #rootDirectory}
+     *                         under which a subdirectory will be taken or created and subsequently locked via
+     *                         {@link PathLocker#tryLockDirectory(Path)}
      * @param srcVersion
      * @return a {@link PathLock} whose holder is guaranteed to have an exclusive access to {@link PathLock#getPath()}
-     * @throws BuildException
-     *             when no such {@code i} between {@code 0} and {@link #CONCURRENCY_THRESHOLD} could be found that a
-     *             directory <code>"${rootDirectory}/${projectBuildHome}/${i}"</code> could be locked.
+     * @throws BuildException when no such {@code i} between {@code 0} and {@link #CONCURRENCY_THRESHOLD} could be found
+     *                        that a directory <code>"${rootDirectory}/${projectBuildHome}/${i}"</code> could be locked.
      * @throws IOException
      */
-    public PathLock openBuildDirectory(Path projectBuildHome, SrcVersion srcVersion) throws BuildException, IOException {
+    public PathLock openBuildDirectory(Path projectBuildHome, SrcVersion srcVersion)
+            throws BuildException, IOException {
 
         Path scmRepositoryDir = rootDirectory.resolve(projectBuildHome);
         SrcdepsCoreUtils.ensureDirectoryExists(scmRepositoryDir);

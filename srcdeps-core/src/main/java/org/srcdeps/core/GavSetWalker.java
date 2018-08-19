@@ -167,10 +167,8 @@ public class GavSetWalker {
     }
 
     /**
-     * @param gavSet
-     *                    the {@link GavSet} to walk through
-     * @param version
-     *                    the version of artifacts to look for
+     * @param gavSet  the {@link GavSet} to walk through
+     * @param version the version of artifacts to look for
      * @return a {@link List} of Paths (relative to local Maven repository root) at which the filesystem travesal should
      *         start to cover all artifacts belonging to the given {@link GavSet}
      */
@@ -266,8 +264,7 @@ public class GavSetWalker {
     /**
      * Walk through the {@link GavtcPath}s belonging to the given {@link #gavSet}
      *
-     * @param callback
-     *                     the {@link Consumer} to notify
+     * @param callback the {@link Consumer} to notify
      * @throws IOException
      */
     public void walk(Consumer<GavtcPath> callback) throws IOException {

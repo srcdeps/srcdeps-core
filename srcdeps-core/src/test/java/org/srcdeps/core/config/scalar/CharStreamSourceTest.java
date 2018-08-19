@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,13 +24,14 @@ public class CharStreamSourceTest {
 
     @Test
     public void of() {
-        Assert.assertEquals(new CharStreamSource(Scheme.classpath, "/my/path"), CharStreamSource.of("classpath:/my/path"));
+        Assert.assertEquals(new CharStreamSource(Scheme.classpath, "/my/path"),
+                CharStreamSource.of("classpath:/my/path"));
         Assert.assertEquals(new CharStreamSource(Scheme.file, "my/path"), CharStreamSource.of("file:my/path"));
         Assert.assertEquals(new CharStreamSource(Scheme.literal, " hello"), CharStreamSource.of("literal: hello"));
         Assert.assertEquals(new CharStreamSource(Scheme.literal, ""), CharStreamSource.of("literal:"));
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void ofInvalid() {
         CharStreamSource.of("foo");
     }

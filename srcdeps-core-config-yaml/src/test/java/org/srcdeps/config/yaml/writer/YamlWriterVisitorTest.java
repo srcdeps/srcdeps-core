@@ -56,18 +56,18 @@ public class YamlWriterVisitorTest {
         }
 
         String expectedConfig = "#\n" //
-                        + "# srcdeps comment line 1\n" //
-                        + "# srcdeps comment line 2\n" //
-                        + "configModelVersion: 2.3\n" //
-                        + "repositories:\n" //
-                        + "\n" //
-                        + "  # repo1 comment line 1\n" //
-                        + "  # repo1 comment line 2\n" //
-                        + "  repo1:\n" //
-                        + "    includes:\n" //
-                        + "    - org.repo1\n" //
-                        + "    urls:\n" //
-                        + "    - git:url1\n";
+                + "# srcdeps comment line 1\n" //
+                + "# srcdeps comment line 2\n" //
+                + "configModelVersion: 2.3\n" //
+                + "repositories:\n" //
+                + "\n" //
+                + "  # repo1 comment line 1\n" //
+                + "  # repo1 comment line 2\n" //
+                + "  repo1:\n" //
+                + "    includes:\n" //
+                + "    - org.repo1\n" //
+                + "    urls:\n" //
+                + "    - git:url1\n";
 
         Assert.assertEquals(expectedConfig, out.toString());
 

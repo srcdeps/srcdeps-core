@@ -68,8 +68,7 @@ public class GavSet implements Serializable {
         /**
          * Parses the entries of the given {@link Collection} of {@code rawPatterns} and excludes those.
          *
-         * @param rawPatterns
-         *            {@link Collection} of GAV patterns to parse via {@link GavPattern#of(String)}
+         * @param rawPatterns {@link Collection} of GAV patterns to parse via {@link GavPattern#of(String)}
          * @return this {@link Builder}
          */
         public Builder excludes(Collection<String> rawPatterns) {
@@ -84,8 +83,7 @@ public class GavSet implements Serializable {
         /**
          * Parses the entries of the given array of {@code rawPatterns} and excludes those.
          *
-         * @param rawPatterns
-         *            a list of GAV patterns to parse via {@link GavPattern#of(String)}
+         * @param rawPatterns a list of GAV patterns to parse via {@link GavPattern#of(String)}
          * @return this {@link Builder}
          */
         public Builder excludes(String... rawPatterns) {
@@ -100,8 +98,7 @@ public class GavSet implements Serializable {
         /**
          * Parses the given comma separated list of {@code rawPatterns} and excludes those.
          *
-         * @param rawPatterns
-         *            a comma separated list of GAV patterns
+         * @param rawPatterns a comma separated list of GAV patterns
          * @return this {@link Builder}
          */
         public Builder excludes(String rawPatterns) {
@@ -138,8 +135,7 @@ public class GavSet implements Serializable {
         /**
          * Parses the entries of the given {@link Collection} of {@code rawPatterns} and includes those.
          *
-         * @param rawPatterns
-         *            {@link Collection} of GAV patterns to parse via {@link GavPattern#of(String)}
+         * @param rawPatterns {@link Collection} of GAV patterns to parse via {@link GavPattern#of(String)}
          * @return this {@link Builder}
          */
         public Builder includes(Collection<String> rawPatterns) {
@@ -154,8 +150,7 @@ public class GavSet implements Serializable {
         /**
          * Parses the given comma separated list of {@code rawPatterns} and includes those.
          *
-         * @param rawPatterns
-         *            a comma separated list of GAV patterns
+         * @param rawPatterns a comma separated list of GAV patterns
          * @return this {@link Builder}
          */
         public Builder includes(String rawPatterns) {
@@ -171,8 +166,7 @@ public class GavSet implements Serializable {
         /**
          * Parses the entries of the given array of {@code rawPatterns} and includes those.
          *
-         * @param rawPatterns
-         *            a list of GAV patterns to parse via {@link GavPattern#of(String)}
+         * @param rawPatterns a list of GAV patterns to parse via {@link GavPattern#of(String)}
          * @return this {@link Builder}
          */
         public Builder includes(String... rawPatterns) {
@@ -233,8 +227,7 @@ public class GavSet implements Serializable {
     /**
      * Appends {@link #excludes} to the given {@code out} separating them by comma.
      *
-     * @param out
-     *            an {@link Appendable} to append to
+     * @param out an {@link Appendable} to append to
      * @throws IOException
      */
     public void appendExcludes(Appendable out) throws IOException {
@@ -244,8 +237,7 @@ public class GavSet implements Serializable {
     /**
      * Appends {@link #includes} to the given {@code out} separating them by comma.
      *
-     * @param out
-     *            an {@link Appendable} to append to
+     * @param out an {@link Appendable} to append to
      * @throws IOException
      */
     public void appendIncludes(Appendable out) throws IOException {

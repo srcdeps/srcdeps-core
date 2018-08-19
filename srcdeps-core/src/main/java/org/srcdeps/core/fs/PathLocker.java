@@ -36,8 +36,7 @@ import org.srcdeps.core.util.SrcdepsCoreUtils;
  * A simple facility to guarantee both thread level and OS process level exclusive access to a filesystem path.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
- * @param <M>
- *            metadata describing the path to lock
+ * @param <M> metadata describing the path to lock
  */
 @Named
 @Singleton
@@ -48,8 +47,7 @@ public class PathLocker<M> {
      *
      * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
      *
-     * @param <M>
-     *            metadata describing the path to lock
+     * @param <M> metadata describing the path to lock
      */
     private static class LockMetadataPair<M> {
         private final ReentrantLock lock;
@@ -79,12 +77,9 @@ public class PathLocker<M> {
     /**
      * An internal null-safe release of all resources
      *
-     * @param lockFile
-     *            the {@link RandomAccessFile} to close
-     * @param lockFilePath
-     *            the {@link Path} of the {@code lockFile}
-     * @param threadLevelLock
-     *            the {@link ReentrantLock} to release
+     * @param lockFile        the {@link RandomAccessFile} to close
+     * @param lockFilePath    the {@link Path} of the {@code lockFile}
+     * @param threadLevelLock the {@link ReentrantLock} to release
      */
     private static void close(RandomAccessFile lockFile, Path lockFilePath, ReentrantLock threadLevelLock) {
         if (lockFile != null) {
@@ -123,7 +118,7 @@ public class PathLocker<M> {
      * <td>{@link #lockDirectory(Path, Object)} waits for the path to get unlocked by other threads of current VM, tries
      * to lock on the FS level and eventually succeeds</td>
      * </tr>
-
+     *
      * <tr>
      * <td>yes</td>
      * <td>no</td>
@@ -149,15 +144,11 @@ public class PathLocker<M> {
      * <p>
      * The returned {@link PathLock} should be released using its {@link Closeable#close()} method.
      *
-     * @param path
-     *            the {@link Path} to lock
-     * @param pathMetadata
-     *            a metadata associated with the given {@code path}
+     * @param path         the {@link Path} to lock
+     * @param pathMetadata a metadata associated with the given {@code path}
      * @return a {@link PathLock} whose holder is guaranteed to have an exclusive access to {@link PathLock#getPath()}
-     * @throws IOException
-     *             if the given {@code path} cannot be created as a directory
-     * @throws CannotAcquireLockException
-     *             if the lock cannot be acquired immediately
+     * @throws IOException                if the given {@code path} cannot be created as a directory
+     * @throws CannotAcquireLockException if the lock cannot be acquired immediately
      */
     public PathLock lockDirectory(Path path, M pathMetadata) throws IOException, CannotAcquireLockException {
         SrcdepsCoreUtils.ensureDirectoryExists(path);

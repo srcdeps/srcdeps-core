@@ -43,8 +43,7 @@ public class ConfigurationQueryService {
 
         /**
          * @return this {@link ScmRepositoryResult}
-         * @throws IllegalStateException
-         *             if {@link #repository} is {@code null}
+         * @throws IllegalStateException if {@link #repository} is {@code null}
          */
         public ScmRepositoryResult assertSuccess() {
             if (repository == null) {

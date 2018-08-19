@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,6 +46,7 @@ public class MavenAssertions {
 
     public static class FailWithBuilder extends FailWithoutBuilder {
         ScalarNode<Boolean> addDefaults = new DefaultScalarNode<>("addDefaults", Boolean.TRUE);
+
         public FailWithBuilder() {
             super("failWith");
             this.goals = new DefaultListOfScalarsNode<String>("goals", String.class) {
@@ -61,8 +62,9 @@ public class MavenAssertions {
                 @Override
                 public boolean isInDefaultState(Stack<Node> configurationStack) {
                     Boolean addDefaultsValue = FailWithBuilder.this.addDefaults.getValue();
-                    return getElements().isEmpty() || ((addDefaultsValue == null || Boolean.TRUE.equals(addDefaultsValue))
-                            && DEFAULT_FAIL_GOALS.equals(asSetOfValues()));
+                    return getElements().isEmpty()
+                            || ((addDefaultsValue == null || Boolean.TRUE.equals(addDefaultsValue))
+                                    && DEFAULT_FAIL_GOALS.equals(asSetOfValues()));
                 }
 
             };
@@ -123,7 +125,6 @@ public class MavenAssertions {
             super.property(property);
             return this;
         }
-
 
     }
 

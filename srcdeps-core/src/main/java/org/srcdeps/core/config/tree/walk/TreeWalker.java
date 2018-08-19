@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,10 +40,8 @@ public class TreeWalker {
     /**
      * Walks a tree starting at the given {@code node} notifying the {@code visitor}.
      *
-     * @param node
-     *            the node to start at
-     * @param visitor
-     *            the visitor to notify
+     * @param node    the node to start at
+     * @param visitor the visitor to notify
      */
     @SuppressWarnings("unchecked")
     public void walk(Node node, Visitor visitor) {

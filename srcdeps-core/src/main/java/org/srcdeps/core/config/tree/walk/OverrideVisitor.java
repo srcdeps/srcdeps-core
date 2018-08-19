@@ -194,12 +194,9 @@ public class OverrideVisitor extends AbstractVisitor {
      * First clears the given {@code list} and then add elements to it that it parses out of the given {@code source}.
      * {@code source} is supposed to be a comma-delimited list of primitive values.
      *
-     * @param source
-     *            the string to parse
-     * @param handler
-     *            the deserializer to transform the values from string to the appropriate primitive type
-     * @param list
-     *            the destination
+     * @param source  the string to parse
+     * @param handler the deserializer to transform the values from string to the appropriate primitive type
+     * @param list    the destination
      */
     private void replaceElements(final String source, final ScalarDeserializer handler,
             ListOfScalarsNode<Object> list) {
@@ -217,8 +214,7 @@ public class OverrideVisitor extends AbstractVisitor {
      * {@link #overrideSource} and eventually overrides the value of the field by the value foung in
      * {@link #overrideSource}.
      *
-     * @param field
-     *            the field to traverse
+     * @param field the field to traverse
      */
     @Override
     public void scalar(ScalarNode<Object> node) {
@@ -230,8 +226,10 @@ public class OverrideVisitor extends AbstractVisitor {
             final String newValue = overrideSource.getProperty(joinedPath);
             if (newValue != null) {
                 if (newValue.isEmpty() && node.getType().equals(Boolean.class)) {
-                    /* -DmyProp set on commandline results in System.getProperty("myProp") returning an empty string
-                     * We want to interpret this case as true */
+                    /*
+                     * -DmyProp set on commandline results in System.getProperty("myProp") returning an empty string We
+                     * want to interpret this case as true
+                     */
                     log.info("srcdeps: Configuration override [{}] = [<empty> -> true].", joinedPath, newValue);
                     node.setValue(Boolean.TRUE);
                 } else {

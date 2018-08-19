@@ -59,8 +59,8 @@ public interface BuildMetadataStore {
             if (!anyArtifactChanged) {
                 final String pastSha1 = buildMetadataStore.retrieveSha1(buildRequestIdHash, gavtcPath);
                 if (pastSha1 == null) {
-                    log.info("srcdeps: Rebuilding: sha1 of artifact {} was not found in {}",
-                            gavtcPath.getGavtcString(), BuildMetadataStore.class.getSimpleName());
+                    log.info("srcdeps: Rebuilding: sha1 of artifact {} was not found in {}", gavtcPath.getGavtcString(),
+                            BuildMetadataStore.class.getSimpleName());
                     anyArtifactChanged = true;
                 } else {
                     final Path path = gavtcPath.getPath();
@@ -130,8 +130,7 @@ public interface BuildMetadataStore {
     }
 
     /**
-     * @param buildRequestIdHash
-     *                               hash of a {@link BuildRequest}
+     * @param buildRequestIdHash hash of a {@link BuildRequest}
      * @return a new {@link CheckSha1Consumer}
      *
      * @since 3.2.2
@@ -139,8 +138,7 @@ public interface BuildMetadataStore {
     CheckSha1Consumer createCheckSha1Checker(String buildRequestIdHash);
 
     /**
-     * @param buildRequestIdHash
-     *                               hash of a {@link BuildRequest}
+     * @param buildRequestIdHash hash of a {@link BuildRequest}
      * @return a new {@link StoreSha1Consumer}
      *
      * @since 3.2.2
@@ -152,8 +150,7 @@ public interface BuildMetadataStore {
      * {@code buildRequestIdHash} was built in the past or {@code null} if the {@code buildRequestIdHash} is not know to
      * this {@link BuildMetadataStore}.
      *
-     * @param buildRequestIdHash
-     *                               hash of a {@link BuildRequest} to check
+     * @param buildRequestIdHash hash of a {@link BuildRequest} to check
      * @return a non-null {@code commitId} out of which the given {@link BuildRequest} was built in the past or
      *         {@code null} if the {@link BuildRequest} represented by the given {@link BuildRequestId} was not built
      *         yet.
@@ -163,10 +160,8 @@ public interface BuildMetadataStore {
     String retrieveCommitId(String buildRequestIdHash);
 
     /**
-     * @param buildRequestIdHash
-     *                               hash of a {@link BuildRequest}
-     * @param gavtc
-     *                               the artifact
+     * @param buildRequestIdHash hash of a {@link BuildRequest}
+     * @param gavtc              the artifact
      * @return the sha1 of the given {@link Gavtc} in hex form or {@code null} if the given {@link Gavtc} was not stored
      *         for the given {@code buildRequestIdHash} before
      *
@@ -177,10 +172,8 @@ public interface BuildMetadataStore {
     /**
      * Link the given {@code buildRequestIdHash} with the given {@code commitId}.
      *
-     * @param buildRequestIdHash
-     *                               hash of a {@link BuildRequest} to add to this {@link BuildMetadataStore}
-     * @param commitId
-     *                               the commitId out of which the given {@code buildRequestIdHash} was built
+     * @param buildRequestIdHash hash of a {@link BuildRequest} to add to this {@link BuildMetadataStore}
+     * @param commitId           the commitId out of which the given {@code buildRequestIdHash} was built
      *
      * @since 3.2.2
      */
@@ -190,12 +183,9 @@ public interface BuildMetadataStore {
      * Store the given {@code sha1} for the given {@code buildRequestIdHash} and {@link Gavtc} in this
      * {@link BuildMetadataStore}
      *
-     * @param buildRequestIdHash
-     *                               hash of a {@link BuildRequest}
-     * @param gavtc
-     *                               the artifact
-     * @param sha1
-     *                               the sha1 hash in hex form
+     * @param buildRequestIdHash hash of a {@link BuildRequest}
+     * @param gavtc              the artifact
+     * @param sha1               the sha1 hash in hex form
      *
      * @since 3.2.2
      */
@@ -205,8 +195,7 @@ public interface BuildMetadataStore {
      * Iterate over {@link BuildRequest} hashes stored in this {@link BuildMetadataStore} and pass them to the given
      * {@link Consumer}
      *
-     * @param consumer
-     *                     the {@link Consumer} to feed
+     * @param consumer the {@link Consumer} to feed
      *
      * @since 3.2.2
      */

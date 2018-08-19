@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,11 +27,9 @@ public interface ConfigurationIo {
     /**
      * Read the {@link Configuration} from the given stream.
      *
-     * @param reader
-     *            the stream to read from
+     * @param reader the stream to read from
      * @return {@link Configuration.Builder} as read from the given stream that can be further customized
-     * @throws ConfigurationException
-     *             on configuration consistency checks
+     * @throws ConfigurationException on configuration consistency checks
      */
     Configuration.Builder read(Reader reader) throws ConfigurationException;
 }

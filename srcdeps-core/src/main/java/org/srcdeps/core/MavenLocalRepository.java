@@ -156,8 +156,7 @@ public class MavenLocalRepository {
     }
 
     /**
-     * @param gav
-     *                the {@link Gavtc} to resolve
+     * @param gav the {@link Gavtc} to resolve
      * @return a {@link Path} under which the given artifact should exist in this {@link MavenLocalRepository}
      */
     public Path resolve(Gavtc gav) {
@@ -170,8 +169,7 @@ public class MavenLocalRepository {
     }
 
     /**
-     * @param groupId
-     *                    the {@code groupId} to resolve
+     * @param groupId the {@code groupId} to resolve
      * @return a {@link Path} under which the given {@code groupId} lives in this {@link MavenLocalRepository}
      */
     public Path resolveGroup(String groupId) {
