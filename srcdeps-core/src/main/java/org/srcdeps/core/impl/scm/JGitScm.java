@@ -218,6 +218,7 @@ public class JGitScm implements Scm {
             log.warn("srcdeps: git init in [{}]", dir);
             try (Git git = Git.init().setDirectory(dir.toFile()).call()) {
                 log.warn("srcdeps: git init successful in [{}]; work tree [{}]", git.getRepository().getDirectory(), git.getRepository().getWorkTree());
+                git.getRepository().close();
             } catch (GitAPIException e) {
                 throw new ScmException(String.format("Could not init a git repository in [%s]", dir), e);
             }
@@ -309,7 +310,9 @@ public class JGitScm implements Scm {
 
             git.reset().setMode(ResetType.HARD).setRef(startPoint).call();
             final Ref ref = git.getRepository().exactRef("HEAD");
-            return ref.getObjectId().getName();
+            final String result = ref.getObjectId().getName();
+            git.getRepository().close();
+            return result;
         } catch (ScmException e) {
             final String msg = String.format("srcdeps: Could not checkout [%s] from SCM URL %d/%d [%s]", srcVersion,
                     urlIndex + 1, urlCount, useUrl);
