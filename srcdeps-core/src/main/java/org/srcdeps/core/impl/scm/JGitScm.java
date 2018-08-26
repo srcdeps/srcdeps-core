@@ -218,8 +218,11 @@ public class JGitScm implements Scm {
             log.warn("srcdeps: git init in [{}]", dir);
             try (Git git = Git.init().setDirectory(dir.toFile()).call()) {
                 log.warn("srcdeps: git init successful in [{}]; work tree [{}]", git.getRepository().getDirectory(), git.getRepository().getWorkTree());
+                Files.write(dir.resolve("init.txt"), "Dummy initial commit".getBytes(StandardCharsets.UTF_8));
+                git.add().addFilepattern("init.txt").call();
+                git.commit().setMessage("Dummy initial commit").call();
                 git.getRepository().close();
-            } catch (GitAPIException e) {
+            } catch (GitAPIException | IOException e) {
                 throw new ScmException(String.format("Could not init a git repository in [%s]", dir), e);
             }
             log.warn("srcdeps: contains git repo [{}]: [{}]", containsGitRepo(dir), dir);
