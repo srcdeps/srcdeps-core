@@ -18,7 +18,6 @@ package org.srcdeps.core.impl.scm;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -34,7 +33,6 @@ import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -66,30 +64,6 @@ public class JGitScm implements Scm {
 
     private static final String SRCDEPS_WORKING_BRANCH = "srcdeps-working-branch";
 
-    /**
-     * Tells if the given filesystem directory contains a valid git repository.
-     *
-     * @param dir a {@link Path} to check
-     * @return {@code true} if the given {@code dir} contains a valid git repository; {@code false} otherwise.
-     */
-    private static boolean containsGitRepo(Path dir) {
-        Path gitDir = dir.resolve(".git");
-        if (!Files.exists(gitDir)) {
-            return false;
-        } else {
-            try (FileRepository repo = new FileRepository(gitDir.toFile())) {
-                return repo.getObjectDatabase().exists();
-            } catch (IOException e) {
-                log.warn(String.format("srcdeps: Could not check if [%s] contains a git repository", dir), e);
-                /*
-                 * We could perhaps throw e out of this method rather than return false. Returning false sounds as a
-                 * better idea in case the repo is somehow damaged.
-                 */
-                return false;
-            }
-        }
-    }
-
     static void ensureRemoteAvailable(String useUrl, String remoteAlias, Git git) throws IOException {
         final StoredConfig config = git.getRepository().getConfig();
         boolean save = false;
@@ -118,6 +92,20 @@ public class JGitScm implements Scm {
      */
     public static String getSrcdepsWorkingBranch() {
         return SRCDEPS_WORKING_BRANCH;
+    }
+
+    private static Git openGit(Path dir) throws ScmException {
+        try {
+            return Git.open(dir.toFile());
+        } catch (IOException e) {
+            log.debug(String.format("srcdeps: No git repository in [%s]", dir), e);
+        }
+        try {
+            SrcdepsCoreUtils.ensureDirectoryExistsAndEmpty(dir);
+            return Git.init().setDirectory(dir.toFile()).call();
+        } catch (IOException | GitAPIException e) {
+            throw new ScmException(String.format("Could not create directory [%s]", dir), e);
+        }
     }
 
     private static String stripUriPrefix(String url) {
@@ -208,41 +196,25 @@ public class JGitScm implements Scm {
         final Path dir = request.getProjectRootDirectory();
         int i = 0;
         final List<String> urls = request.getScmUrls();
-        if (!Files.exists(dir) || !containsGitRepo(dir)) {
-            /* there is no valid git repo in the directory */
-            try {
-                SrcdepsCoreUtils.ensureDirectoryExistsAndEmpty(dir);
-            } catch (IOException e) {
-                throw new ScmException(String.format("Could not create directory [%s]", dir), e);
+
+        try (Git git = openGit(dir)) {
+            for (String url : urls) {
+                final String useUrl = stripUriPrefix(url);
+                final String result = fetchAndReset(useUrl, i, urls.size(), request.getSrcVersion(), dir, git);
+                if (result != null) {
+                    return result;
+                }
+                i++;
             }
-            log.warn("srcdeps: git init in [{}]", dir);
-            try (Git git = Git.init().setDirectory(dir.toFile()).call()) {
-                log.warn("srcdeps: git init successful in [{}]; work tree [{}]", git.getRepository().getDirectory(), git.getRepository().getWorkTree());
-                Files.write(dir.resolve("init.txt"), "Dummy initial commit".getBytes(StandardCharsets.UTF_8));
-                git.add().addFilepattern("init.txt").call();
-                git.commit().setMessage("Dummy initial commit").call();
-                git.getRepository().close();
-            } catch (GitAPIException | IOException e) {
-                throw new ScmException(String.format("Could not init a git repository in [%s]", dir), e);
-            }
-            log.warn("srcdeps: contains git repo [{}]: [{}]", containsGitRepo(dir), dir);
-        }
-        for (String url : urls) {
-            final String useUrl = stripUriPrefix(url);
-            final String result = fetchAndReset(useUrl, i, urls.size(), request.getSrcVersion(), dir);
-            if (result != null) {
-                return result;
-            }
-            i++;
         }
         throw new ScmException(
                 String.format("Could not checkout [%s] from URLs %s", request.getSrcVersion(), request.getScmUrls()));
     }
 
-    String fetchAndReset(String useUrl, int urlIndex, int urlCount, SrcVersion srcVersion, Path dir)
+    String fetchAndReset(String useUrl, int urlIndex, int urlCount, SrcVersion srcVersion, Path dir, Git git)
             throws ScmException {
         /* Forget local changes */
-        try (Git git = Git.open(dir.toFile())) {
+        try {
             Set<String> removedFiles = git.clean().setCleanDirectories(true).call();
             for (String removedFile : removedFiles) {
                 log.debug("srcdeps: Removed an unstaged file [{}]", removedFile);
@@ -259,7 +231,7 @@ public class JGitScm implements Scm {
 
         log.info("srcdeps: Fetching version [{}] from SCM URL {}/{} [{}]", srcVersion, urlIndex + 1, urlCount, useUrl);
         final String remoteAlias = toRemoteAlias(useUrl);
-        try (Git git = Git.open(dir.toFile())) {
+        try {
 
             ensureRemoteAvailable(useUrl, remoteAlias, git);
 
