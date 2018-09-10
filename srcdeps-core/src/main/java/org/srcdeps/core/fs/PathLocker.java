@@ -187,7 +187,7 @@ public class PathLocker<M> {
         try {
             lockFile = new RandomAccessFile(lockFilePath.toFile(), "rw");
             FileLock fsLock = lockFile.getChannel().tryLock();
-            log.debug("srcdeps: Locked on FS {} with lock {}", path, fsLock);
+            log.debug("srcdeps: Locked on FS [{}] with lock {}", path, fsLock);
             if (fsLock == null) {
                 throw new CannotAcquireLockException(
                         String.format("Could not acquire filesystem level lock on [%s]", lockFilePath));

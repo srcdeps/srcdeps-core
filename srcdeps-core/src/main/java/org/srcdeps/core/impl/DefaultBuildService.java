@@ -55,7 +55,8 @@ public class DefaultBuildService implements BuildService {
 
         for (Builder builder : builders) {
             if (builder.canBuild(dir)) {
-                log.info("srcdeps: Building project in {} using Builder {}", dir, builder.getClass().getName());
+                log.info("srcdeps: Building [{}]", request.getScmRepositoryId());
+                log.debug("srcdeps: Building [{}] in {} using Builder {}", request.getScmRepositoryId(), dir, builder.getClass().getName());
                 builder.setVersions(request);
                 builder.build(request);
                 return;
