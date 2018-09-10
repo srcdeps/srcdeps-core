@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,10 +137,10 @@ public class Shell {
      */
     public static CommandResult execute(ShellCommand command) throws BuildException, CommandTimeoutException {
         final String[] cmdArray = command.asCmdArray();
-        String cmdArrayString = Arrays.toString(cmdArray);
+        final String cmdArrayString = Arrays.stream(cmdArray).collect(Collectors.joining(" "));
         final IoRedirects redirects = command.getIoRedirects();
         final Map<String, String> env = command.getEnvironment();
-        log.info("srcdeps: Executing command {} using redirects {} and env {}", cmdArrayString, redirects, env);
+        log.info("srcdeps: Executing command [{}] using redirects {} and env {}", cmdArrayString, redirects, env);
         ProcessBuilder builder = new ProcessBuilder(cmdArray) //
                 .directory(command.getWorkingDirectory().toFile()) //
                 .redirectInput(redirects.getStdin()) //

@@ -37,6 +37,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.srcdeps.core.config.ScmRepository;
 import org.srcdeps.core.config.scalar.CharStreamSource;
 import org.srcdeps.core.shell.IoRedirects;
 import org.srcdeps.core.util.DigestOutputStream;
@@ -48,8 +49,6 @@ import org.srcdeps.core.util.SrcdepsCoreUtils;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class BuildRequest {
-    private static final Logger log = LoggerFactory.getLogger(BuildRequest.class);
-
     /**
      *
      * A builder for {@link BuildRequest}s.
@@ -67,6 +66,7 @@ public class BuildRequest {
         private CharStreamSource gradleModelTransformer;
         private IoRedirects ioRedirects = IoRedirects.inheritAll();
         private Path projectRootDirectory;
+        private String scmRepositoryId;
         private List<String> scmUrls = new ArrayList<>();
         private boolean skipTests = true;
         private SrcVersion srcVersion;
@@ -99,10 +99,11 @@ public class BuildRequest {
         public BuildRequest build() {
             final String useVersion = version == null ? srcVersion.toString() : version;
             return new BuildRequest(dependentProjectRootDirectory, projectRootDirectory, srcVersion, useVersion, gavSet,
-                    Collections.unmodifiableList(scmUrls), Collections.unmodifiableList(buildArguments), skipTests,
-                    addDefaultBuildArguments, Collections.unmodifiableSet(forwardProperties),
-                    Collections.unmodifiableMap(buildEnvironment), addDefaultBuildEnvironment, verbosity, ioRedirects,
-                    timeoutMs, versionsMavenPluginVersion, gradleModelTransformer);
+                    scmRepositoryId, Collections.unmodifiableList(scmUrls),
+                    Collections.unmodifiableList(buildArguments), skipTests, addDefaultBuildArguments,
+                    Collections.unmodifiableSet(forwardProperties), Collections.unmodifiableMap(buildEnvironment),
+                    addDefaultBuildEnvironment, verbosity, ioRedirects, timeoutMs, versionsMavenPluginVersion,
+                    gradleModelTransformer);
         }
 
         /**
@@ -226,6 +227,16 @@ public class BuildRequest {
         }
 
         /**
+         * @see BuildRequest#getScmRepositoryId()
+         * @param scmRepositoryId the ID of the SCM repository to set
+         * @return this builder
+         */
+        public BuildRequestBuilder scmRepositoryId(String scmRepositoryId) {
+            this.scmRepositoryId = scmRepositoryId;
+            return this;
+        }
+
+        /**
          * @param scmUrl a SCM url to add to {@link #scmUrls}. See {@link BuildRequest#getScmUrls()}
          * @return this {@link BuildRequestBuilder}
          */
@@ -331,6 +342,8 @@ public class BuildRequest {
     /** {@link Long#MAX_VALUE} */
     private static final long DEFAULT_TIMEOUT_MS = Long.MAX_VALUE;
 
+    private static final Logger log = LoggerFactory.getLogger(BuildRequest.class);
+
     /**
      * @return a new {@link BuildRequestBuilder}
      */
@@ -418,6 +431,7 @@ public class BuildRequest {
     private final String hash;
     private final IoRedirects ioRedirects;
     private final Path projectRootDirectory;
+    private final String scmRepositoryId;
     private final List<String> scmUrls;
     private final boolean skipTests;
     private final SrcVersion srcVersion;
@@ -427,12 +441,14 @@ public class BuildRequest {
     private final String versionsMavenPluginVersion;
 
     private BuildRequest(Path dependentProjectRootDirectory, Path projectRootDirectory, SrcVersion srcVersion,
-            String version, GavSet gavSet, List<String> scmUrls, List<String> buildArguments, boolean skipTests,
-            boolean addDefaultBuildArguments, Set<String> forwardProperties, Map<String, String> buildEnvironment,
-            boolean addDefaultBuildEnvironment, Verbosity verbosity, IoRedirects ioRedirects, long timeoutMs,
-            String versionsMavenPluginVersion, CharStreamSource gradleModelTransformer) {
+            String version, GavSet gavSet, String scmRepositoryId, List<String> scmUrls, List<String> buildArguments,
+            boolean skipTests, boolean addDefaultBuildArguments, Set<String> forwardProperties,
+            Map<String, String> buildEnvironment, boolean addDefaultBuildEnvironment, Verbosity verbosity,
+            IoRedirects ioRedirects, long timeoutMs, String versionsMavenPluginVersion,
+            CharStreamSource gradleModelTransformer) {
         super();
 
+        SrcdepsCoreUtils.assertArgNotNull(scmRepositoryId, "scmRepositoryId");
         SrcdepsCoreUtils.assertArgNotNull(dependentProjectRootDirectory, "dependentProjectRootDirectory");
         SrcdepsCoreUtils.assertArgNotNull(projectRootDirectory, "projectRootDirectory");
         SrcdepsCoreUtils.assertArgNotNull(srcVersion, "srcVersion");
@@ -451,6 +467,7 @@ public class BuildRequest {
         this.srcVersion = srcVersion;
         this.version = version;
         this.gavSet = gavSet;
+        this.scmRepositoryId = scmRepositoryId;
         this.scmUrls = scmUrls;
         this.buildArguments = buildArguments;
         this.skipTests = skipTests;
@@ -466,7 +483,7 @@ public class BuildRequest {
         this.hash = computeHash(addDefaultBuildArguments, addDefaultBuildEnvironment, buildArguments, buildEnvironment,
                 forwardProperties, gavSet, scmUrls, skipTests, srcVersion, versionsMavenPluginVersion, timeoutMs,
                 verbosity);
-        log.debug("srcdeps: Computed hash {} of {}", hash, this);
+        log.debug("srcdeps: Computed hash [{}] of [{}]", hash, this);
     }
 
     /**
@@ -551,6 +568,13 @@ public class BuildRequest {
     }
 
     /**
+     * @return the ID of the underlying SCm repository. See {@link ScmRepository#getId()}.
+     */
+    public String getScmRepositoryId() {
+        return scmRepositoryId;
+    }
+
+    /**
      * @return a {@link List} of URLs that should be tried one after another to checkout the version determined by
      *         {@link #getSrcVersion()}. The URLs will be tried by the {@link BuildService} in the given order until the
      *         checkout is successful. See {@link Scm} for the information about the format of the URLs.
@@ -621,14 +645,15 @@ public class BuildRequest {
 
     @Override
     public String toString() {
-        return "BuildRequest [addDefaultBuildArguments=" + addDefaultBuildArguments + ", addDefaultBuildEnvironment="
-                + addDefaultBuildEnvironment + ", buildArguments=" + buildArguments + ", buildEnvironment="
-                + buildEnvironment + ", dependentProjectRootDirectory=" + dependentProjectRootDirectory
-                + ", forwardProperties=" + forwardProperties + ", gavSet=" + gavSet + ", gradleModelTransformer="
-                + gradleModelTransformer + ", id=" + hash + ", ioRedirects=" + ioRedirects + ", projectRootDirectory="
-                + projectRootDirectory + ", scmUrls=" + scmUrls + ", skipTests=" + skipTests + ", srcVersion="
-                + srcVersion + ", timeoutMs=" + timeoutMs + ", verbosity=" + verbosity + ", version=" + version
-                + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + "]";
+        return "BuildRequest [scmRepositoryId=" + scmRepositoryId + ", addDefaultBuildArguments="
+                + addDefaultBuildArguments + ", addDefaultBuildEnvironment=" + addDefaultBuildEnvironment
+                + ", buildArguments=" + buildArguments + ", buildEnvironment=" + buildEnvironment
+                + ", dependentProjectRootDirectory=" + dependentProjectRootDirectory + ", forwardProperties="
+                + forwardProperties + ", gavSet=" + gavSet + ", gradleModelTransformer=" + gradleModelTransformer
+                + ", id=" + hash + ", ioRedirects=" + ioRedirects + ", projectRootDirectory=" + projectRootDirectory
+                + ", scmUrls=" + scmUrls + ", skipTests=" + skipTests + ", srcVersion=" + srcVersion + ", timeoutMs="
+                + timeoutMs + ", verbosity=" + verbosity + ", version=" + version + ", versionsMavenPluginVersion="
+                + versionsMavenPluginVersion + "]";
     }
 
 }

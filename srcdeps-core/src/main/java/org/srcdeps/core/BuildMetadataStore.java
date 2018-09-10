@@ -59,7 +59,7 @@ public interface BuildMetadataStore {
             if (!anyArtifactChanged) {
                 final String pastSha1 = buildMetadataStore.retrieveSha1(buildRequestIdHash, gavtcPath);
                 if (pastSha1 == null) {
-                    log.info("srcdeps: Rebuilding: sha1 of artifact {} was not found in {}", gavtcPath.getGavtcString(),
+                    log.info("srcdeps: Rebuilding: sha1 of artifact [{}] was not found in {}", gavtcPath.getGavtcString(),
                             BuildMetadataStore.class.getSimpleName());
                     anyArtifactChanged = true;
                 } else {
@@ -68,8 +68,8 @@ public interface BuildMetadataStore {
                         final String mvnLocalRepoArtifactSha1 = SrcdepsCoreUtils.sha1HexString(path);
                         if (!pastSha1.equals(mvnLocalRepoArtifactSha1)) {
                             log.info(
-                                    "srcdeps: Rebuilding: sha1 of artifact {} in local Maven repository differs from last known sha1 built by srcdeps",
-                                    gavtcPath.getGavtcString(), BuildMetadataStore.class.getSimpleName());
+                                    "srcdeps: Rebuilding: sha1 of artifact [{}] in local Maven repository differs from last known sha1 built by srcdeps",
+                                    gavtcPath.getGavtcString());
                             anyArtifactChanged = true;
                         }
                     } catch (NoSuchAlgorithmException | IOException e) {

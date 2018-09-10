@@ -132,6 +132,7 @@ public class AbstractBuildServiceTest extends InjectedTest {
         }
 
         BuildRequestBuilder requestBuilder = BuildRequest.builder() //
+                .scmRepositoryId(gitRepoUri) //
                 .scmUrl(gitRepoUri) //
                 .srcVersion(SrcVersion.parse(srcVersion)) //
                 .projectRootDirectory(projectBuildDirectory) //
