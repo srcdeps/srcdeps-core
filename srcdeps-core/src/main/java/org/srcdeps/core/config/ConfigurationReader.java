@@ -19,11 +19,11 @@ package org.srcdeps.core.config;
 import java.io.Reader;
 
 /**
- * An interface for loading a {@link Configuration}.
+ * An interface for reading a {@link Configuration} from a {@link Reader}.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
-public interface ConfigurationIo {
+public interface ConfigurationReader {
     /**
      * Read the {@link Configuration} from the given stream.
      *

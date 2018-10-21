@@ -15,7 +15,9 @@
 # limitations under the License.
 #
 
-configModelVersion: 2.3
+configModelVersion: 2.4
+
+forwardAsMasterConfig: true
 
 forwardProperties:
 - myProp1

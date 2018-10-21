@@ -22,6 +22,7 @@ import java.util.StringTokenizer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.scalar.Scalars;
 import org.srcdeps.core.config.tree.ContainerNode;
 import org.srcdeps.core.config.tree.ListNode;
@@ -105,6 +106,32 @@ public class OverrideVisitor extends AbstractVisitor {
 
     @Override
     public void containerEnd() {
+        if (stack.size() == 1) {
+            final Configuration.Builder configBuilder = (Configuration.Builder) stack.peek();
+            @SuppressWarnings("unchecked")
+            final ListOfScalarsNode<String> forwardPropertyNamesNode = (ListOfScalarsNode<String>) configBuilder.getChildren().get(Configuration.getForwardPropertiesAttribute());
+            forwardPropertyNamesNode.asListOfValues();
+            for (ScalarNode<String> node : forwardPropertyNamesNode.getElements()) {
+                final String propName = node.getValue();
+                if (propName.endsWith("*")) {
+                    /* prefix */
+                    String prefix = propName.substring(propName.length() - 1);
+                    for (Object key : overrideSource.keySet()) {
+                        if (key instanceof String && ((String) key).startsWith(prefix)) {
+                            String value = overrideSource.getProperty((String) key);
+                            if (value != null) {
+                                configBuilder.forwardPropertyValue(propName, value);
+                            }
+                        }
+                    }
+                } else {
+                    String value = overrideSource.getProperty(propName);
+                    if (value != null) {
+                        configBuilder.forwardPropertyValue(propName, value);
+                    }
+                }
+            }
+        }
         super.containerEnd();
         StringSegment segment = null;
         if (!path.isEmpty() && (segment = path.peek()) instanceof IndexedSegment) {
@@ -113,6 +140,7 @@ public class OverrideVisitor extends AbstractVisitor {
             path.pop();
         }
     }
+
 
     private void handleListOfScalars(ListOfScalarsNode<Object> list, ScalarDeserializer handler) {
         path.push(new StringSegment(list.getName(), list.shouldEscapeName()));

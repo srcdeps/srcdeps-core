@@ -17,11 +17,4 @@
 
 configModelVersion: 2.4
 
-sourcesDirectory: /home/me/.m2/srcdeps
-
-repositories:
-  srcdepsTestArtifact:
-    includes:
-    - org.l2x6.maven.srcdeps.itest
-    urls:
-    - git:https://github.com/srcdeps/srcdeps-test-artifact.git
+sourcesDirectory: master

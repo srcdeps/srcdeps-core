@@ -42,11 +42,10 @@
 #
 # Required, no default
 # Since 1.0
-configModelVersion: 2.3
+configModelVersion: 2.4
 
-# `forwardProperties` - used rarely, mostly for debugging.
-# A list of property names that the top level builder A should pass as java system properties to every
-# dependency builder B using `-DmyProperty=myValue` style command line arguments. Further, in case a child
+# `forwardProperties` - a list of property names that the top level builder A should pass as java system properties to
+# every dependency builder B using `-DmyProperty=myValue` style command line arguments. Further, in case a child
 # builder B spawns its own new child builder C, B must pass all these properties to C in the very same
 # manner as A did to B.
 #
@@ -54,10 +53,18 @@ configModelVersion: 2.3
 # asterisk should be forwared. E.g. `my.prop.*` would forward both `my.prop.foo` and
 # `my.prop.bar`.
 #
-# Optional, default: srcdeps.maven.*
+# Optional, default: srcdeps.masterConfig, srcdeps.maven.*
 # Since 1.0
 forwardProperties:
 - myForwardProperty
+
+# `forwardAsMasterConfig` - if `true` the URI of the current `srcdeps.yaml` file will be forwarded as a system property
+# `srcdeps.masterConfig` to every dependency builder thus effectively replacing any `srcdeps.yaml` configuration
+# available in the dependency source tree. See also `forwardProperties` above.
+#
+# Optional, default: false
+# Since 2.4
+forwardAsMasterConfig: false
 
 # `builderIo` - a triple of definitions how to handle the three standard I/O steams of the child builder
 # process. The syntax of the definitions mostly follows the semantics of

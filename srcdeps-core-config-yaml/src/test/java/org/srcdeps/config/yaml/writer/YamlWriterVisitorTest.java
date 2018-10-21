@@ -25,7 +25,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.srcdeps.config.yaml.YamlConfigurationIo;
+import org.srcdeps.config.yaml.YamlConfigurationReader;
 import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.ConfigurationException;
 import org.srcdeps.core.config.ScmRepository;
@@ -58,7 +58,7 @@ public class YamlWriterVisitorTest {
         String expectedConfig = "#\n" //
                 + "# srcdeps comment line 1\n" //
                 + "# srcdeps comment line 2\n" //
-                + "configModelVersion: 2.3\n" //
+                + "configModelVersion: 2.4\n" //
                 + "repositories:\n" //
                 + "\n" //
                 + "  # repo1 comment line 1\n" //
@@ -80,7 +80,7 @@ public class YamlWriterVisitorTest {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full.yaml"), "utf-8");
                 YamlWriterVisitor writerVisitor = new YamlWriterVisitor(out,
                         YamlWriterConfiguration.builder().build());) {
-            configFromFile = new YamlConfigurationIo() //
+            configFromFile = new YamlConfigurationReader() //
                     .read(in) //
                     .accept(writerVisitor) //
                     .build();
@@ -90,7 +90,7 @@ public class YamlWriterVisitorTest {
          * now read the serialized output we have written to the out StringWriter back into a new Configuration instance
          */
         try (Reader in = new StringReader(out.toString())) {
-            Configuration configFromOut = new YamlConfigurationIo() //
+            Configuration configFromOut = new YamlConfigurationReader() //
                     .read(in) //
                     .build();
 

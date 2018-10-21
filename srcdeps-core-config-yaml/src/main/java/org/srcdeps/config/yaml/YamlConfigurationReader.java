@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ import java.io.Reader;
 import org.srcdeps.config.yaml.internal.SrcdepsConstructor;
 import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.ConfigurationException;
-import org.srcdeps.core.config.ConfigurationIo;
+import org.srcdeps.core.config.ConfigurationReader;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -29,7 +29,7 @@ import org.yaml.snakeyaml.Yaml;
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
-public class YamlConfigurationIo implements ConfigurationIo {
+public class YamlConfigurationReader implements ConfigurationReader {
 
     @Override
     public Configuration.Builder read(Reader in) throws ConfigurationException {
