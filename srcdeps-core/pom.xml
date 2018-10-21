@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.srcdeps.core</groupId>
     <artifactId>srcdeps-core-parent</artifactId>
-    <version>4.0.0-SNAPSHOT</version>
+    <version>4.0.0</version>
   </parent>
 
   <artifactId>srcdeps-core</artifactId>
