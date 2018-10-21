@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2018 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,10 +74,9 @@ public class Maven {
 
     /** Keep in sync with doc/srcdeps.yaml */
     private static final String DEFAULT_VERSIONS_MAVEN_PLUGIN_VERSION = "2.3";
-
     private static final String SRCDEPS_MAVEN_PROPERTIES_PATTERN = "srcdeps.maven.*";
-
     private static final String SRCDEPS_MAVEN_SETTINGS_PROPERTY = "srcdeps.maven.settings";
+    private static final String SRCDEPS_MAVEN_VERSION_PROPERTY = "srcdeps.maven.version";
 
     public static Builder builder() {
         return new Builder();
@@ -105,6 +104,14 @@ public class Maven {
      */
     public static String getSrcdepsMavenSettingsProperty() {
         return SRCDEPS_MAVEN_SETTINGS_PROPERTY;
+    }
+
+    /**
+     * @return the name of the system property to pass the version of {@code srcdeps-maven-plugin} that should be used
+     *         in the builds of source dependencies. The value is {@value #SRCDEPS_MAVEN_VERSION_PROPERTY}
+     */
+    public static String getSrcdepsMavenVersionProperty() {
+        return SRCDEPS_MAVEN_VERSION_PROPERTY;
     }
 
     private final MavenAssertions failWith;
