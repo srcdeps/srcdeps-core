@@ -26,6 +26,7 @@ import java.util.Map;
 import org.srcdeps.core.BuildException;
 import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.shell.Shell;
 import org.srcdeps.core.shell.Shell.CommandResult;
@@ -139,24 +140,46 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
 
     @Override
     public void setVersions(BuildRequest request) throws BuildException {
-        final List<String> args = new ArrayList<>();
-        args.add("org.codehaus.mojo:versions-maven-plugin:" + request.getVersionsMavenPluginVersion() + ":set");
-        args.add("-DnewVersion=" + request.getVersion().toString());
-        args.add("-DartifactId=*");
-        args.add("-DgroupId=*");
-        args.add("-DoldVersion=*");
-        args.add("-DgenerateBackupPoms=false");
-        args.addAll(getVerbosityArguments(request.getVerbosity()));
+        final Map<String, String> env = mergeEnvironment(request);
+        {
+            final List<String> args = new ArrayList<>();
+            args.add("org.codehaus.mojo:versions-maven-plugin:" + request.getVersionsMavenPluginVersion() + ":set");
+            args.add("-DnewVersion=" + request.getVersion().toString());
+            args.add("-DartifactId=*");
+            args.add("-DgroupId=*");
+            args.add("-DoldVersion=*");
+            args.add("-DgenerateBackupPoms=false");
+            args.addAll(getVerbosityArguments(request.getVerbosity()));
 
-        ShellCommand cliRequest = ShellCommand.builder() //
-                .executable(locateExecutable(request)).arguments(args) //
-                .workingDirectory(request.getProjectRootDirectory()) //
-                .environment(mergeEnvironment(request)) //
-                .ioRedirects(request.getIoRedirects()) //
-                .timeoutMs(request.getTimeoutMs()) //
-                .build();
-        CommandResult result = Shell.execute(cliRequest).assertSuccess();
-        this.restTimeoutMs = request.getTimeoutMs() - result.getRuntimeMs();
+            final ShellCommand cliRequest = ShellCommand.builder() //
+                    .executable(locateExecutable(request)).arguments(args) //
+                    .workingDirectory(request.getProjectRootDirectory()) //
+                    .environment(env) //
+                    .ioRedirects(request.getIoRedirects()) //
+                    .timeoutMs(request.getTimeoutMs()) //
+                    .build();
+            final CommandResult result = Shell.execute(cliRequest).assertSuccess();
+            this.restTimeoutMs = request.getTimeoutMs() - result.getRuntimeMs();
+        }
+
+        final Map<String, String> forwardProps = request.getForwardPropertyValues();
+        final String srcdepsMasterConfig = forwardProps.get(Configuration.getSrcdepsMasterConfigProperty());
+        final String srcdepsMavenVersion = forwardProps.get(Maven.getSrcdepsMavenVersionProperty());
+        if (srcdepsMasterConfig != null && srcdepsMavenVersion != null) {
+            final List<String> args = new ArrayList<>();
+            args.add("org.srcdeps.mvn:srcdeps-maven-plugin:" + srcdepsMavenVersion + ":up");
+
+            final ShellCommand cliRequest = ShellCommand.builder() //
+                    .executable(locateExecutable(request)).arguments(args) //
+                    .workingDirectory(request.getProjectRootDirectory()) //
+                    .environment(mergeEnvironment(request)) //
+                    .ioRedirects(request.getIoRedirects()) //
+                    .timeoutMs(request.getTimeoutMs()) //
+                    .build();
+            final CommandResult result = Shell.execute(cliRequest).assertSuccess();
+            this.restTimeoutMs = request.getTimeoutMs() - result.getRuntimeMs();
+        }
+
     }
 
 }
