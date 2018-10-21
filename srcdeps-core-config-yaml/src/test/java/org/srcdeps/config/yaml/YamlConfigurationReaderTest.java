@@ -44,21 +44,22 @@ import org.yaml.snakeyaml.constructor.ConstructorException;
 /**
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
-public class YamlConfigurationIoTest {
+public class YamlConfigurationReaderTest {
 
     @Test(expected = ConstructorException.class)
     public void readBadVersion() throws ConfigurationException, UnsupportedEncodingException, IOException {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-bad-version.yaml"), "utf-8")) {
-            new YamlConfigurationIo().read(in);
+            new YamlConfigurationReader().read(in);
         }
     }
 
     @Test
     public void readFull() throws ConfigurationException, UnsupportedEncodingException, IOException {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full.yaml"), "utf-8")) {
-            Configuration actual = new YamlConfigurationIo().read(in).build();
+            Configuration actual = new YamlConfigurationReader().read(in).build();
             Configuration expected = Configuration.builder() //
-                    .configModelVersion("2.3") //
+                    .configModelVersion("2.4") //
+                    .forwardAsMasterConfig(true) //
                     .forwardProperty("myProp1") //
                     .forwardProperty("myProp2") //
                     .builderIo(BuilderIo.builder().stdin("read:/path/to/input/file")
@@ -140,9 +141,10 @@ public class YamlConfigurationIoTest {
     public void readFull21Selectors() throws ConfigurationException, UnsupportedEncodingException, IOException {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full-2.1-selectors.yaml"),
                 "utf-8")) {
-            Configuration actual = new YamlConfigurationIo().read(in).build();
+            Configuration actual = new YamlConfigurationReader().read(in).build();
             Configuration expected = Configuration.builder() //
                     .configModelVersion("2.1") //
+                    .forwardAsMasterConfig(false) //
                     .forwardProperty("myProp1") //
                     .forwardProperty("myProp2") //
                     .builderIo(BuilderIo.builder().stdin("read:/path/to/input/file")
@@ -210,7 +212,7 @@ public class YamlConfigurationIoTest {
     @Test
     public void readMinimal() throws ConfigurationException, UnsupportedEncodingException, IOException {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-minimal.yaml"), "utf-8")) {
-            Configuration actual = new YamlConfigurationIo() //
+            Configuration actual = new YamlConfigurationReader() //
                     .read(in) //
                     .accept(new DefaultsAndInheritanceVisitor()) //
                     .build();

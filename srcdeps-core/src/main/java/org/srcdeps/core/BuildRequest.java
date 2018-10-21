@@ -61,7 +61,8 @@ public class BuildRequest {
         private List<String> buildArguments = new ArrayList<>();
         private Map<String, String> buildEnvironment = new LinkedHashMap<>();
         private Path dependentProjectRootDirectory;
-        private Set<String> forwardProperties = new LinkedHashSet<>();
+        private Set<String> forwardPropertyNames = new LinkedHashSet<>();
+        private Map<String, String> forwardPropertyValues = new LinkedHashMap<>();
         private GavSet gavSet = GavSet.includeAll();
         private CharStreamSource gradleModelTransformer;
         private IoRedirects ioRedirects = IoRedirects.inheritAll();
@@ -98,17 +99,31 @@ public class BuildRequest {
          */
         public BuildRequest build() {
             final String useVersion = version == null ? srcVersion.toString() : version;
+
+            final Set<String> useFwdPropNames = Collections.unmodifiableSet(forwardPropertyNames);
+            this.forwardPropertyNames = null;
+
+            final Map<String, String> useFwdPropValues = Collections.unmodifiableMap(forwardPropertyValues);
+            this.forwardPropertyValues = null;
+
+            final List<String> useScmUrls = Collections.unmodifiableList(scmUrls);
+            this.scmUrls = null;
+
+            final List<String> useBuildArgs = Collections.unmodifiableList(buildArguments);
+            this.buildArguments = null;
+
+            final Map<String, String> useBuildEnv = Collections.unmodifiableMap(buildEnvironment);
+            this.buildEnvironment = null;
+
             return new BuildRequest(dependentProjectRootDirectory, projectRootDirectory, srcVersion, useVersion, gavSet,
-                    scmRepositoryId, Collections.unmodifiableList(scmUrls),
-                    Collections.unmodifiableList(buildArguments), skipTests, addDefaultBuildArguments,
-                    Collections.unmodifiableSet(forwardProperties), Collections.unmodifiableMap(buildEnvironment),
-                    addDefaultBuildEnvironment, verbosity, ioRedirects, timeoutMs, versionsMavenPluginVersion,
-                    gradleModelTransformer);
+                    scmRepositoryId, useScmUrls, useBuildArgs, skipTests, addDefaultBuildArguments, useFwdPropNames,
+                    useFwdPropValues, useBuildEnv, addDefaultBuildEnvironment, verbosity, ioRedirects, timeoutMs,
+                    versionsMavenPluginVersion, gradleModelTransformer);
         }
 
         /**
          * @param argument the single build argument to add to {@link #buildArguments}; see
-         *                 {@link BuildRequest#getBuildArguments()}
+         *        {@link BuildRequest#getBuildArguments()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder buildArgument(String argument) {
@@ -118,7 +133,7 @@ public class BuildRequest {
 
         /**
          * @param arguments the arguments to add to {@link #buildArguments}; see
-         *                  {@link BuildRequest#getBuildArguments()}
+         *        {@link BuildRequest#getBuildArguments()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder buildArguments(List<String> buildArguments) {
@@ -128,7 +143,7 @@ public class BuildRequest {
 
         /**
          * @param arguments the arguments to add to {@link #buildArguments}; see
-         *                  {@link BuildRequest#getBuildArguments()}
+         *        {@link BuildRequest#getBuildArguments()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder buildArguments(String... arguments) {
@@ -151,7 +166,7 @@ public class BuildRequest {
          * Add an environment variable of the given {@code name} and {@code value} to {@link #buildEnvironment}.
          *
          * @see BuildRequest#getBuildEnvironment()
-         * @param name  the name of the environment variable to add to {@link #buildEnvironment}
+         * @param name the name of the environment variable to add to {@link #buildEnvironment}
          * @param value the value of the environment variable to add to {@link #buildEnvironment}
          * @return this {@link BuildRequestBuilder}
          */
@@ -170,22 +185,43 @@ public class BuildRequest {
         }
 
         /**
-         * @see BuildRequest#getForwardProperties()
-         * @param values the property names or patterns to forward
+         * @see BuildRequest#getForwardPropertyNames()
+         * @param value the property name or pattern to forward
          * @return this {@link BuildRequestBuilder}
          */
-        public BuildRequestBuilder forwardProperties(Collection<String> values) {
-            forwardProperties.addAll(values);
+        public BuildRequestBuilder forwardPropertyName(String value) {
+            forwardPropertyNames.add(value);
             return this;
         }
 
         /**
-         * @see BuildRequest#getForwardProperties()
-         * @param value the property name or pattern to forward
+         * @see BuildRequest#getForwardPropertyNames()
+         * @param values the property names or patterns to forward
          * @return this {@link BuildRequestBuilder}
          */
-        public BuildRequestBuilder forwardProperty(String value) {
-            forwardProperties.add(value);
+        public BuildRequestBuilder forwardPropertyNames(Collection<String> values) {
+            forwardPropertyNames.addAll(values);
+            return this;
+        }
+
+        /**
+         * @see BuildRequest#getForwardPropertyValues()
+         * @param key the property key to forward
+         * @param value the property value to forward
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder forwardPropertyValue(String key, String value) {
+            forwardPropertyValues.put(key, value);
+            return this;
+        }
+
+        /**
+         * @see BuildRequest#getForwardPropertyValues()
+         * @param values the properties to forward
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder forwardPropertyValues(Map<String, String> values) {
+            forwardPropertyValues.putAll(values);
             return this;
         }
 
@@ -425,7 +461,8 @@ public class BuildRequest {
     private final List<String> buildArguments;
     private final Map<String, String> buildEnvironment;
     private final Path dependentProjectRootDirectory;
-    private final Set<String> forwardProperties;
+    private final Set<String> forwardPropertyNames;
+    private final Map<String, String> forwardPropertyValues;
     private final GavSet gavSet;
     private final CharStreamSource gradleModelTransformer;
     private final String hash;
@@ -442,10 +479,10 @@ public class BuildRequest {
 
     private BuildRequest(Path dependentProjectRootDirectory, Path projectRootDirectory, SrcVersion srcVersion,
             String version, GavSet gavSet, String scmRepositoryId, List<String> scmUrls, List<String> buildArguments,
-            boolean skipTests, boolean addDefaultBuildArguments, Set<String> forwardProperties,
-            Map<String, String> buildEnvironment, boolean addDefaultBuildEnvironment, Verbosity verbosity,
-            IoRedirects ioRedirects, long timeoutMs, String versionsMavenPluginVersion,
-            CharStreamSource gradleModelTransformer) {
+            boolean skipTests, boolean addDefaultBuildArguments, Set<String> forwardPropertyNames,
+            Map<String, String> forwardPropertyValues, Map<String, String> buildEnvironment,
+            boolean addDefaultBuildEnvironment, Verbosity verbosity, IoRedirects ioRedirects, long timeoutMs,
+            String versionsMavenPluginVersion, CharStreamSource gradleModelTransformer) {
         super();
 
         SrcdepsCoreUtils.assertArgNotNull(scmRepositoryId, "scmRepositoryId");
@@ -456,7 +493,8 @@ public class BuildRequest {
         SrcdepsCoreUtils.assertArgNotNull(scmUrls, "scmUrls");
         SrcdepsCoreUtils.assertCollectionNotEmpty(scmUrls, "scmUrls");
         SrcdepsCoreUtils.assertArgNotNull(buildArguments, "buildArguments");
-        SrcdepsCoreUtils.assertArgNotNull(forwardProperties, "forwardProperties");
+        SrcdepsCoreUtils.assertArgNotNull(forwardPropertyNames, "forwardPropertyNames");
+        SrcdepsCoreUtils.assertArgNotNull(forwardPropertyValues, "forwardPropertyValues");
         SrcdepsCoreUtils.assertArgNotNull(buildEnvironment, "buildEnvironment");
         SrcdepsCoreUtils.assertArgNotNull(ioRedirects, "ioRedirects");
         SrcdepsCoreUtils.assertArgNotNull(versionsMavenPluginVersion, "versionsMavenPluginVersion");
@@ -476,12 +514,13 @@ public class BuildRequest {
         this.verbosity = verbosity;
         this.timeoutMs = timeoutMs;
         this.addDefaultBuildArguments = addDefaultBuildArguments;
-        this.forwardProperties = forwardProperties;
+        this.forwardPropertyNames = forwardPropertyNames;
+        this.forwardPropertyValues = forwardPropertyValues;
         this.ioRedirects = ioRedirects;
         this.versionsMavenPluginVersion = versionsMavenPluginVersion;
         this.gradleModelTransformer = gradleModelTransformer;
         this.hash = computeHash(addDefaultBuildArguments, addDefaultBuildEnvironment, buildArguments, buildEnvironment,
-                forwardProperties, gavSet, scmUrls, skipTests, srcVersion, versionsMavenPluginVersion, timeoutMs,
+                forwardPropertyNames, gavSet, scmUrls, skipTests, srcVersion, versionsMavenPluginVersion, timeoutMs,
                 verbosity);
         log.debug("srcdeps: Computed hash [{}] of [{}]", hash, this);
     }
@@ -513,19 +552,29 @@ public class BuildRequest {
     }
 
     /**
-     * Used rarely, mostly for debugging. A list of property names that the top level builder A should pass as java
-     * system properties to every dependency builder B using {@code -DmyProperty=myValue} style command line arguments.
-     * Further, in case a child builder B spawns its own new child builder C, B must pass all these properties to C in
-     * the very same manner as A did to B.
+     * A list of property names that the top level builder A should pass as java system properties to every dependency
+     * builder B using {@code -DmyProperty=myValue} style command line arguments. Further, in case a child builder B
+     * spawns its own new child builder C, B must pass all these properties to C in the very same manner as A did to B.
      *
      * A property name may end with asterisk {@code *} to denote that all properties starting with the part before the
      * asterisk should be forwared. E.g. {@code my.prop.*} would forward both {@code my.prop.foo} and
      * {@code my.prop.bar}.
      *
-     * @return a {@link Set} of properties to forward
+     * @return a {@link Set} of property names to forward
      */
-    public Set<String> getForwardProperties() {
-        return forwardProperties;
+    public Set<String> getForwardPropertyNames() {
+        return forwardPropertyNames;
+    }
+
+    /**
+     * A map of property values that the top level builder A should pass as java system properties to every dependency
+     * builder B using {@code -DmyProperty=myValue} style command line arguments. Further, in case a child builder B
+     * spawns its own new child builder C, B must pass all these properties to C in the very same manner as A did to B.
+     *
+     * @return a {@link Map} of properties to forward
+     */
+    public Map<String, String> getForwardPropertyValues() {
+        return forwardPropertyValues;
     }
 
     /**
@@ -648,12 +697,12 @@ public class BuildRequest {
         return "BuildRequest [scmRepositoryId=" + scmRepositoryId + ", addDefaultBuildArguments="
                 + addDefaultBuildArguments + ", addDefaultBuildEnvironment=" + addDefaultBuildEnvironment
                 + ", buildArguments=" + buildArguments + ", buildEnvironment=" + buildEnvironment
-                + ", dependentProjectRootDirectory=" + dependentProjectRootDirectory + ", forwardProperties="
-                + forwardProperties + ", gavSet=" + gavSet + ", gradleModelTransformer=" + gradleModelTransformer
-                + ", id=" + hash + ", ioRedirects=" + ioRedirects + ", projectRootDirectory=" + projectRootDirectory
-                + ", scmUrls=" + scmUrls + ", skipTests=" + skipTests + ", srcVersion=" + srcVersion + ", timeoutMs="
-                + timeoutMs + ", verbosity=" + verbosity + ", version=" + version + ", versionsMavenPluginVersion="
-                + versionsMavenPluginVersion + "]";
+                + ", dependentProjectRootDirectory=" + dependentProjectRootDirectory + ", forwardPropertyNames="
+                + forwardPropertyNames + ", forwardPropertyValues=" + forwardPropertyValues + ", gavSet=" + gavSet
+                + ", gradleModelTransformer=" + gradleModelTransformer + ", id=" + hash + ", ioRedirects=" + ioRedirects
+                + ", projectRootDirectory=" + projectRootDirectory + ", scmUrls=" + scmUrls + ", skipTests=" + skipTests
+                + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs + ", verbosity=" + verbosity + ", version="
+                + version + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + "]";
     }
 
 }

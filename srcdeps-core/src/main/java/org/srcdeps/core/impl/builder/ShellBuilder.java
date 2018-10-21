@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.srcdeps.core.BuildException;
 import org.srcdeps.core.BuildRequest;
@@ -77,35 +77,10 @@ public abstract class ShellBuilder implements Builder {
 
     protected abstract Map<String, String> getDefaultBuildEnvironment();
 
-    protected List<String> getForwardPropertiesArguments(Set<String> fwdPropNames) {
-        List<String> result = new ArrayList<>();
-        StringBuilder names = new StringBuilder();
-        for (String propName : fwdPropNames) {
-            if (names.length() > 0) {
-                names.append(',');
-            }
-            names.append(propName);
-
-            if (propName.endsWith("*")) {
-                /* prefix */
-                String prefix = propName.substring(propName.length() - 1);
-                for (Object key : System.getProperties().keySet()) {
-                    if (key instanceof String && ((String) key).startsWith(prefix)) {
-                        String value = System.getProperty((String) key);
-                        if (value != null) {
-                            result.add("-D" + propName + "=" + value);
-                        }
-                    }
-                }
-            } else {
-                String value = System.getProperty(propName);
-                if (value != null) {
-                    result.add("-D" + propName + "=" + value);
-                }
-            }
-        }
-
-        result.add("-Dsrcdeps.forwardProperties=" + names.toString());
+    protected List<String> getForwardPropertiesArguments(final BuildRequest request) {
+        final List<String> result = new ArrayList<>();
+        request.getForwardPropertyValues().entrySet().forEach(e -> result.add("-D" + e.getKey() + "=" + e.getValue()));
+        result.add("-Dsrcdeps.forwardProperties=" + request.getForwardPropertyNames().stream().collect(Collectors.joining(",")));
         return result;
     }
 
@@ -145,7 +120,7 @@ public abstract class ShellBuilder implements Builder {
         result.addAll(request.getBuildArguments());
         result.addAll(getVerbosityArguments(request.getVerbosity()));
         result.addAll(getSkipTestsArguments(request.isSkipTests()));
-        result.addAll(getForwardPropertiesArguments(request.getForwardProperties()));
+        result.addAll(getForwardPropertiesArguments(request));
         return result;
     }
 
