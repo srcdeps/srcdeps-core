@@ -141,6 +141,7 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     @Override
     public void setVersions(BuildRequest request) throws BuildException {
         final Map<String, String> env = mergeEnvironment(request);
+        final List<String> verbosityArgs = getVerbosityArguments(request.getVerbosity());
         {
             final List<String> args = new ArrayList<>();
             args.add("org.codehaus.mojo:versions-maven-plugin:" + request.getVersionsMavenPluginVersion() + ":set");
@@ -149,7 +150,7 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
             args.add("-DgroupId=*");
             args.add("-DoldVersion=*");
             args.add("-DgenerateBackupPoms=false");
-            args.addAll(getVerbosityArguments(request.getVerbosity()));
+            args.addAll(verbosityArgs);
 
             final ShellCommand cliRequest = ShellCommand.builder() //
                     .executable(locateExecutable(request)).arguments(args) //
@@ -168,11 +169,12 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
         if (srcdepsMasterConfig != null && srcdepsMavenVersion != null) {
             final List<String> args = new ArrayList<>();
             args.add("org.srcdeps.mvn:srcdeps-maven-plugin:" + srcdepsMavenVersion + ":up");
+            args.addAll(verbosityArgs);
 
             final ShellCommand cliRequest = ShellCommand.builder() //
                     .executable(locateExecutable(request)).arguments(args) //
                     .workingDirectory(request.getProjectRootDirectory()) //
-                    .environment(mergeEnvironment(request)) //
+                    .environment(env) //
                     .ioRedirects(request.getIoRedirects()) //
                     .timeoutMs(request.getTimeoutMs()) //
                     .build();
