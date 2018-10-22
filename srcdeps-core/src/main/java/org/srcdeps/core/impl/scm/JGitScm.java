@@ -221,10 +221,6 @@ public class JGitScm implements Scm {
             }
             git.reset().setMode(ResetType.HARD).call();
 
-            /* make sure the srcdeps-working-branch exists */
-            git.branchCreate().setName(SRCDEPS_WORKING_BRANCH).setForce(true).call();
-            git.checkout().setName(SRCDEPS_WORKING_BRANCH).call();
-
         } catch (Exception e) {
             log.warn(String.format("srcdeps: Could not forget local changes in [%s]", dir), e);
         }
@@ -283,8 +279,10 @@ public class JGitScm implements Scm {
                         + srcVersion.getWellKnownType() + "'.");
             }
 
-            git.reset().setMode(ResetType.HARD).setRef(startPoint).call();
-            final Ref ref = git.getRepository().exactRef("HEAD");
+            /* Reset the srcdeps-working-branch */
+            git.branchCreate().setName(SRCDEPS_WORKING_BRANCH).setForce(true).setStartPoint(startPoint).call();
+            final Ref ref = git.checkout().setName(SRCDEPS_WORKING_BRANCH).call();
+
             return ref.getObjectId().getName();
         } catch (ScmException e) {
             final String msg = String.format("srcdeps: Could not checkout [%s] from SCM URL %d/%d [%s]", srcVersion,
