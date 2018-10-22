@@ -281,7 +281,9 @@ public class JGitScm implements Scm {
 
             /* Reset the srcdeps-working-branch */
             git.branchCreate().setName(SRCDEPS_WORKING_BRANCH).setForce(true).setStartPoint(startPoint).call();
-            final Ref ref = git.checkout().setName(SRCDEPS_WORKING_BRANCH).call();
+            git.checkout().setName(SRCDEPS_WORKING_BRANCH).call();
+            git.reset().setMode(ResetType.HARD).setRef(startPoint).call();
+            final Ref ref = git.getRepository().exactRef("HEAD");
 
             return ref.getObjectId().getName();
         } catch (ScmException e) {
