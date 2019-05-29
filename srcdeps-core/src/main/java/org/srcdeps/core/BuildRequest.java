@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,6 +38,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.srcdeps.core.config.ScmRepository;
+import org.srcdeps.core.config.ScmRepositoryMaven;
 import org.srcdeps.core.config.scalar.CharStreamSource;
 import org.srcdeps.core.shell.IoRedirects;
 import org.srcdeps.core.util.DigestOutputStream;
@@ -60,7 +61,9 @@ public class BuildRequest {
         private boolean addDefaultBuildEnvironment = true;
         private List<String> buildArguments = new ArrayList<>();
         private Map<String, String> buildEnvironment = new LinkedHashMap<>();
+        private Set<String> buildIncludes = new LinkedHashSet<>();
         private Path dependentProjectRootDirectory;
+        private boolean excludeNonRequired = false;
         private Set<String> forwardPropertyNames = new LinkedHashSet<>();
         private Map<String, String> forwardPropertyValues = new LinkedHashMap<>();
         private GavSet gavSet = GavSet.includeAll();
@@ -115,10 +118,13 @@ public class BuildRequest {
             final Map<String, String> useBuildEnv = Collections.unmodifiableMap(buildEnvironment);
             this.buildEnvironment = null;
 
+            final Set<String> useBuildIncludes = Collections.unmodifiableSet(buildIncludes);
+            this.buildIncludes = null;
+
             return new BuildRequest(dependentProjectRootDirectory, projectRootDirectory, srcVersion, useVersion, gavSet,
                     scmRepositoryId, useScmUrls, useBuildArgs, skipTests, addDefaultBuildArguments, useFwdPropNames,
                     useFwdPropValues, useBuildEnv, addDefaultBuildEnvironment, verbosity, ioRedirects, timeoutMs,
-                    versionsMavenPluginVersion, gradleModelTransformer);
+                    versionsMavenPluginVersion, useBuildIncludes, excludeNonRequired, gradleModelTransformer);
         }
 
         /**
@@ -176,11 +182,40 @@ public class BuildRequest {
         }
 
         /**
+         * @see BuildRequest#getBuildIncludes()
+         * @param ga a {@code groupId:artifactId} identifier
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder buildInclude(String ga) {
+            buildIncludes.add(ga);
+            return this;
+        }
+
+        /**
+         * @see BuildRequest#getBuildIncludes()
+         * @param gas a {@link Collection} of {@code groupId:artifactId} identifiers
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder buildIncludes(Collection<String> gas) {
+            buildIncludes.addAll(gas);
+            return this;
+        }
+
+        /**
          * @param dependentProjectRootDirectory see {@link BuildRequest#getDependentProjectRootDirectory()}
          * @return this {@link BuildRequestBuilder}
          */
         public BuildRequestBuilder dependentProjectRootDirectory(Path dependentProjectRootDirectory) {
             this.dependentProjectRootDirectory = dependentProjectRootDirectory;
+            return this;
+        }
+
+        /**
+         * @param excludeNonRequired see {@link BuildRequest#isExcludeNonRequired()}
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder excludeNonRequired(boolean excludeNonRequired) {
+            this.excludeNonRequired = excludeNonRequired;
             return this;
         }
 
@@ -408,7 +443,7 @@ public class BuildRequest {
     public static String computeHash(boolean addDefaultBuildArguments, boolean addDefaultBuildEnvironment,
             List<String> buildArguments, Map<String, String> buildEnvironment, Set<String> forwardProperties,
             GavSet gavSet, List<String> scmUrls, boolean skipTests, SrcVersion srcVersion, String version,
-            long timeoutMs, Verbosity verbosity) {
+            Set<String> buildIncludes, boolean excludeNonRequired, long timeoutMs, Verbosity verbosity) {
 
         try (DigestOutputStream digester = new DigestOutputStream(MessageDigest.getInstance("SHA-1"))) {
             digester.write(addDefaultBuildArguments ? 1 : 0);
@@ -439,6 +474,10 @@ public class BuildRequest {
 
                 w.write(srcVersion.toString());
                 w.write(version);
+                for (String e : buildIncludes) {
+                    w.write(e);
+                }
+                digester.write(excludeNonRequired ? 1 : 0);
                 w.write(verbosity.name());
             }
             final byte[] sha1Bytes = digester.digest();
@@ -460,7 +499,9 @@ public class BuildRequest {
     private final boolean addDefaultBuildEnvironment;
     private final List<String> buildArguments;
     private final Map<String, String> buildEnvironment;
+    private final Set<String> buildIncludes;
     private final Path dependentProjectRootDirectory;
+    private final boolean excludeNonRequired;
     private final Set<String> forwardPropertyNames;
     private final Map<String, String> forwardPropertyValues;
     private final GavSet gavSet;
@@ -482,7 +523,8 @@ public class BuildRequest {
             boolean skipTests, boolean addDefaultBuildArguments, Set<String> forwardPropertyNames,
             Map<String, String> forwardPropertyValues, Map<String, String> buildEnvironment,
             boolean addDefaultBuildEnvironment, Verbosity verbosity, IoRedirects ioRedirects, long timeoutMs,
-            String versionsMavenPluginVersion, CharStreamSource gradleModelTransformer) {
+            String versionsMavenPluginVersion, Set<String> buildIncludes, boolean excludeNonRequired,
+            CharStreamSource gradleModelTransformer) {
         super();
 
         SrcdepsCoreUtils.assertArgNotNull(scmRepositoryId, "scmRepositoryId");
@@ -498,6 +540,7 @@ public class BuildRequest {
         SrcdepsCoreUtils.assertArgNotNull(buildEnvironment, "buildEnvironment");
         SrcdepsCoreUtils.assertArgNotNull(ioRedirects, "ioRedirects");
         SrcdepsCoreUtils.assertArgNotNull(versionsMavenPluginVersion, "versionsMavenPluginVersion");
+        SrcdepsCoreUtils.assertArgNotNull(buildIncludes, "buildIncludes");
         SrcdepsCoreUtils.assertArgNotNull(gradleModelTransformer, "gradleModelTransformer");
 
         this.dependentProjectRootDirectory = dependentProjectRootDirectory;
@@ -518,10 +561,12 @@ public class BuildRequest {
         this.forwardPropertyValues = forwardPropertyValues;
         this.ioRedirects = ioRedirects;
         this.versionsMavenPluginVersion = versionsMavenPluginVersion;
+        this.buildIncludes = buildIncludes;
+        this.excludeNonRequired = excludeNonRequired;
         this.gradleModelTransformer = gradleModelTransformer;
         this.hash = computeHash(addDefaultBuildArguments, addDefaultBuildEnvironment, buildArguments, buildEnvironment,
-                forwardPropertyNames, gavSet, scmUrls, skipTests, srcVersion, versionsMavenPluginVersion, timeoutMs,
-                verbosity);
+                forwardPropertyNames, gavSet, scmUrls, skipTests, srcVersion, versionsMavenPluginVersion, buildIncludes,
+                excludeNonRequired, timeoutMs, verbosity);
         log.debug("srcdeps: Computed hash [{}] of [{}]", hash, this);
     }
 
@@ -542,6 +587,15 @@ public class BuildRequest {
      */
     public Map<String, String> getBuildEnvironment() {
         return buildEnvironment;
+    }
+
+    /**
+     * @return a list of {@code groupId:artifactId} identifiers to translate to module directories and pass as
+     *         {@code -pl} Maven command line option
+     * @see ScmRepositoryMaven#getIncludes()
+     */
+    public Set<String> getBuildIncludes() {
+        return buildIncludes;
     }
 
     /**
@@ -685,6 +739,18 @@ public class BuildRequest {
     }
 
     /**
+     * If this method returns {@code true} and {@link #getBuildIncludes()} returns a non-empty list, {@code srcdeps}
+     * will remove uneeded {@code <module>} elements from {@code pom.xml} files in the dependency project before
+     * building it. Otherwise, the value returned by this method has no effect.
+     *
+     * @return {@code true} or {@code false}
+     * @see ScmRepositoryMaven#isExcludeNonRequired()
+     */
+    public boolean isExcludeNonRequired() {
+        return excludeNonRequired;
+    }
+
+    /**
      * @return {@code true} if no tests should be run when building the dependency. For dependencies built with Maven,
      *         this accounts to adding {@code -DskipTests} to the {@code mvn} arguments.
      */
@@ -702,7 +768,8 @@ public class BuildRequest {
                 + ", gradleModelTransformer=" + gradleModelTransformer + ", id=" + hash + ", ioRedirects=" + ioRedirects
                 + ", projectRootDirectory=" + projectRootDirectory + ", scmUrls=" + scmUrls + ", skipTests=" + skipTests
                 + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs + ", verbosity=" + verbosity + ", version="
-                + version + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + "]";
+                + version + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + ", buildIncludes="
+                + buildIncludes + ", excludeNonRequired=" + excludeNonRequired + "]";
     }
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -76,7 +76,7 @@ public class SrcdepsCoreUtils {
     }
 
     /**
-     * @param bytes  the bytes to format
+     * @param bytes the bytes to format
      * @param offset the offset to start at
      * @param length how many bytes from offset to format
      * @return the given {@code bytes} formatted as a hex string
@@ -93,7 +93,7 @@ public class SrcdepsCoreUtils {
     /**
      * Copy the given {@code src} directory to the given {@code destination} directory.
      *
-     * @param src         the directory to copy
+     * @param src the directory to copy
      * @param destination where to copy
      * @throws IOException
      */
@@ -257,7 +257,7 @@ public class SrcdepsCoreUtils {
      * Returns the content of the given {@code reader} as string.
      *
      * @param reader the {@link Reader} to read from
-     * @param buf    a properly dimensioned buffer to use when reading
+     * @param buf a properly dimensioned buffer to use when reading
      * @return the content read from the given {@code reader}
      * @throws IOException
      */
@@ -312,6 +312,17 @@ public class SrcdepsCoreUtils {
         } else {
             return null;
         }
+    }
+
+    /**
+     * @param anyPath a path with either slashes or backslashes
+     * @return a file path with slashes
+     */
+    public static String toUnixPath(String anyPath) {
+        if (anyPath == null || anyPath.isEmpty()) {
+            return anyPath;
+        }
+        return anyPath.replace('\\', '/');
     }
 
     private SrcdepsCoreUtils() {

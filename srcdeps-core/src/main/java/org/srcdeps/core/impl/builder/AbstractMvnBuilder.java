@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,16 +16,20 @@
  */
 package org.srcdeps.core.impl.builder;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.srcdeps.core.BuildException;
 import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.MavenSourceTree;
+import org.srcdeps.core.MavenSourceTree.Module;
 import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.shell.Shell;
@@ -151,6 +155,7 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
             args.add("-DoldVersion=*");
             args.add("-DgenerateBackupPoms=false");
             args.addAll(verbosityArgs);
+            addBuildIncludes(request, args);
 
             final ShellCommand cliRequest = ShellCommand.builder() //
                     .executable(locateExecutable(request)).arguments(args) //
@@ -182,6 +187,36 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
             this.restTimeoutMs = request.getTimeoutMs() - result.getRuntimeMs();
         }
 
+    }
+
+    private void addBuildIncludes(BuildRequest request, final List<String> args) throws BuildException {
+        final Set<String> buildIncludes = request.getBuildIncludes();
+        if (!buildIncludes.isEmpty()) {
+            args.add("-am");
+            args.add("-pl");
+            final StringBuilder sb = new StringBuilder();
+            final MavenSourceTree depTree = MavenSourceTree.of(request.getProjectRootDirectory().resolve("pom.xml"), StandardCharsets.UTF_8);
+            final Map<String, Module> modulesByGa = depTree.getModulesByGa();
+            final int slashPomXmlLength = "/pom.xml".length();
+            for (String depGa : buildIncludes) {
+                final Module depModule = modulesByGa.get(depGa);
+                if (depModule == null) {
+                    throw new BuildException(
+                            String.format("Could not find module path for artifact [%s] in source tree [%s]", depGa,
+                                    request.getProjectRootDirectory()));
+                }
+                if (sb.length() > 0) {
+                    sb.append(',');
+                }
+                final String pomPath = depModule.getPomPath();
+                if ("pom.xml".equals(pomPath)) {
+                    sb.append('.');
+                } else {
+                    sb.append(pomPath.substring(0, pomPath.length() - slashPomXmlLength));
+                }
+            }
+            args.add(sb.toString());
+        }
     }
 
 }

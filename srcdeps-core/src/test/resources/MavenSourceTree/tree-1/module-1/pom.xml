@@ -21,41 +21,35 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.srcdeps.core</groupId>
-    <artifactId>srcdeps-core-parent</artifactId>
-    <version>4.0.4-SNAPSHOT</version>
+    <groupId>org.srcdeps.tree-1</groupId>
+    <artifactId>tree-parent</artifactId>
+    <version>0.0.1</version>
   </parent>
 
-  <artifactId>srcdeps-core-config-yaml</artifactId>
-  <packaging>takari-jar</packaging>
+  <artifactId>tree-module-1</artifactId>
+  <name>A Maven source tree parent</name>
 
-  <name>Srcdeps Core YAML Configuration</name>
-  <description>A YAML implementation of org.srcdeps.core.config.ConfigurationIo</description>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.srcdeps.external</groupId>
+        <artifactId>artifact-2</artifactId>
+        <version>1.2.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.srcdeps.tree-1</groupId>
+        <artifactId>tree-module-3</artifactId>
+        <version>0.0.1</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
-
     <dependency>
-      <groupId>javax.inject</groupId>
-      <artifactId>javax.inject</artifactId>
-      <scope>provided</scope>
+      <groupId>org.srcdeps.external</groupId>
+      <artifactId>artifact-3</artifactId>
+      <version>1.2.3</version>
     </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.srcdeps.core</groupId>
-      <artifactId>srcdeps-core</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-    </dependency>
-
   </dependencies>
 
 </project>

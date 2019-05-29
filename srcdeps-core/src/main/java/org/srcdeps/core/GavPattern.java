@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -296,6 +296,20 @@ public class GavPattern implements Serializable {
         return groupIdPattern.matches(groupId) && //
                 artifactIdPattern.matches(artifactId) && //
                 versionPattern.matches(version);
+    }
+
+    /**
+     * Matches the given {@code groupId}, {@code artifactId} pair against this {@link GavPattern} disregarding the
+     * version part of the pattern.
+     *
+     * @param groupId
+     * @param artifactId
+     * @return {@code true} if this {@link GavPattern} matches the given {@code groupId} and {@code artifactId}
+     *         (disregarding the version part of this {@link GavPattern}), and {@code false otherwise}
+     */
+    public boolean matches(String groupId, String artifactId) {
+        return groupIdPattern.matches(groupId) && //
+                artifactIdPattern.matches(artifactId);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,9 +30,6 @@ import java.util.StringTokenizer;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class GavSet implements Serializable {
-    /**  */
-    private static final long serialVersionUID = 4495169649760950618L;
-
     public static class Builder {
         private List<GavPattern> excludes = new ArrayList<>();
         private List<GavPattern> includes = new ArrayList<>();
@@ -181,7 +178,10 @@ public class GavSet implements Serializable {
     }
 
     private static final List<GavPattern> EMPTY_LIST = Collections.emptyList();
+
     private static final GavSet INCLUDE_ALL = new GavSet(Collections.singletonList(GavPattern.matchAll()), EMPTY_LIST);
+    /**  */
+    private static final long serialVersionUID = 4495169649760950618L;
 
     private static void append(List<GavPattern> cludes, Appendable out) throws IOException {
         boolean first = true;
@@ -201,6 +201,15 @@ public class GavSet implements Serializable {
 
     public static GavSet includeAll() {
         return INCLUDE_ALL;
+    }
+
+    private static boolean matches(String groupId, String artifactId, List<GavPattern> patterns) {
+        for (GavPattern pattern : patterns) {
+            if (pattern.matches(groupId, artifactId)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean matches(String groupId, String artifactId, String version, List<GavPattern> patterns) {
@@ -242,6 +251,16 @@ public class GavSet implements Serializable {
      */
     public void appendIncludes(Appendable out) throws IOException {
         append(includes, out);
+    }
+
+    /**
+     *
+     * @param groupId
+     * @param artifactId
+     * @return {@code true} if the given GA identifier is a member of this {@link GavSet} and {@code false} otherwise
+     */
+    public boolean contains(String groupId, String artifactId) {
+        return matches(groupId, artifactId, includes) && !matches(groupId, artifactId, excludes);
     }
 
     /**

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,6 +73,10 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(repo1Builder.addDefaultBuildArguments.getValue());
         Assert.assertEquals(Collections.emptyList(), repo1Builder.buildArguments.asListOfValues());
         Assert.assertNull(repo1Builder.maven.versionsMavenPluginVersion.getValue());
+        Assert.assertNull(repo1Builder.maven.excludeNonRequired.getValue());
+        Assert.assertNull(repo1Builder.maven.includeRequired.getValue());
+        Assert.assertEquals(Collections.emptyList(), repo1Builder.maven.includes.asListOfValues());
+
         Assert.assertNull(repo1Builder.gradle.modelTransformer.getValue());
         Assert.assertEquals(Collections.singletonList("org.example"), repo1Builder.includes.asListOfValues());
         Assert.assertNull(repo1Builder.skipTests.getValue());
@@ -120,6 +124,9 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals(Collections.singletonList("file:///whereever"), repo1.getUrls());
         Assert.assertEquals(Maven.getDefaultVersionsMavenPluginVersion(),
                 repo1.getMaven().getVersionsMavenPluginVersion());
+        Assert.assertEquals(false, repo1.getMaven().isExcludeNonRequired());
+        Assert.assertEquals(false, repo1.getMaven().isIncludeRequired());
+        Assert.assertEquals(Collections.emptyList(), repo1.getMaven().getIncludes());
         Assert.assertEquals(org.srcdeps.core.config.scalar.CharStreamSource.defaultModelTransformer(),
                 repo1.getGradle().getModelTransformer());
         Assert.assertEquals(Verbosity.warn, repo1.getVerbosity());
