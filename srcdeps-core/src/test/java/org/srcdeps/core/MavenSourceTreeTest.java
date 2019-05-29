@@ -119,21 +119,8 @@ public class MavenSourceTreeTest {
         Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("org.srcdeps.tree-1:tree-module-1", "org.srcdeps.tree-1:tree-module-5")), m4.dependencies);
         Assert.assertEquals(Collections.emptySet(), m4.children);
 
-        b.removeExternalDependencies();
-        Assert.assertEquals(Collections.emptySet(), m1.dependencies);
-        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("org.srcdeps.tree-1:tree-module-4", "org.srcdeps.tree-1:tree-module-7")), m2.dependencies);
-        Assert.assertEquals(Collections.emptySet(), m3.dependencies);
-        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("org.srcdeps.tree-1:tree-module-1", "org.srcdeps.tree-1:tree-module-5")), m4.dependencies);
-
-        b.addParentAndTransitiveDependencies();
-
-        Assert.assertEquals(Collections.emptySet(), m1.dependencies);
-        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("org.srcdeps.tree-1:tree-module-4", "org.srcdeps.tree-1:tree-module-7", "org.srcdeps.tree-1:tree-module-1", "org.srcdeps.tree-1:tree-module-5")), m2.dependencies);
-        Assert.assertEquals(Collections.emptySet(), m3.dependencies);
-        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("org.srcdeps.tree-1:tree-module-1", "org.srcdeps.tree-1:tree-module-5")), m4.dependencies);
-
         final MavenSourceTree t = b.build();
-        final Set<String> expandedIncludes = t.addReactorDependencies(Arrays.asList("org.srcdeps.tree-1:tree-module-2"));
+        final Set<String> expandedIncludes = t.computeModuleClosure(Arrays.asList("org.srcdeps.tree-1:tree-module-2"));
         Assert.assertEquals(new LinkedHashSet<>(Arrays.asList("org.srcdeps.tree-1:tree-module-2",
                 "org.srcdeps.tree-1:tree-parent", "org.srcdeps.tree-1:tree-module-4", "org.srcdeps.tree-1:tree-module-7",
                 "org.srcdeps.tree-1:tree-module-1", "org.srcdeps.tree-1:tree-module-5", "org.srcdeps.tree-1:proper-parent")), expandedIncludes);

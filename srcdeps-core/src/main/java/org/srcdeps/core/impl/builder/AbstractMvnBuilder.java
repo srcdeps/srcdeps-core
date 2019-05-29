@@ -158,7 +158,8 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
             addBuildIncludes(request, args);
 
             final ShellCommand cliRequest = ShellCommand.builder() //
-                    .executable(locateExecutable(request)).arguments(args) //
+                    .executable(locateExecutable(request))//
+                    .arguments(args) //
                     .workingDirectory(request.getProjectRootDirectory()) //
                     .environment(env) //
                     .ioRedirects(request.getIoRedirects()) //
