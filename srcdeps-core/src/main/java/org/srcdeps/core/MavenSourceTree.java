@@ -99,18 +99,17 @@ public class MavenSourceTree {
 
         void addTransitiveDependencies(Module.Builder module, Set<String> visited) {
             if (!visited.contains(module.getGa())) {
+                visited.add(module.getGa());
                 Module.Builder parent = module;
                 while ((parent = getParentModule(modulesByGa, parent)) != null) {
                     module.dependencies.addAll(parent.dependencies);
                 }
                 /* Iterate over a copy module.dependencies to avoid ConcurrentModificationException */
                 for (String depGa : new LinkedHashSet<>(module.dependencies)) {
-                //for (String depGa : module.dependencies) {
                     final Module.Builder depModule = modulesByGa.get(depGa);
                     addTransitiveDependencies(depModule, visited);
                     module.dependencies.addAll(depModule.dependencies);
                 }
-                visited.add(module.getGa());
             }
         }
 
