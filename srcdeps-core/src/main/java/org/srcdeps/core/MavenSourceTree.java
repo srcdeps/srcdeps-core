@@ -25,7 +25,6 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -90,33 +89,7 @@ public class MavenSourceTree {
             this.encoding = encoding;
         }
 
-        void addParentAndTransitiveDependencies() {
-            final Set<String> visited = new HashSet<>();
-            for (Module.Builder module : modulesByGa.values()) {
-                addTransitiveDependencies(module, visited);
-            }
-        }
-
-        void addTransitiveDependencies(Module.Builder module, Set<String> visited) {
-            if (!visited.contains(module.getGa())) {
-                visited.add(module.getGa());
-                Module.Builder parent = module;
-                while ((parent = getParentModule(modulesByGa, parent)) != null) {
-                    module.dependencies.addAll(parent.dependencies);
-                }
-                /* Iterate over a copy module.dependencies to avoid ConcurrentModificationException */
-                for (String depGa : new LinkedHashSet<>(module.dependencies)) {
-                    final Module.Builder depModule = modulesByGa.get(depGa);
-                    addTransitiveDependencies(depModule, visited);
-                    module.dependencies.addAll(depModule.dependencies);
-                }
-            }
-        }
-
         public MavenSourceTree build() {
-            removeExternalDependencies();
-            /* add transitive dependencies and dependencies via parent */
-            addParentAndTransitiveDependencies();
 
             final Map<String, Module> byPath = new LinkedHashMap<>(modulesByPath.size());
             final Map<String, Module> byGa = new LinkedHashMap<>(modulesByPath.size());
@@ -140,18 +113,6 @@ public class MavenSourceTree {
             }
 
             return this;
-        }
-
-        void removeExternalDependencies() {
-            for (Module.Builder module : modulesByGa.values()) {
-                final Iterator<String> depsIt = module.dependencies.iterator();
-                while (depsIt.hasNext()) {
-                    final String depGa = depsIt.next();
-                    if (!modulesByGa.containsKey(depGa)) {
-                        depsIt.remove();
-                    }
-                }
-            }
         }
     }
 
@@ -350,37 +311,40 @@ public class MavenSourceTree {
         this.encoding = encoding;
     }
 
-    private void addParents(final Set<String> result, final Module module) {
+    private void addModule(String includeGa, Set<String> result, Set<String> visited) {
+        final Module module = modulesByGa.get(includeGa);
+        if (module != null && !visited.contains(includeGa)) {
+            visited.add(includeGa);
+            result.add(includeGa);
+            addParents(module, result, visited);
+            for (String depGa : module.dependencies) {
+                addModule(depGa, result, visited);
+            }
+        }
+    }
+
+    private void addParents(final Module module, final Set<String> result, Set<String> visited) {
         Module parent;
         Module child = module;
         while ((parent = getProperParentModule(child)) != null) {
-            result.add(parent.getGa());
+            addModule(parent.getGa(), result, visited);
             child = parent;
         }
     }
 
     /**
-     * Returns a list that contains all given {@code includes} and their direct and transitive dependencies whose
-     * modules are present in the current {@link MavenSourceTree}.
+     * Returns a {@link Set} that contains all given {@code initialModules} and all such modules from the current
+     * {@link MavenSourceTree} that are reachable from the {@code initialModules} via <i>depends on</i> and <i>is parent
+     * of</i> relationships.
      *
-     * @param includes
+     * @param initialModules
      * @return {@link Set} of {@code groupId:artifactId}
      */
-    public Set<String> addReactorDependencies(Collection<String> includes) {
+    public Set<String> computeModuleClosure(Collection<String> initialModules) {
+        final Set<String> visited = new HashSet<>();
         final Set<String> result = new LinkedHashSet<>();
-        for (String includeGa : includes) {
-            final Module module = modulesByGa.get(includeGa);
-            if (module == null) {
-                throw new IllegalStateException(
-                        String.format("Could not find module [%s] in source tree [%s]", includeGa, rootDirectory));
-            }
-            result.add(module.getGa());
-            addParents(result, module);
-            for (String depGa : module.dependencies) {
-                result.add(depGa);
-                addParents(result, modulesByGa.get(depGa));
-            }
-
+        for (String includeGa : initialModules) {
+            addModule(includeGa, result, visited);
         }
         return result;
     }
@@ -494,7 +458,8 @@ public class MavenSourceTree {
                 final Node moduleNode = moduleNodes.item(i);
                 final String moduleText = moduleNode.getTextContent();
                 final Path childPath = dir.resolve(moduleText + "/pom.xml").normalize();
-                final String rootRelChildPath = SrcdepsCoreUtils.toUnixPath(rootDirectory.relativize(childPath).toString());
+                final String rootRelChildPath = SrcdepsCoreUtils
+                        .toUnixPath(rootDirectory.relativize(childPath).toString());
                 if (removeChildPaths.contains(rootRelChildPath)) {
                     final Node parent = moduleNode.getParentNode();
                     final Node previous = moduleNode.getPreviousSibling();
