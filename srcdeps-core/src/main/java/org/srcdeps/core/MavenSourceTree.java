@@ -103,7 +103,9 @@ public class MavenSourceTree {
                 while ((parent = getParentModule(modulesByGa, parent)) != null) {
                     module.dependencies.addAll(parent.dependencies);
                 }
-                for (String depGa : module.dependencies) {
+                /* Iterate over a copy module.dependencies to avoid ConcurrentModificationException */
+                for (String depGa : new LinkedHashSet<>(module.dependencies)) {
+                //for (String depGa : module.dependencies) {
                     final Module.Builder depModule = modulesByGa.get(depGa);
                     addTransitiveDependencies(depModule, visited);
                     module.dependencies.addAll(depModule.dependencies);
