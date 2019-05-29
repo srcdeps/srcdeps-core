@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018 Maven Source Dependencies
+# Copyright 2015-2019 Maven Source Dependencies
 # Plugin contributors as indicated by the @author tags.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-configModelVersion: 2.4
+configModelVersion: 2.5
 
 forwardAsMasterConfig: true
 
@@ -86,6 +86,11 @@ repositories:
     buildRef: revision-deadbeef
     maven:
       versionsMavenPluginVersion: 2.2
+      excludeNonRequired: true
+      includeRequired: true
+      includes:
+      - org.srcdeps.example:artifact1
+      - org.srcdeps.other:artifact2
     gradle:
       modelTransformer: "file:my/file"
 
@@ -100,3 +105,6 @@ repositories:
     - arg3
     addDefaultBuildArguments: false
     skipTests: false
+    maven:
+      excludeNonRequired: true
+      includeRequired: true

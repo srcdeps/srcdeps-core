@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@ package org.srcdeps.core.fs;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -55,7 +56,8 @@ public class PersistentBuildMetadataStoreTest {
 
         String id1 = BuildRequest.computeHash(true, true, Arrays.<String>asList("arg1", "arg2"), env1, props,
                 GavSet.builder().include("org.mygroup").exclude("other-group").build(), Arrays.asList("url1", "url2"),
-                true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", 50000, Verbosity.error);
+                true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", Collections.singleton("org:a"), false,
+                50000, Verbosity.error);
 
         final PersistentBuildMetadataStore store = new PersistentBuildMetadataStore(mdStorepath);
         {

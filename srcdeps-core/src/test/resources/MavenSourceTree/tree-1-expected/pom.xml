@@ -1,4 +1,4 @@
-<!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
 
     Copyright 2015-2019 Maven Source Dependencies
     Plugin contributors as indicated by the @author tags.
@@ -15,16 +15,27 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.srcdeps.core</groupId>
-    <artifactId>srcdeps-core-parent</artifactId>
-    <version>4.0.4-SNAPSHOT</version>
-  </parent>
-  <artifactId>srcdeps-core-buildconfig</artifactId>
-  <packaging>takari-jar</packaging>
 
-  <name>Srcdeps Core Build Configuration</name>
+  <parent>
+    <groupId>org.srcdeps.external</groupId>
+    <artifactId>external-parent</artifactId>
+    <version>1.2.3</version>
+  </parent>
+
+  <groupId>org.srcdeps.tree-1</groupId>
+  <artifactId>tree-parent</artifactId>
+  <version>0.0.1</version>
+  <packaging>pom</packaging>
+
+  <name>A Maven source tree parent</name>
+
+  <modules>
+    <module>module-1</module>
+    <module>module-2</module>
+    <module>module-4</module>
+    <module>proper-parent</module>
+  </modules>
+
 </project>

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018 Maven Source Dependencies
+# Copyright 2015-2019 Maven Source Dependencies
 # Plugin contributors as indicated by the @author tags.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,10 +40,11 @@
 #  3.2.x        | 3.2.x         | 2.2, 2.1, 2.0
 #  3.3.x        | 3.3.x         | 2.3, 2.2, 2.1, 2.0
 #  4.0.x        | 3.4.x         | 2.4, 2.3, 2.2, 2.1, 2.0
+#  4.1.x        | 3.5.x         | 2.5, 2.4, 2.3, 2.2, 2.1, 2.0
 #
 # Required, no default
 # Since 1.0
-configModelVersion: 2.4
+configModelVersion: 2.5
 
 # `forwardProperties` - a list of property names that the top level builder A should pass as java system properties to
 # every dependency builder B using `-DmyProperty=myValue` style command line arguments. Further, in case a child
@@ -461,6 +462,59 @@ repositories:
       # hard coded default 2.3 is used
       # Since 2.0
       versionsMavenPluginVersion: 2.3
+
+      # `excludeNonRequired` - if `true` and `includes` is a non-empty list, `srcdeps` will remove uneeded `<module>`
+      # elements from `pom.xml` files in the dependency project before building it. Otherwise, the value returned by
+      # this method has no effect.
+      #
+      # The set of uneeded `<module>` elements is defined as follows:
+      #
+      # * First, the set of artifacts listed in `includes` is used to create a closure under the /is child of/ and
+      #   /is dependendent on/ relationships. Building this closure set of Maven modules should be just enough to
+      #   produce all dependencies required by the dependent source tree.
+      #
+      # * Second, the complement of that closure set is created, the universe being the set of all modules in the
+      #   dependency source tree. This complement set contains all Maven modules from the dependency source tree which
+      #   do not need to be built to produce the artifacts the dependent source tree requires.
+      #
+      # The unneeded `<module>` elements are removed as follows: The dependency source tree is traversed from the root
+      # Maven module following the `<module>` /child/ links. Each encountered `<module>` element is looked up in the set
+      # of unneeded modules: if ṕresent there, the given `<module>` element is removed from the `pom.xml` file and the
+      # travesal towards that module does not continue.
+      #
+      # See also `includeRequired` and `includes`
+      #
+      # Optional, default: false
+      # Since 2.5
+      excludeNonRequired: false
+
+      # `includeRequired` - if `true` the source tree triggering the build of the given dependency will be scanned
+      # for dependencies included via `repository.includes` and `repository.excludes`. These dependencies will then be
+      # added to `repository.maven.includes`. Otherwise the source tree triggering the build will not be scanned and no
+      # items will be added to {@link #getIncludes()}.
+      #
+      # See also `includes` and `excludeNonRequired`
+      #
+      # Optional, default: false
+      # Since 2.5
+      includeRequired: false
+
+      # `includes` - a list of `groupId:artifactId` identifiers that should be included in the build of the given
+      # dependency source tree. The inclusion is achieved by using `-pl` (a.k.a. `--projects`) and `-am` (a.k.a.
+      # `--also-make` Maven command line options. If the returned list is empty, no additional Maven CLI options will be
+      # used.
+      #
+      # Using this option directly or via `includeRequired` or in combination with `excludeNonRequired` may speedup
+      # the build of dependency projects substantially.
+      #
+      # See also `includeRequired` and `excludeNonRequired`
+      #
+      # Optional, default: empty list
+      # Since 2.5
+      includes:
+      - org.example:my-artifact
+      - org.other-org:another-artifact
+
 
     # `gradle` - Gradle specific settings for this source repository.
     #

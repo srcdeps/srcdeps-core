@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package org.srcdeps.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -44,16 +45,16 @@ public class BuildRequestTest {
 
         String id1 = BuildRequest.computeHash(true, true, Arrays.<String>asList("arg1", "arg2"), env1, props,
                 GavSet.builder().include("org.mygroup").exclude("other-group").build(), Arrays.asList("url1", "url2"),
-                true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", 50000, Verbosity.error);
+                true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", Collections.singleton("org:a"), false, 50000, Verbosity.error);
         String id2 = BuildRequest.computeHash(true, true, new ArrayList<>(Arrays.<String>asList("arg1", "arg2")),
                 new LinkedHashMap<String, String>(env1), new LinkedHashSet<String>(props),
                 GavSet.builder().include("org.mygroup").exclude("other-group").build(),
                 new ArrayList<>(Arrays.<String>asList("url1", "url2")), true,
-                SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", 50000, Verbosity.error);
+                SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", Collections.singleton("org:a"), false, 50000, Verbosity.error);
 
         Assert.assertEquals(id1, id2);
         Assert.assertEquals(id1.hashCode(), id2.hashCode());
-        Assert.assertEquals("efbef7fe51d6b6e2217c2712a9533063bce32adb", id1);
+        Assert.assertEquals("f9acc1662d52f4266ba2b84a6cbbe933c477f0da", id1);
 
     }
 

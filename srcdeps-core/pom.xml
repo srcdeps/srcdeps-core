@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2015-2018 Maven Source Dependencies
+    Copyright 2015-2019 Maven Source Dependencies
     Plugin contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,6 +78,16 @@
 
   <build>
     <plugins>
+
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <excludes combine.children="append">
+            <exclude>src/test/resources/MavenSourceTree/tree-1-expected/**</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

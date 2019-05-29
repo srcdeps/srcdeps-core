@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,7 +58,7 @@ public class YamlConfigurationReaderTest {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full.yaml"), "utf-8")) {
             Configuration actual = new YamlConfigurationReader().read(in).build();
             Configuration expected = Configuration.builder() //
-                    .configModelVersion("2.4") //
+                    .configModelVersion("2.5") //
                     .forwardAsMasterConfig(true) //
                     .forwardProperty("myProp1") //
                     .forwardProperty("myProp2") //
@@ -113,6 +113,10 @@ public class YamlConfigurationReaderTest {
                                     .maven( //
                                             ScmRepositoryMaven.builder() //
                                                     .versionsMavenPluginVersion("2.2") //
+                                                    .excludeNonRequired(true) //
+                                                    .includeRequired(true) //
+                                                    .include("org.srcdeps.example:artifact1") //
+                                                    .include("org.srcdeps.other:artifact2") //
                                     ) //
                                     .gradle( //
                                             ScmRepositoryGradle.builder() //
@@ -128,7 +132,14 @@ public class YamlConfigurationReaderTest {
                                     .url("url4") //
                                     .buildArgument("arg3") //
                                     .addDefaultBuildArguments(false) //
-                                    .skipTests(false)) //
+                                    .skipTests(false) //
+                                    .maven( //
+                                            ScmRepositoryMaven.builder() //
+                                                    .excludeNonRequired(true) //
+                                                    .includeRequired(true) //
+                                    ) //
+
+                            ) //
                     .build();
             Assert.assertEquals(expected, actual);
             final ScmRepository repo1 = actual.getRepositories().iterator().next();
@@ -192,6 +203,8 @@ public class YamlConfigurationReaderTest {
                                     .maven( //
                                             ScmRepositoryMaven.builder() //
                                                     .versionsMavenPluginVersion("2.2") //
+                                                    .excludeNonRequired(false) //
+                                                    .includeRequired(false) //
                                     ) //
                     ) //
                     .repository( //
@@ -203,7 +216,13 @@ public class YamlConfigurationReaderTest {
                                     .url("url4") //
                                     .buildArgument("arg3") //
                                     .addDefaultBuildArguments(false) //
-                                    .skipTests(false)) //
+                                    .skipTests(false)
+                                    .maven( //
+                                            ScmRepositoryMaven.builder() //
+                                                    .excludeNonRequired(false) //
+                                                    .includeRequired(false) //
+                                    ) //
+                            ) //
                     .build();
             Assert.assertEquals(expected, actual);
         }
