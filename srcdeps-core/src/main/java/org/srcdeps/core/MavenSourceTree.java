@@ -132,6 +132,7 @@ public class MavenSourceTree {
             String groupId;
             String parentArtifactId;
             String parentGroupId;
+            Set<String> plugins = new LinkedHashSet<>();
             /** Relative to source tree root directory */
             final String pomPath;
 
@@ -169,12 +170,19 @@ public class MavenSourceTree {
                                     } else if ("groupId".equals(elementName) && r.hasNext()) {
                                         parentGroupId = r.nextEvent().asCharacters().getData();
                                     }
-                                } else if ("dependency".equals(elementName)) {
+                                } else if ("dependency".equals(elementName) || "plugin".equals(elementName)) {
                                     depArtifactId = null;
                                     depGroupId = null;
                                 } else if (elementStackSize >= 3 && "dependency".equals(parentElement)
                                         && "dependencies".equals(elementStack.get(elementStackSize - 2))
                                         && !"dependencyManagement".equals(elementStack.get(elementStackSize - 3))) {
+                                    if ("artifactId".equals(elementName) && r.hasNext()) {
+                                        depArtifactId = r.nextEvent().asCharacters().getData();
+                                    } else if ("groupId".equals(elementName) && r.hasNext()) {
+                                        depGroupId = r.nextEvent().asCharacters().getData();
+                                    }
+                                } else if (elementStackSize >= 3 && "plugin".equals(parentElement)
+                                        && "plugins".equals(elementStack.get(elementStackSize - 2))) {
                                     if ("artifactId".equals(elementName) && r.hasNext()) {
                                         depArtifactId = r.nextEvent().asCharacters().getData();
                                     } else if ("groupId".equals(elementName) && r.hasNext()) {
@@ -187,6 +195,10 @@ public class MavenSourceTree {
                             final String elementName = elementStack.pop();
                             if ("dependency".equals(elementName) && depArtifactId != null && depGroupId != null) {
                                 dependencies.add(depGroupId + ":" + depArtifactId);
+                                depArtifactId = null;
+                                depGroupId = null;
+                            } else if ("plugin".equals(elementName) && depArtifactId != null && depGroupId != null) {
+                                plugins.add(depGroupId + ":" + depArtifactId);
                                 depArtifactId = null;
                                 depGroupId = null;
                             }
@@ -207,7 +219,9 @@ public class MavenSourceTree {
                 children = null;
                 final Set<String> useDependencies = Collections.unmodifiableSet(dependencies);
                 dependencies = null;
-                return new Module(pomPath, getGa(), getParentGa(), useChildren, useDependencies);
+                final Set<String> usePlugins = Collections.unmodifiableSet(plugins);
+                plugins = null;
+                return new Module(pomPath, getGa(), getParentGa(), useChildren, useDependencies, usePlugins);
             }
 
             public String getGa() {
@@ -225,16 +239,19 @@ public class MavenSourceTree {
         private final Set<String> dependencies;
         private final String ga;
         private final String parentGa;
+        private final Set<String> plugins;
         /** Relative to source tree root directory */
         private final String pomPath;
 
-        Module(String pomPath, String ga, String parentGa, Set<String> children, Set<String> dependencies) {
+        Module(String pomPath, String ga, String parentGa, Set<String> children, Set<String> dependencies,
+                Set<String> plugins) {
             super();
             this.pomPath = pomPath;
             this.ga = ga;
             this.parentGa = parentGa;
             this.children = children;
             this.dependencies = dependencies;
+            this.plugins = plugins;
         }
 
         /**
@@ -265,6 +282,13 @@ public class MavenSourceTree {
          */
         public String getParentGa() {
             return parentGa;
+        }
+
+        /**
+         * @return a {@link Set} of {@code groupId:artifactId} identifiers
+         */
+        public Set<String> getPlugins() {
+            return plugins;
         }
 
         /**
@@ -320,6 +344,9 @@ public class MavenSourceTree {
             addProperParents(module, result, visited);
             addDeclaredParents(module, result, visited);
             for (String depGa : module.dependencies) {
+                addModule(depGa, result, visited);
+            }
+            for (String depGa : module.plugins) {
                 addModule(depGa, result, visited);
             }
         }

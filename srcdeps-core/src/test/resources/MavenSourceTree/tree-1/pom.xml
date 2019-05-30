@@ -40,6 +40,7 @@
     <module>module-4</module>
     <module>module-6</module>
     <module>module-7</module>
+    <module>plugin</module>
     <module>proper-parent</module>
     <module>declared-parent</module>
   </modules>
