@@ -50,6 +50,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.srcdeps.core.util.SrcdepsCoreUtils;
+import org.w3c.dom.Comment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -279,15 +280,6 @@ public class MavenSourceTree {
 
     private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 
-    static Module getDeclaredParentModule(Map<String, Module> modulesByGa, Module child) {
-        final String parentGa = child.parentGa;
-        if (parentGa != null) {
-            return modulesByGa.get(parentGa);
-        } else {
-            return null;
-        }
-    }
-
     /**
      * @param rootPomXml the path to the {@code pom.xml} file of the root Maven module
      * @param encoding the encoding to use when reading {@code pom.xml} files in the given file tree
@@ -298,9 +290,9 @@ public class MavenSourceTree {
     }
 
     private final Charset encoding;
+
     private final Map<String, Module> modulesByGa;
     private final Map<String, Module> modulesByPath;
-
     private final Path rootDirectory;
 
     MavenSourceTree(Path rootDirectory, Charset encoding, Map<String, Module> modulesByPath,
@@ -316,14 +308,15 @@ public class MavenSourceTree {
         if (module != null && !visited.contains(includeGa)) {
             visited.add(includeGa);
             result.add(includeGa);
-            addParents(module, result, visited);
+            addProperParents(module, result, visited);
+
             for (String depGa : module.dependencies) {
                 addModule(depGa, result, visited);
             }
         }
     }
 
-    private void addParents(final Module module, final Set<String> result, Set<String> visited) {
+    private void addProperParents(final Module module, final Set<String> result, Set<String> visited) {
         Module parent;
         Module child = module;
         while ((parent = getProperParentModule(child)) != null) {
@@ -331,7 +324,6 @@ public class MavenSourceTree {
             child = parent;
         }
     }
-
     /**
      * Returns a {@link Set} that contains all given {@code initialModules} and all such modules from the current
      * {@link MavenSourceTree} that are reachable from the {@code initialModules} via <i>depends on</i> and <i>is parent
@@ -347,6 +339,15 @@ public class MavenSourceTree {
             addModule(includeGa, result, visited);
         }
         return result;
+    }
+
+    Module getDeclaredParentModule(Module child) {
+        final String parentGa = child.parentGa;
+        if (parentGa != null) {
+            return modulesByGa.get(parentGa);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -462,12 +463,9 @@ public class MavenSourceTree {
                         .toUnixPath(rootDirectory.relativize(childPath).toString());
                 if (removeChildPaths.contains(rootRelChildPath)) {
                     final Node parent = moduleNode.getParentNode();
-                    final Node previous = moduleNode.getPreviousSibling();
-                    if (previous.getNodeType() == Node.TEXT_NODE
-                            && WHITESPACE_PATTERN.matcher(previous.getTextContent()).matches()) {
-                        parent.removeChild(previous);
-                    }
-                    parent.removeChild(moduleNode);
+                    final Comment moduleComment = moduleNode.getOwnerDocument()
+                            .createComment(" <module>" + moduleText + "</module> removed by srcdeps ");
+                    parent.replaceChild(moduleComment, moduleNode);
                 }
             }
             try (Writer out = Files.newBufferedWriter(pomXml, encoding)) {
