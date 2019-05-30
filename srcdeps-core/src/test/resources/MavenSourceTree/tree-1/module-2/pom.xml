@@ -52,4 +52,14 @@
     </dependency>
   </dependencies>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.srcdeps.tree-1</groupId>
+        <artifactId>tree-plugin</artifactId>
+        <version>0.0.1</version>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>

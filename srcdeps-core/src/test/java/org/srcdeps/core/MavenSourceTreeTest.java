@@ -41,8 +41,8 @@ public class MavenSourceTreeTest {
         final Path root = BASEDIR.resolve("target/test-classes/MavenSourceTree/tree-1");
         final Builder b = new Builder(root, StandardCharsets.UTF_8).pomXml(root.resolve("pom.xml"));
 
-        Assert.assertEquals(11, b.modulesByGa.size());
-        Assert.assertEquals(11, b.modulesByPath.size());
+        Assert.assertEquals(12, b.modulesByGa.size());
+        Assert.assertEquals(12, b.modulesByPath.size());
 
         final Module.Builder parent = b.modulesByGa.get("org.srcdeps.tree-1:tree-parent");
         Assert.assertTrue(b.modulesByPath.get("pom.xml") == parent);
@@ -53,10 +53,9 @@ public class MavenSourceTreeTest {
         Assert.assertEquals("external-parent", parent.parentArtifactId);
         Assert.assertEquals("org.srcdeps.external", parent.parentGroupId);
         Assert.assertEquals("org.srcdeps.external:external-parent", parent.getParentGa());
-        Assert.assertEquals(new LinkedHashSet<String>(
-                Arrays.asList("module-1/pom.xml", "module-2/pom.xml", "module-3/pom.xml", "module-4/pom.xml",
-                        "module-6/pom.xml", "module-7/pom.xml", "proper-parent/pom.xml", "declared-parent/pom.xml")),
-                parent.children);
+        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("module-1/pom.xml", "module-2/pom.xml",
+                "module-3/pom.xml", "module-4/pom.xml", "module-6/pom.xml", "module-7/pom.xml", "plugin/pom.xml",
+                "proper-parent/pom.xml", "declared-parent/pom.xml")), parent.children);
         Assert.assertEquals(Collections.emptySet(), parent.dependencies);
 
         final Module.Builder properParent = b.modulesByGa.get("org.srcdeps.tree-1:proper-parent");
@@ -131,11 +130,13 @@ public class MavenSourceTreeTest {
 
         final MavenSourceTree t = b.build();
         final Set<String> expandedIncludes = t.computeModuleClosure(Arrays.asList("org.srcdeps.tree-1:tree-module-2"));
-        Assert.assertEquals(new LinkedHashSet<>(Arrays.asList("org.srcdeps.tree-1:tree-module-2",
-                "org.srcdeps.tree-1:tree-parent", "org.srcdeps.tree-1:tree-module-4",
-                "org.srcdeps.tree-1:tree-module-1", "org.srcdeps.tree-1:tree-module-5",
-                "org.srcdeps.tree-1:proper-parent", "org.srcdeps.tree-1:tree-module-7",
-                "org.srcdeps.tree-1:tree-module-8", "org.srcdeps.tree-1:declared-parent")), expandedIncludes);
+        Assert.assertEquals(
+                new LinkedHashSet<>(Arrays.asList("org.srcdeps.tree-1:tree-module-2", "org.srcdeps.tree-1:tree-parent",
+                        "org.srcdeps.tree-1:tree-module-4", "org.srcdeps.tree-1:tree-module-1",
+                        "org.srcdeps.tree-1:tree-module-5", "org.srcdeps.tree-1:proper-parent",
+                        "org.srcdeps.tree-1:tree-module-7", "org.srcdeps.tree-1:tree-module-8",
+                        "org.srcdeps.tree-1:declared-parent", "org.srcdeps.tree-1:tree-plugin")),
+                expandedIncludes);
 
         final Map<String, Set<String>> removeChildPaths = t.unlinkUneededModules(expandedIncludes, t.getRootModule(),
                 new LinkedHashMap<String, Set<String>>());
