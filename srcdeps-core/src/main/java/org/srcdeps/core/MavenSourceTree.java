@@ -349,9 +349,6 @@ public class MavenSourceTree {
             result.add(includeGa);
             addProperParents(module, result, visited);
             addDeclaredParents(module, result, visited);
-            for (String depGa : module.managedDependencies) {
-                addModule(depGa, result, visited);
-            }
             for (String depGa : module.dependencies) {
                 addModule(depGa, result, visited);
             }
