@@ -34,7 +34,7 @@
   <modules>
     <module>module-1</module>
     <module>module-2</module>
-    <module>module-3</module>
+    <!-- <module>module-3</module> removed by srcdeps -->
     <module>module-4</module>
     <!-- <module>module-6</module> removed by srcdeps -->
     <module>module-7</module>

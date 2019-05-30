@@ -130,19 +130,19 @@ public class MavenSourceTreeTest {
 
         final MavenSourceTree t = b.build();
         final Set<String> expandedIncludes = t.computeModuleClosure(Arrays.asList("org.srcdeps.tree-1:tree-module-2"));
-        Assert.assertEquals(new LinkedHashSet<>(Arrays.asList("org.srcdeps.tree-1:tree-module-2",
-                "org.srcdeps.tree-1:tree-parent", "org.srcdeps.tree-1:tree-module-4",
-                "org.srcdeps.tree-1:tree-module-1", "org.srcdeps.tree-1:tree-module-3",
-                "org.srcdeps.tree-1:tree-module-5", "org.srcdeps.tree-1:proper-parent",
-                "org.srcdeps.tree-1:tree-module-7", "org.srcdeps.tree-1:tree-module-8",
-                "org.srcdeps.tree-1:declared-parent", "org.srcdeps.tree-1:tree-plugin")), expandedIncludes);
+        Assert.assertEquals(
+                new LinkedHashSet<>(Arrays.asList("org.srcdeps.tree-1:tree-module-2", "org.srcdeps.tree-1:tree-parent",
+                        "org.srcdeps.tree-1:tree-module-4", "org.srcdeps.tree-1:tree-module-1",
+                        "org.srcdeps.tree-1:tree-module-5", "org.srcdeps.tree-1:proper-parent",
+                        "org.srcdeps.tree-1:tree-module-7", "org.srcdeps.tree-1:tree-module-8",
+                        "org.srcdeps.tree-1:declared-parent", "org.srcdeps.tree-1:tree-plugin")),
+                expandedIncludes);
 
         final Map<String, Set<String>> removeChildPaths = t.unlinkUneededModules(expandedIncludes, t.getRootModule(),
                 new LinkedHashMap<String, Set<String>>());
         Assert.assertEquals(1, removeChildPaths.size());
         Set<String> rootUnlinks = removeChildPaths.get("pom.xml");
-        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("module-6/pom.xml")),
-                rootUnlinks);
+        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("module-3/pom.xml", "module-6/pom.xml")), rootUnlinks);
 
         t.unlinkUneededModules(expandedIncludes);
 
