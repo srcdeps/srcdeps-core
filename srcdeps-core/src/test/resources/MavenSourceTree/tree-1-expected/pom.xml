@@ -39,6 +39,7 @@
     <!-- <module>module-6</module> removed by srcdeps -->
     <module>module-7</module>
     <module>proper-parent</module>
+    <module>declared-parent</module>
   </modules>
 
 </project>

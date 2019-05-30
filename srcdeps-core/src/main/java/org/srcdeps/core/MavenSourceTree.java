@@ -303,13 +303,22 @@ public class MavenSourceTree {
         this.encoding = encoding;
     }
 
+    private void addDeclaredParents(final Module module, final Set<String> result, Set<String> visited) {
+        Module parent;
+        Module child = module;
+        while ((parent = getDeclaredParentModule(child)) != null) {
+            addModule(parent.getGa(), result, visited);
+            child = parent;
+        }
+    }
+
     private void addModule(String includeGa, Set<String> result, Set<String> visited) {
         final Module module = modulesByGa.get(includeGa);
         if (module != null && !visited.contains(includeGa)) {
             visited.add(includeGa);
             result.add(includeGa);
             addProperParents(module, result, visited);
-
+            addDeclaredParents(module, result, visited);
             for (String depGa : module.dependencies) {
                 addModule(depGa, result, visited);
             }

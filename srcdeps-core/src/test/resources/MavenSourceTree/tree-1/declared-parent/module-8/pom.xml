@@ -21,27 +21,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.srcdeps.external</groupId>
-    <artifactId>external-parent</artifactId>
-    <version>1.2.3</version>
+    <groupId>org.srcdeps.tree-1</groupId>
+    <artifactId>declared-parent</artifactId>
+    <version>0.0.1</version>
   </parent>
 
-  <groupId>org.srcdeps.tree-1</groupId>
-  <artifactId>tree-parent</artifactId>
-  <version>0.0.1</version>
-  <packaging>pom</packaging>
-
-  <name>A Maven source tree parent</name>
-
-  <modules>
-    <module>module-1</module>
-    <module>module-2</module>
-    <module>module-3</module>
-    <module>module-4</module>
-    <module>module-6</module>
-    <module>module-7</module>
-    <module>proper-parent</module>
-    <module>declared-parent</module>
-  </modules>
-
+  <artifactId>tree-module-8</artifactId>
 </project>
