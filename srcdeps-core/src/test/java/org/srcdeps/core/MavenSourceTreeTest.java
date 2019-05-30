@@ -41,8 +41,8 @@ public class MavenSourceTreeTest {
         final Path root = BASEDIR.resolve("target/test-classes/MavenSourceTree/tree-1");
         final Builder b = new Builder(root, StandardCharsets.UTF_8).pomXml(root.resolve("pom.xml"));
 
-        Assert.assertEquals(9, b.modulesByGa.size());
-        Assert.assertEquals(9, b.modulesByPath.size());
+        Assert.assertEquals(11, b.modulesByGa.size());
+        Assert.assertEquals(11, b.modulesByPath.size());
 
         final Module.Builder parent = b.modulesByGa.get("org.srcdeps.tree-1:tree-parent");
         Assert.assertTrue(b.modulesByPath.get("pom.xml") == parent);
@@ -53,10 +53,11 @@ public class MavenSourceTreeTest {
         Assert.assertEquals("external-parent", parent.parentArtifactId);
         Assert.assertEquals("org.srcdeps.external", parent.parentGroupId);
         Assert.assertEquals("org.srcdeps.external:external-parent", parent.getParentGa());
-        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("module-1/pom.xml", "module-2/pom.xml",
-                "module-3/pom.xml", "module-4/pom.xml", "module-6/pom.xml", "module-7/pom.xml", "proper-parent/pom.xml")), parent.children);
+        Assert.assertEquals(new LinkedHashSet<String>(
+                Arrays.asList("module-1/pom.xml", "module-2/pom.xml", "module-3/pom.xml", "module-4/pom.xml",
+                        "module-6/pom.xml", "module-7/pom.xml", "proper-parent/pom.xml", "declared-parent/pom.xml")),
+                parent.children);
         Assert.assertEquals(Collections.emptySet(), parent.dependencies);
-
 
         final Module.Builder properParent = b.modulesByGa.get("org.srcdeps.tree-1:proper-parent");
         Assert.assertTrue(b.modulesByPath.get("proper-parent/pom.xml") == properParent);
@@ -67,7 +68,8 @@ public class MavenSourceTreeTest {
         Assert.assertEquals("tree-parent", properParent.parentArtifactId);
         Assert.assertEquals("org.srcdeps.tree-1", properParent.parentGroupId);
         Assert.assertEquals("org.srcdeps.tree-1:tree-parent", properParent.getParentGa());
-        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("proper-parent/module-5/pom.xml")), properParent.children);
+        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("proper-parent/module-5/pom.xml")),
+                properParent.children);
         Assert.assertEquals(Collections.emptySet(), properParent.dependencies);
 
         final Module.Builder m1 = b.modulesByGa.get("org.srcdeps.tree-1:tree-module-1");
@@ -79,7 +81,8 @@ public class MavenSourceTreeTest {
         Assert.assertEquals("tree-parent", m1.parentArtifactId);
         Assert.assertEquals("org.srcdeps.tree-1", m1.parentGroupId);
         Assert.assertEquals("org.srcdeps.tree-1:tree-parent", m1.getParentGa());
-        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("org.srcdeps.external:artifact-3")), m1.dependencies);
+        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("org.srcdeps.external:artifact-3")),
+                m1.dependencies);
         Assert.assertEquals(Collections.emptySet(), m1.children);
 
         final Module.Builder m2 = b.modulesByGa.get("org.srcdeps.tree-1:tree-module-2");
@@ -91,8 +94,11 @@ public class MavenSourceTreeTest {
         Assert.assertEquals("tree-parent", m1.parentArtifactId);
         Assert.assertEquals("org.srcdeps.tree-1", m2.parentGroupId);
         Assert.assertEquals("org.srcdeps.tree-1:tree-parent", m2.getParentGa());
-        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("org.srcdeps.tree-1:tree-module-4",
-                "org.srcdeps.tree-1:tree-module-7", "org.srcdeps.external:artifact-4")), m2.dependencies);
+        Assert.assertEquals(
+                new LinkedHashSet<String>(
+                        Arrays.asList("org.srcdeps.tree-1:tree-module-4", "org.srcdeps.tree-1:tree-module-7",
+                                "org.srcdeps.tree-1:tree-module-8", "org.srcdeps.external:artifact-4")),
+                m2.dependencies);
         Assert.assertEquals(Collections.emptySet(), m2.children);
 
         final Module.Builder m3 = b.modulesByGa.get("org.srcdeps.tree-1:tree-module-3");
@@ -104,7 +110,8 @@ public class MavenSourceTreeTest {
         Assert.assertEquals("tree-parent", m1.parentArtifactId);
         Assert.assertEquals("org.srcdeps.tree-1", m3.parentGroupId);
         Assert.assertEquals("org.srcdeps.tree-1:tree-parent", m3.getParentGa());
-        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("org.srcdeps.external:artifact-1")), m3.dependencies);
+        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("org.srcdeps.external:artifact-1")),
+                m3.dependencies);
         Assert.assertEquals(Collections.emptySet(), m3.children);
 
         final Module.Builder m4 = b.modulesByGa.get("org.srcdeps.tree-1:tree-module-4");
@@ -116,19 +123,26 @@ public class MavenSourceTreeTest {
         Assert.assertEquals("tree-parent", m4.parentArtifactId);
         Assert.assertEquals("org.srcdeps.tree-1", m4.parentGroupId);
         Assert.assertEquals("org.srcdeps.tree-1:tree-parent", m4.getParentGa());
-        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("org.srcdeps.tree-1:tree-module-1", "org.srcdeps.tree-1:tree-module-5")), m4.dependencies);
+        Assert.assertEquals(
+                new LinkedHashSet<String>(
+                        Arrays.asList("org.srcdeps.tree-1:tree-module-1", "org.srcdeps.tree-1:tree-module-5")),
+                m4.dependencies);
         Assert.assertEquals(Collections.emptySet(), m4.children);
 
         final MavenSourceTree t = b.build();
         final Set<String> expandedIncludes = t.computeModuleClosure(Arrays.asList("org.srcdeps.tree-1:tree-module-2"));
         Assert.assertEquals(new LinkedHashSet<>(Arrays.asList("org.srcdeps.tree-1:tree-module-2",
-                "org.srcdeps.tree-1:tree-parent", "org.srcdeps.tree-1:tree-module-4", "org.srcdeps.tree-1:tree-module-7",
-                "org.srcdeps.tree-1:tree-module-1", "org.srcdeps.tree-1:tree-module-5", "org.srcdeps.tree-1:proper-parent")), expandedIncludes);
+                "org.srcdeps.tree-1:tree-parent", "org.srcdeps.tree-1:tree-module-4",
+                "org.srcdeps.tree-1:tree-module-1", "org.srcdeps.tree-1:tree-module-5",
+                "org.srcdeps.tree-1:proper-parent", "org.srcdeps.tree-1:tree-module-7",
+                "org.srcdeps.tree-1:tree-module-8", "org.srcdeps.tree-1:declared-parent")), expandedIncludes);
 
-        final Map<String, Set<String>> removeChildPaths = t.unlinkUneededModules(expandedIncludes, t.getRootModule(), new LinkedHashMap<String, Set<String>>());
+        final Map<String, Set<String>> removeChildPaths = t.unlinkUneededModules(expandedIncludes, t.getRootModule(),
+                new LinkedHashMap<String, Set<String>>());
         Assert.assertEquals(1, removeChildPaths.size());
         Set<String> rootUnlinks = removeChildPaths.get("pom.xml");
-        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("module-3/pom.xml", "module-6/pom.xml")), rootUnlinks);
+        Assert.assertEquals(new LinkedHashSet<String>(Arrays.asList("module-3/pom.xml", "module-6/pom.xml")),
+                rootUnlinks);
 
         t.unlinkUneededModules(expandedIncludes);
 
@@ -137,7 +151,8 @@ public class MavenSourceTreeTest {
         for (String path : removeChildPaths.keySet()) {
             final Path actualPath = root.resolve(path);
             final Path expectedPath = expectedRoot.resolve(path);
-            Assert.assertEquals(new String(Files.readAllBytes(expectedPath), StandardCharsets.UTF_8), new String(Files.readAllBytes(actualPath), StandardCharsets.UTF_8).replace("\r", ""));
+            Assert.assertEquals(new String(Files.readAllBytes(expectedPath), StandardCharsets.UTF_8),
+                    new String(Files.readAllBytes(actualPath), StandardCharsets.UTF_8).replace("\r", ""));
         }
     }
 
