@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
-import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -130,6 +129,7 @@ public class MavenSourceTree {
             Set<String> children = new LinkedHashSet<>();
             Set<String> dependencies = new LinkedHashSet<>();
             String groupId;
+            Set<String> managedDependencies = new LinkedHashSet<>();
             String parentArtifactId;
             String parentGroupId;
             Set<String> plugins = new LinkedHashSet<>();
@@ -137,6 +137,7 @@ public class MavenSourceTree {
             final String pomPath;
 
             Builder(Path rootDirectory, Path pomXml, Charset encoding) {
+
                 final Stack<String> elementStack = new Stack<>();
                 final Path dir = pomXml.getParent();
                 try (Reader in = Files.newBufferedReader(pomXml, encoding)) {
@@ -145,6 +146,7 @@ public class MavenSourceTree {
 
                     String depArtifactId = null;
                     String depGroupId = null;
+                    Set<String> depTarget = null;
 
                     while (r.hasNext()) {
                         final XMLEvent e = r.nextEvent();
@@ -158,49 +160,47 @@ public class MavenSourceTree {
                                 children.add(SrcdepsCoreUtils.toUnixPath(rootRelPath));
                             } else if (elementStackSize >= 1) {
                                 final String parentElement = elementStack.peek();
-                                if ("project".equals(parentElement)) {
-                                    if ("artifactId".equals(elementName) && r.hasNext()) {
-                                        artifactId = r.nextEvent().asCharacters().getData();
-                                    } else if ("groupId".equals(elementName) && r.hasNext()) {
-                                        groupId = r.nextEvent().asCharacters().getData();
-                                    }
-                                } else if ("parent".equals(parentElement)) {
+                                if ("parent".equals(parentElement)) {
                                     if ("artifactId".equals(elementName) && r.hasNext()) {
                                         parentArtifactId = r.nextEvent().asCharacters().getData();
                                     } else if ("groupId".equals(elementName) && r.hasNext()) {
                                         parentGroupId = r.nextEvent().asCharacters().getData();
                                     }
-                                } else if ("dependency".equals(elementName) || "plugin".equals(elementName)) {
-                                    depArtifactId = null;
-                                    depGroupId = null;
-                                } else if (elementStackSize >= 3 && "dependency".equals(parentElement)
-                                        && "dependencies".equals(elementStack.get(elementStackSize - 2))
-                                        && !"dependencyManagement".equals(elementStack.get(elementStackSize - 3))) {
+                                } else if ("dependencyManagement".equals(elementName)) {
+                                    depTarget = managedDependencies;
+                                } else if ("dependencies".equals(elementName) && depTarget == null) {
+                                    depTarget = dependencies;
+                                } else if ("plugins".equals(elementName)) {
+                                    depTarget = plugins;
+                                } else if (depTarget != null
+                                        && ("dependency".equals(parentElement) || "plugin".equals(parentElement))) {
                                     if ("artifactId".equals(elementName) && r.hasNext()) {
                                         depArtifactId = r.nextEvent().asCharacters().getData();
                                     } else if ("groupId".equals(elementName) && r.hasNext()) {
                                         depGroupId = r.nextEvent().asCharacters().getData();
                                     }
-                                } else if (elementStackSize >= 3 && "plugin".equals(parentElement)
-                                        && "plugins".equals(elementStack.get(elementStackSize - 2))) {
+                                } else if ("project".equals(parentElement)) {
                                     if ("artifactId".equals(elementName) && r.hasNext()) {
-                                        depArtifactId = r.nextEvent().asCharacters().getData();
+                                        artifactId = r.nextEvent().asCharacters().getData();
                                     } else if ("groupId".equals(elementName) && r.hasNext()) {
-                                        depGroupId = r.nextEvent().asCharacters().getData();
+                                        groupId = r.nextEvent().asCharacters().getData();
                                     }
                                 }
                             }
                             elementStack.push(elementName);
                         } else if (e.isEndElement()) {
                             final String elementName = elementStack.pop();
-                            if ("dependency".equals(elementName) && depArtifactId != null && depGroupId != null) {
-                                dependencies.add(depGroupId + ":" + depArtifactId);
+                            if (depTarget != null && depArtifactId != null && depGroupId != null
+                                    && ("plugin".equals(elementName) || "dependency".equals(elementName))) {
+                                depTarget.add(depGroupId + ":" + depArtifactId);
                                 depArtifactId = null;
                                 depGroupId = null;
-                            } else if ("plugin".equals(elementName) && depArtifactId != null && depGroupId != null) {
-                                plugins.add(depGroupId + ":" + depArtifactId);
-                                depArtifactId = null;
-                                depGroupId = null;
+                            } else if ("dependencyManagement".equals(elementName) && depTarget == managedDependencies) {
+                                depTarget = null;
+                            } else if ("dependencies".equals(elementName) && depTarget == dependencies) {
+                                depTarget = null;
+                            } else if ("plugins".equals(elementName) && depTarget == plugins) {
+                                depTarget = null;
                             }
                         }
                     }
@@ -219,9 +219,11 @@ public class MavenSourceTree {
                 children = null;
                 final Set<String> useDependencies = Collections.unmodifiableSet(dependencies);
                 dependencies = null;
+                final Set<String> useManagedDependencies = Collections.unmodifiableSet(managedDependencies);
+                managedDependencies = null;
                 final Set<String> usePlugins = Collections.unmodifiableSet(plugins);
                 plugins = null;
-                return new Module(pomPath, getGa(), getParentGa(), useChildren, useDependencies, usePlugins);
+                return new Module(pomPath, getGa(), getParentGa(), useChildren, useDependencies, useManagedDependencies, usePlugins);
             }
 
             public String getGa() {
@@ -238,19 +240,21 @@ public class MavenSourceTree {
         private final Set<String> children;
         private final Set<String> dependencies;
         private final String ga;
+        private final Set<String> managedDependencies;
         private final String parentGa;
         private final Set<String> plugins;
         /** Relative to source tree root directory */
         private final String pomPath;
 
         Module(String pomPath, String ga, String parentGa, Set<String> children, Set<String> dependencies,
-                Set<String> plugins) {
+                Set<String> managedDependencies, Set<String> plugins) {
             super();
             this.pomPath = pomPath;
             this.ga = ga;
             this.parentGa = parentGa;
             this.children = children;
             this.dependencies = dependencies;
+            this.managedDependencies = managedDependencies;
             this.plugins = plugins;
         }
 
@@ -276,6 +280,10 @@ public class MavenSourceTree {
             return ga;
         }
 
+        public Set<String> getManagedDependencies() {
+            return managedDependencies;
+        }
+
         /**
          * @return the {@code groupId:artifactId} of the Maven parent module of this module or {@code null} if this
          *         module has no parent
@@ -299,8 +307,6 @@ public class MavenSourceTree {
         }
 
     }
-
-    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
     private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 
@@ -343,6 +349,9 @@ public class MavenSourceTree {
             result.add(includeGa);
             addProperParents(module, result, visited);
             addDeclaredParents(module, result, visited);
+            for (String depGa : module.managedDependencies) {
+                addModule(depGa, result, visited);
+            }
             for (String depGa : module.dependencies) {
                 addModule(depGa, result, visited);
             }
@@ -360,6 +369,7 @@ public class MavenSourceTree {
             child = parent;
         }
     }
+
     /**
      * Returns a {@link Set} that contains all given {@code initialModules} and all such modules from the current
      * {@link MavenSourceTree} that are reachable from the {@code initialModules} via <i>depends on</i> and <i>is parent
