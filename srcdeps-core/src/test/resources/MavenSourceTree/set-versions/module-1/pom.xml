@@ -21,15 +21,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.srcdeps.tree-1</groupId>
+    <groupId>org.srcdeps.versions</groupId>
     <artifactId>tree-parent</artifactId>
     <version>0.0.1</version>
-    <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>tree-module-5</artifactId>
+  <artifactId>module-1</artifactId>
 
-  <properties>
-    <prop1>val-5</prop1>
-  </properties>
 </project>

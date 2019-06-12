@@ -17,34 +17,58 @@
 
 --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <!-- c1 -->
 
-  <parent>
-    <groupId>org.srcdeps.external</groupId>
-    <artifactId>external-parent</artifactId>
-    <version>1.2.3</version>
-  </parent>
-
-  <groupId>org.srcdeps.tree-1</groupId>
+  <groupId>org.srcdeps.versions</groupId>
   <artifactId>tree-parent</artifactId>
-  <version>0.0.1</version>
+  <version>2.2.2</version>
   <packaging>pom</packaging>
 
   <name>A Maven source tree parent</name>
 
   <properties>
-    <prop1>val-parent</prop1>
+    <prop1>val-parent/main</prop1>
   </properties>
 
   <modules>
     <module>module-1</module>
     <module>module-2</module>
-    <!-- <module>module-3</module> removed by srcdeps -->
+    <module>module-3</module>
     <module>module-4</module>
-    <!-- <module>module-6</module> removed by srcdeps -->
-    <module>module-7</module>
-    <module>plugin</module>
-    <module>proper-parent</module>
-    <module>declared-parent</module>
+    <module>module-5</module>
+    <module>plugin-1</module>
+    <module>plugin-2</module>
+    <module>plugin-3</module>
   </modules>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.srcdeps.versions</groupId>
+        <artifactId>module-1</artifactId>
+        <version>2.2.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.srcdeps.versions</groupId>
+        <artifactId>module-2</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.srcdeps.versions</groupId>
+          <artifactId>plugin-1</artifactId>
+          <version>${project.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.srcdeps.versions</groupId>
+          <artifactId>plugin-2</artifactId>
+          <version>2.2.2</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 </project>

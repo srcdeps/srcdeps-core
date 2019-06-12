@@ -27,4 +27,28 @@
   </parent>
 
   <artifactId>tree-module-8</artifactId>
+
+  <properties>
+    <prop2>val-8/main</prop2>
+  </properties>
+
+  <profiles>
+    <profile>
+      <id>p1</id>
+
+      <properties>
+        <prop2>val-8/p1</prop2>
+      </properties>
+
+    </profile>
+    <profile>
+      <id>p2</id>
+
+      <properties>
+        <prop2>val-8/p2</prop2>
+      </properties>
+
+    </profile>
+  </profiles>
+
 </project>

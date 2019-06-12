@@ -20,16 +20,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.srcdeps.tree-1</groupId>
-    <artifactId>tree-parent</artifactId>
-    <version>0.0.1</version>
-    <relativePath>../../pom.xml</relativePath>
-  </parent>
+  <groupId>org.srcdeps.properties</groupId>
+  <artifactId>tree-parent</artifactId>
+  <version>0.0.1</version>
+  <packaging>pom</packaging>
 
-  <artifactId>tree-module-5</artifactId>
+  <name>A Maven source tree parent</name>
 
   <properties>
-    <prop1>val-5</prop1>
+    <prop1>val-parent/main</prop1>
   </properties>
+
+  <modules>
+    <module>middle</module>
+  </modules>
+
 </project>

@@ -29,6 +29,10 @@
   <artifactId>proper-parent</artifactId>
   <packaging>pom</packaging>
 
+  <properties>
+    <prop1>val-proper-parent</prop1>
+  </properties>
+
   <modules>
     <module>module-5</module>
   </modules>

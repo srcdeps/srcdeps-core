@@ -28,6 +28,7 @@ import java.util.Set;
 import org.srcdeps.core.BuildException;
 import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.BuildRequest.Verbosity;
+import org.srcdeps.core.Ga;
 import org.srcdeps.core.MavenSourceTree;
 import org.srcdeps.core.MavenSourceTree.Module;
 import org.srcdeps.core.config.Configuration;
@@ -197,10 +198,10 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
             args.add("-pl");
             final StringBuilder sb = new StringBuilder();
             final MavenSourceTree depTree = MavenSourceTree.of(request.getProjectRootDirectory().resolve("pom.xml"), StandardCharsets.UTF_8);
-            final Map<String, Module> modulesByGa = depTree.getModulesByGa();
+            final Map<Ga, Module> modulesByGa = depTree.getModulesByGa();
             final int slashPomXmlLength = "/pom.xml".length();
             for (String depGa : buildIncludes) {
-                final Module depModule = modulesByGa.get(depGa);
+                final Module depModule = modulesByGa.get(Ga.of(depGa));
                 if (depModule == null) {
                     throw new BuildException(
                             String.format("Could not find module path for artifact [%s] in source tree [%s]", depGa,
