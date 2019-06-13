@@ -49,6 +49,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(configBuilder.skip.getValue());
         Assert.assertNull(configBuilder.sourcesDirectory.getValue());
         Assert.assertNull(configBuilder.verbosity.getValue());
+        Assert.assertNull(configBuilder.encoding.getValue());
         Assert.assertNull(configBuilder.buildTimeout.getValue());
         Assert.assertNull(configBuilder.buildVersionPattern.getValue());
         Assert.assertNull(configBuilder.buildRef.getValue());
@@ -88,6 +89,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(repo1Builder.builderIo.stdout.getValue());
         Assert.assertNull(repo1Builder.builderIo.stderr.getValue());
         Assert.assertNull(repo1Builder.verbosity.getValue());
+        Assert.assertNull(repo1Builder.encoding.getValue());
         Assert.assertNull(repo1Builder.buildVersionPattern.getValue());
         Assert.assertNull(repo1Builder.buildRef.getValue());
 
@@ -101,6 +103,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals(false, config.isSkip());
         Assert.assertNull(config.getSourcesDirectory());
         Assert.assertEquals(Verbosity.warn, configBuilder.verbosity.getValue());
+        Assert.assertEquals(Configuration.getDefaultEncoding(), configBuilder.encoding.getValue());
         Assert.assertEquals(Duration.maxValue(), configBuilder.buildTimeout.getValue());
         Assert.assertNull(configBuilder.buildVersionPattern.getValue());
         Assert.assertEquals(SrcVersion.getBranchMaster(), configBuilder.buildRef.getValue());
@@ -136,6 +139,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals(org.srcdeps.core.config.scalar.CharStreamSource.defaultModelTransformer(),
                 repo1.getGradle().getModelTransformer());
         Assert.assertEquals(Verbosity.warn, repo1.getVerbosity());
+        Assert.assertEquals(Configuration.getDefaultEncoding(), repo1.getEncoding());
         Assert.assertEquals(Duration.maxValue(), repo1.getBuildTimeout());
 
         Assert.assertNull(repo1.getBuildVersionPattern());

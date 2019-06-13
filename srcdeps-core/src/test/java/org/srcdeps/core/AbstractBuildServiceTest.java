@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 package org.srcdeps.core;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -133,6 +134,7 @@ public class AbstractBuildServiceTest extends InjectedTest {
 
         BuildRequestBuilder requestBuilder = BuildRequest.builder() //
                 .scmRepositoryId(gitRepoUri) //
+                .encoding(StandardCharsets.UTF_8) //
                 .scmUrl(gitRepoUri) //
                 .srcVersion(SrcVersion.parse(srcVersion)) //
                 .projectRootDirectory(projectBuildDirectory) //

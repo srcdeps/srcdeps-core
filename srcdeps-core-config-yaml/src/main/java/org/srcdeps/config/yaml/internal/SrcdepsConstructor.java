@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
  */
 package org.srcdeps.config.yaml.internal;
 
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.regex.Pattern;
@@ -55,6 +56,8 @@ public class SrcdepsConstructor extends Constructor {
                 return SrcVersion.parseRef(((ScalarNode) node).getValue());
             } else if (type == Pattern.class) {
                 return Pattern.compile(((ScalarNode) node).getValue());
+            } else if (type == Charset.class) {
+                return Charset.forName(((ScalarNode) node).getValue());
             } else {
                 return super.construct(node);
             }
