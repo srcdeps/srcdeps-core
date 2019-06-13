@@ -24,10 +24,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -62,10 +63,10 @@ import javax.xml.xpath.XPathFactory;
 
 import org.srcdeps.core.MavenSourceTree.Expression.Constant;
 import org.srcdeps.core.MavenSourceTree.Expression.NonConstant;
-import org.srcdeps.core.MavenSourceTree.GaExpression.DependencyGavBuilder;
-import org.srcdeps.core.MavenSourceTree.GaExpression.GavBuilder;
-import org.srcdeps.core.MavenSourceTree.GaExpression.ModuleGavBuilder;
-import org.srcdeps.core.MavenSourceTree.GaExpression.ParentGavBuilder;
+import org.srcdeps.core.MavenSourceTree.GavExpression.DependencyGavBuilder;
+import org.srcdeps.core.MavenSourceTree.GavExpression.GavBuilder;
+import org.srcdeps.core.MavenSourceTree.GavExpression.ModuleGavBuilder;
+import org.srcdeps.core.MavenSourceTree.GavExpression.ParentGavBuilder;
 import org.srcdeps.core.MavenSourceTree.Module.Profile;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 import org.w3c.dom.Comment;
@@ -81,6 +82,77 @@ import org.w3c.dom.NodeList;
  * @since 4.1
  */
 public class MavenSourceTree {
+
+    public static class ActiveProfiles implements Predicate<Profile> {
+
+        static final Predicate<Profile> EMPTY = new ActiveProfiles();
+
+        /**
+         * @param profileIds the active profiles (can be empty)
+         * @return a new {@link Profile} filter which will hold the named {@code profileIds} for active
+         */
+        public static Predicate<Profile> of(String... profileIds) {
+            return profileIds.length == 0 ? EMPTY : new ActiveProfiles(profileIds);
+        }
+
+        /**
+         * @param args Maven command line arguments
+         * @return a new {@link Predicate}
+         */
+        public static Predicate<Profile> ofArgs(List<String> args) {
+            for (Iterator<String> it = args.iterator(); it.hasNext();) {
+                final String arg = it.next();
+                if ("-P".equals(arg) || "--activate-profiles".equals(arg)) {
+                    return of(it.next().split(","));
+                } else if (arg.startsWith("-P")) {
+                    return of(arg.substring(2).split(","));
+                }
+            }
+            return EMPTY;
+        }
+
+        final Set<String> profileIds;
+
+        ActiveProfiles(String... profileIds) {
+            super();
+            Set<String> m = new LinkedHashSet<>(profileIds.length);
+            for (String profileId : profileIds) {
+                m.add(profileId);
+            }
+            this.profileIds = m;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            ActiveProfiles other = (ActiveProfiles) obj;
+            if (profileIds == null) {
+                if (other.profileIds != null)
+                    return false;
+            } else if (!profileIds.equals(other.profileIds))
+                return false;
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((profileIds == null) ? 0 : profileIds.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean test(Profile t) {
+            return t.getId() == null || profileIds.contains(t.getId());
+        }
+
+    }
 
     /**
      * A {@link MavenSourceTree} builder.
@@ -432,9 +504,9 @@ public class MavenSourceTree {
     /**
      * A {@link Ga} combined with a version {@link Expression}.
      */
-    static class GaExpression {
+    public static class GavExpression {
 
-        static class DependencyGavBuilder extends ParentGavBuilder {
+        public static class DependencyGavBuilder extends ParentGavBuilder {
 
             public static DependencyGavBuilder plugin(ModuleGavBuilder module) {
                 DependencyGavBuilder result = new DependencyGavBuilder(module);
@@ -449,16 +521,16 @@ public class MavenSourceTree {
                 this.module = module;
             }
 
-            public GaExpression build() {
+            public GavExpression build() {
                 final Ga ga = new Ga(groupId, artifactId);
-                return new GaExpression(ga, version != null ? Expression.of(version, module.getGa()) : null);
+                return new GavExpression(ga, version != null ? Expression.of(version, module.getGa()) : null);
             }
         }
 
         interface GavBuilder {
             void artifactId(String artifactId);
 
-            GaExpression build();
+            GavExpression build();
 
             void groupId(String groupId);
 
@@ -475,10 +547,10 @@ public class MavenSourceTree {
                 this.parent = parent;
             }
 
-            public GaExpression build() {
+            public GavExpression build() {
                 final Ga ga = getGa();
                 final Expression v = version != null ? Expression.of(version, ga) : parent.build().getVersion();
-                return new GaExpression(ga, v);
+                return new GavExpression(ga, v);
             }
 
             public Ga getGa() {
@@ -501,7 +573,7 @@ public class MavenSourceTree {
                 this.artifactId = artifactId;
             }
 
-            public GaExpression build() {
+            public GavExpression build() {
                 final int sum = (groupId != null ? 1 : 0) + (artifactId != null ? 1 : 0) + (version != null ? 1 : 0);
                 switch (sum) {
                 case 0:
@@ -509,7 +581,7 @@ public class MavenSourceTree {
                     return null;
                 case 3:
                     final Ga ga = new Ga(groupId, artifactId);
-                    return new GaExpression(ga, Expression.of(version, ga));
+                    return new GavExpression(ga, Expression.of(version, ga));
                 default:
                     throw new IllegalStateException(String.format(
                             "groupId, artifactId and version must be all null or both not null: groupId: [%s], artifactId: [%s], version: [%s]",
@@ -531,7 +603,7 @@ public class MavenSourceTree {
         private final Ga ga;
         private final Expression version;
 
-        GaExpression(Ga ga, Expression version) {
+        GavExpression(Ga ga, Expression version) {
             SrcdepsCoreUtils.assertArgNotNull(ga, "ga");
             this.ga = ga;
             this.version = version;
@@ -545,7 +617,7 @@ public class MavenSourceTree {
                 return false;
             if (getClass() != obj.getClass())
                 return false;
-            GaExpression other = (GaExpression) obj;
+            GavExpression other = (GavExpression) obj;
             if (ga == null) {
                 if (other.ga != null)
                     return false;
@@ -615,7 +687,7 @@ public class MavenSourceTree {
                     final XMLEventReader r = xmlInputFactory.createXMLEventReader(in);
                     this.pomPath = SrcdepsCoreUtils.toUnixPath(rootDirectory.relativize(pomXml).toString());
 
-                    GaExpression.GavBuilder gav = moduleGav;
+                    GavExpression.GavBuilder gav = moduleGav;
                     Profile.Builder profile = implicitProfile;
 
                     while (r.hasNext()) {
@@ -704,25 +776,6 @@ public class MavenSourceTree {
          */
         public static class Profile {
 
-            static class PropertyBuilder {
-                final GavBuilder ga;
-
-                final String key;
-                final String value;
-
-                PropertyBuilder(String key, String value, GavBuilder ga) {
-                    super();
-                    this.key = key;
-                    this.value = value;
-                    this.ga = ga;
-                }
-
-                public Map.Entry<String, Expression> build() {
-                    final Expression val = Expression.of(value, ga.build().getGa());
-                    return new AbstractMap.SimpleImmutableEntry<>(key, val);
-                }
-            }
-
             /**
              * A Maven {@link Profile} builder.
              */
@@ -738,16 +791,16 @@ public class MavenSourceTree {
                 public Profile build() {
                     final Set<String> useChildren = Collections.unmodifiableSet(children);
                     children = null;
-                    final Set<GaExpression> useDependencies = Collections.unmodifiableSet(dependencies.stream()
+                    final Set<GavExpression> useDependencies = Collections.unmodifiableSet(dependencies.stream()
                             .map(GavBuilder::build).collect(Collectors.toCollection(LinkedHashSet::new)));
                     dependencies = null;
-                    final Set<GaExpression> useManagedDependencies = Collections.unmodifiableSet(dependencyManagement
+                    final Set<GavExpression> useManagedDependencies = Collections.unmodifiableSet(dependencyManagement
                             .stream().map(GavBuilder::build).collect(Collectors.toCollection(LinkedHashSet::new)));
                     dependencyManagement = null;
-                    final Set<GaExpression> usePlugins = Collections.unmodifiableSet(plugins.stream()
+                    final Set<GavExpression> usePlugins = Collections.unmodifiableSet(plugins.stream()
                             .map(GavBuilder::build).collect(Collectors.toCollection(LinkedHashSet::new)));
                     plugins = null;
-                    final Set<GaExpression> usePluginManagement = Collections.unmodifiableSet(pluginManagement.stream()
+                    final Set<GavExpression> usePluginManagement = Collections.unmodifiableSet(pluginManagement.stream()
                             .map(GavBuilder::build).collect(Collectors.toCollection(LinkedHashSet::new)));
                     pluginManagement = null;
                     final Map<String, Expression> useProps = Collections.unmodifiableMap(properties.stream() //
@@ -773,19 +826,38 @@ public class MavenSourceTree {
                 }
             }
 
+            static class PropertyBuilder {
+                final GavBuilder ga;
+
+                final String key;
+                final String value;
+
+                PropertyBuilder(String key, String value, GavBuilder ga) {
+                    super();
+                    this.key = key;
+                    this.value = value;
+                    this.ga = ga;
+                }
+
+                public Map.Entry<String, Expression> build() {
+                    final Expression val = Expression.of(value, ga.build().getGa());
+                    return new AbstractMap.SimpleImmutableEntry<>(key, val);
+                }
+            }
+
             /** A path to child project's pom.xml relative to {@link MavenSourceTree#rootDirectory} */
             private final Set<String> children;
-            private final Set<GaExpression> dependencies;
-            private final Set<GaExpression> dependencyManagement;
+            private final Set<GavExpression> dependencies;
+            private final Set<GavExpression> dependencyManagement;
             private final String id;
-            private final Set<GaExpression> pluginManagement;
+            private final Set<GavExpression> pluginManagement;
 
-            private final Set<GaExpression> plugins;
+            private final Set<GavExpression> plugins;
             private final Map<String, Expression> properties;
 
-            Profile(String id, Set<String> children, Set<GaExpression> dependencies,
-                    Set<GaExpression> dependencyManagement, Set<GaExpression> plugins,
-                    Set<GaExpression> pluginManagement, Map<String, Expression> properties) {
+            Profile(String id, Set<String> children, Set<GavExpression> dependencies,
+                    Set<GavExpression> dependencyManagement, Set<GavExpression> plugins,
+                    Set<GavExpression> pluginManagement, Map<String, Expression> properties) {
                 super();
                 this.id = id;
                 this.children = children;
@@ -807,14 +879,14 @@ public class MavenSourceTree {
             /**
              * @return a {@link Set} of dependencies declared in this {@link Profile}
              */
-            public Set<GaExpression> getDependencies() {
+            public Set<GavExpression> getDependencies() {
                 return dependencies;
             }
 
             /**
              * @return a {@link Set} of dependencyManagement entries declared in this {@link Profile}
              */
-            public Set<GaExpression> getDependencyManagement() {
+            public Set<GavExpression> getDependencyManagement() {
                 return dependencyManagement;
             }
 
@@ -829,14 +901,14 @@ public class MavenSourceTree {
             /**
              * @return a {@link Set} of pluginManagement entries declared in this {@link Profile}
              */
-            public Set<GaExpression> getPluginManagement() {
+            public Set<GavExpression> getPluginManagement() {
                 return pluginManagement;
             }
 
             /**
              * @return a {@link Set} of plugins declared in this {@link Profile}
              */
-            public Set<GaExpression> getPlugins() {
+            public Set<GavExpression> getPlugins() {
                 return plugins;
             }
 
@@ -849,49 +921,19 @@ public class MavenSourceTree {
 
         }
 
-        private final GaExpression gav;
-        private final GaExpression parentGav;
+        private final GavExpression gav;
+        private final GavExpression parentGav;
         /** Relative to source tree root directory */
         private final String pomPath;
 
         private final List<Profile> profiles;
 
-        Module(String pomPath, GaExpression gav, GaExpression parentGa, List<Profile> profiles) {
+        Module(String pomPath, GavExpression gav, GavExpression parentGa, List<Profile> profiles) {
             super();
             this.pomPath = pomPath;
             this.gav = gav;
             this.parentGav = parentGa;
             this.profiles = profiles;
-        }
-
-        /**
-         * @return the {@link GaExpression} of this Maven module
-         */
-        public GaExpression getGav() {
-            return gav;
-        }
-
-        /**
-         * @return the {@link GaExpression} of the Maven parent module of this module or {@code null} if this module has
-         *         no parent
-         */
-        public GaExpression getParentGav() {
-            return parentGav;
-        }
-
-        /**
-         * @return a path to the this module's {@code pom.xml} relative to {@link MavenSourceTree#getRootModule()}
-         */
-        public String getPomPath() {
-            return pomPath;
-        }
-
-        /**
-         * @return the {@link List} of profiles defined in this {@link Module}. Note that the top level profile-less
-         *         dependencies, dependencyManagement, etc. are defined in {@link Module} with {@code id} {@code null}.
-         */
-        public List<Profile> getProfiles() {
-            return profiles;
         }
 
         /**
@@ -918,6 +960,36 @@ public class MavenSourceTree {
         }
 
         /**
+         * @return the {@link GavExpression} of this Maven module
+         */
+        public GavExpression getGav() {
+            return gav;
+        }
+
+        /**
+         * @return the {@link GavExpression} of the Maven parent module of this module or {@code null} if this module
+         *         has no parent
+         */
+        public GavExpression getParentGav() {
+            return parentGav;
+        }
+
+        /**
+         * @return a path to the this module's {@code pom.xml} relative to {@link MavenSourceTree#getRootModule()}
+         */
+        public String getPomPath() {
+            return pomPath;
+        }
+
+        /**
+         * @return the {@link List} of profiles defined in this {@link Module}. Note that the top level profile-less
+         *         dependencies, dependencyManagement, etc. are defined in {@link Module} with {@code id} {@code null}.
+         */
+        public List<Profile> getProfiles() {
+            return profiles;
+        }
+
+        /**
          * @param childPomPath a path to {@code pom.xml} file relative to {@link MavenSourceTree#rootDirectory}
          * @param isProfileActive
          * @return {@code true} if the {@code pom.xml} represented by this {@link Module} has a {@code <module>} with
@@ -932,6 +1004,42 @@ public class MavenSourceTree {
                 }
             }
             return false;
+        }
+
+    }
+
+    /**
+     * Decides which {@link ValueDefinition}s delivered via {@link SimplePlaceHolderConsumer#accept(ValueDefinition)}
+     * are relevant for setting a new version and eventually adds a new {@link DomEdit} operation to
+     * {@link SimplePlaceHolderConsumer#edits}.
+     */
+    static class SimplePlaceHolderConsumer implements Consumer<ValueDefinition> {
+
+        int counter = 0;
+
+        final DomEdits edits;
+        final String newValue;
+
+        SimplePlaceHolderConsumer(DomEdits edits, String newValue) {
+            super();
+            this.edits = edits;
+            this.newValue = newValue;
+        }
+
+        @Override
+        public void accept(ValueDefinition valueDefinition) {
+            if (counter++ > 0) {
+                throw new IllegalStateException(String.format("Cannot call [%s] more than once",
+                        SimplePlaceHolderConsumer.class.getSimpleName()));
+            }
+            if (valueDefinition.getXPath() == null) {
+                throw new IllegalStateException(String.format("[%s] cannot accept a value without an xPath",
+                        SimplePlaceHolderConsumer.class.getSimpleName()));
+            } else if (PROJECT_VERSION_XPATH.equals(valueDefinition.getXPath())) {
+                /* ignore */
+            } else {
+                edits.add(valueDefinition.getModule().getPomPath(), new DomEdit(valueDefinition.getXPath(), newValue));
+            }
         }
 
     }
@@ -973,42 +1081,6 @@ public class MavenSourceTree {
         }
     }
 
-    /**
-     * Decides which {@link ValueDefinition}s delivered via {@link SimplePlaceHolderConsumer#accept(ValueDefinition)}
-     * are relevant for setting a new version and eventually adds a new {@link DomEdit} operation to
-     * {@link SimplePlaceHolderConsumer#edits}.
-     */
-    static class SimplePlaceHolderConsumer implements Consumer<ValueDefinition> {
-
-        int counter = 0;
-
-        final DomEdits edits;
-        final String newValue;
-
-        SimplePlaceHolderConsumer(DomEdits edits, String newValue) {
-            super();
-            this.edits = edits;
-            this.newValue = newValue;
-        }
-
-        @Override
-        public void accept(ValueDefinition valueDefinition) {
-            if (counter++ > 0) {
-                throw new IllegalStateException(String.format("Cannot call [%s] more than once",
-                        SimplePlaceHolderConsumer.class.getSimpleName()));
-            }
-            if (valueDefinition.getXPath() == null) {
-                throw new IllegalStateException(String.format("[%s] cannot accept a value without an xPath",
-                        SimplePlaceHolderConsumer.class.getSimpleName()));
-            } else if (PROJECT_VERSION_XPATH.equals(valueDefinition.getXPath())) {
-                /* ignore */
-            } else {
-                edits.add(valueDefinition.getModule().getPomPath(), new DomEdit(valueDefinition.getXPath(), newValue));
-            }
-        }
-
-    }
-
     private static final String PROJECT_VERSION_XPATH = "/*[local-name()='project']/*[local-name()='version']";
 
     private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
@@ -1020,20 +1092,6 @@ public class MavenSourceTree {
      */
     public static MavenSourceTree of(Path rootPomXml, Charset encoding) {
         return new Builder(rootPomXml.getParent(), encoding).pomXml(rootPomXml).build();
-    }
-
-    /**
-     * @param profiles the active profiles (can be empty)
-     * @return a new {@link Profile} filter which will hold the named {@code profiles} for active
-     */
-    public static Predicate<Profile> profiles(String... profiles) {
-        if (profiles.length == 0) {
-            return p -> p.getId() == null;
-        } else {
-            final Set<String> profileIds = new HashSet<>(Arrays.asList(profiles));
-            profileIds.add(null);
-            return p -> profileIds.contains(p.getId());
-        }
     }
 
     static Node readDom(Transformer transformer, final Path pomXml, final Charset encoding) {
@@ -1110,10 +1168,10 @@ public class MavenSourceTree {
             addDeclaredParents(module, result, visited, isProfileActive);
             for (Profile p : module.profiles) {
                 if (isProfileActive.test(p)) {
-                    for (GaExpression depGa : p.dependencies) {
+                    for (GavExpression depGa : p.dependencies) {
                         addModule(depGa.getGa(), result, visited, isProfileActive);
                     }
-                    for (GaExpression depGa : p.plugins) {
+                    for (GavExpression depGa : p.plugins) {
                         addModule(depGa.getGa(), result, visited, isProfileActive);
                     }
                 }
@@ -1159,8 +1217,8 @@ public class MavenSourceTree {
     }
 
     void edit(String newVersion, final Predicate<Profile> isProfileActive, final DomEdits edits, Module module,
-            String profileId, Set<GaExpression> dependencies, String dependencyKind, String... path) {
-        for (GaExpression gav : dependencies) {
+            String profileId, Set<GavExpression> dependencies, String dependencyKind, String... path) {
+        for (GavExpression gav : dependencies) {
             if (gav.getVersion() != null && modulesByGa.containsKey(gav.getGa())) {
                 final String xPath = xPathProfile(profileId, path)
                         + xPathDependencyVersion(dependencyKind, gav.getGa());
@@ -1180,8 +1238,46 @@ public class MavenSourceTree {
         return expression.evaluate(this, isProfileActive);
     }
 
+    /**
+     * Goes through dependencies and plugins this source tree requires and returns the set of those satisfying
+     * {@link GavSet#contains(String, String)}.
+     *
+     * @param gavSet
+     * @param isProfileActive
+     * @return a
+     */
+    public Set<Ga> filterDependencies(GavSet gavSet, final Predicate<Profile> isProfileActive) {
+        final Set<Ga> result = new TreeSet<>();
+        for (Module module : getModulesByGa().values()) {
+            final GavExpression parentGav = module.getParentGav();
+            if (parentGav != null) {
+                final Ga ga = parentGav.getGa();
+                if (gavSet.contains(ga.getGroupId(), ga.getArtifactId())) {
+                    result.add(ga);
+                }
+            }
+            for (Profile p : module.getProfiles()) {
+                if (isProfileActive.test(p)) {
+                    for (GavExpression depGa : p.getDependencies()) {
+                        final Ga ga = depGa.getGa();
+                        if (gavSet.contains(ga.getGroupId(), ga.getArtifactId())) {
+                            result.add(ga);
+                        }
+                    }
+                    for (GavExpression depGa : p.getPlugins()) {
+                        final Ga ga = depGa.getGa();
+                        if (gavSet.contains(ga.getGroupId(), ga.getArtifactId())) {
+                            result.add(ga);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
     Module getDeclaredParentModule(Module child) {
-        final GaExpression parentGa = child.parentGav;
+        final GavExpression parentGa = child.parentGav;
         if (parentGa != null) {
             return modulesByGa.get(parentGa.getGa());
         } else {
@@ -1217,7 +1313,7 @@ public class MavenSourceTree {
      * @return the {@link Module} having the given gild in its {@code <modules>}
      */
     Module getProperParentModule(Module child, Predicate<Profile> isProfileActive) {
-        final GaExpression parentGa = child.parentGav;
+        final GavExpression parentGa = child.parentGav;
         if (parentGa != null) {
             final Module declaredParent = modulesByGa.get(parentGa.getGa());
             if (declaredParent != null && declaredParent.hasChild(child.pomPath, isProfileActive)) {
@@ -1254,7 +1350,7 @@ public class MavenSourceTree {
         for (Module module : modulesByGa.values()) {
 
             /* self */
-            final GaExpression parentGav = module.getParentGav();
+            final GavExpression parentGav = module.getParentGav();
             final Expression moduleVersion = module.getGav().getVersion();
             if (parentGav == null || !moduleVersion.equals(module.getParentGav().getVersion())) {
                 /* explicitly defined version */
@@ -1288,7 +1384,7 @@ public class MavenSourceTree {
             if (isProfileActive.test(p)) {
                 for (String childPath : p.children) {
                     final Module childModule = modulesByPath.get(childPath);
-                    final GaExpression childGa = childModule.gav;
+                    final GavExpression childGa = childModule.gav;
                     if (!includes.contains(childGa.getGa())) {
                         Set<String> set = removeChildPaths.get(module.pomPath);
                         if (set == null) {

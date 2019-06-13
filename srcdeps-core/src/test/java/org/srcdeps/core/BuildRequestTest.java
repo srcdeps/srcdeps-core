@@ -47,12 +47,12 @@ public class BuildRequestTest {
         String id1 = BuildRequest.computeHash(true, true, Arrays.<String>asList("arg1", "arg2"), env1, props,
                 StandardCharsets.UTF_8, GavSet.builder().include("org.mygroup").exclude("other-group").build(),
                 Arrays.asList("url1", "url2"), true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", true,
-                Collections.singleton("org:a"), false, 50000, Verbosity.error);
+                Collections.singleton(Ga.of("org:a")), false, 50000, Verbosity.error);
         String id2 = BuildRequest.computeHash(true, true, new ArrayList<>(Arrays.<String>asList("arg1", "arg2")),
                 new LinkedHashMap<String, String>(env1), new LinkedHashSet<String>(props), StandardCharsets.UTF_8,
                 GavSet.builder().include("org.mygroup").exclude("other-group").build(),
                 new ArrayList<>(Arrays.<String>asList("url1", "url2")), true,
-                SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", true, Collections.singleton("org:a"), false,
+                SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", true, Collections.singleton(Ga.of("org:a")), false,
                 50000, Verbosity.error);
 
         Assert.assertEquals(id1, id2);
