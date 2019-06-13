@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +29,7 @@ import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.BuildRequest.Verbosity;
 import org.srcdeps.core.Ga;
 import org.srcdeps.core.MavenSourceTree;
+import org.srcdeps.core.MavenSourceTree.ActiveProfiles;
 import org.srcdeps.core.MavenSourceTree.Module;
 import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.Maven;
@@ -52,18 +52,6 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     protected static final List<String> POM_FILE_NAMES = Collections.unmodifiableList(
             Arrays.asList("pom.xml", "pom.atom", "pom.clj", "pom.groovy", "pom.rb", "pom.scala", "pom.yml"));
     protected static final List<String> SKIP_TESTS_ARGS = Collections.singletonList("-DskipTests");
-
-    static String[] findProfiles(List<String> args) {
-        for (Iterator<String> it = args.iterator(); it.hasNext();) {
-            final String arg = it.next();
-            if ("-P".equals(arg) || "--activate-profiles".equals(arg)) {
-                return it.next().split(",");
-            } else if (arg.startsWith("-P")) {
-                return arg.substring(2).split(",");
-            }
-        }
-        return new String[0];
-    }
 
     /**
      * @return the default build arguments used in Maven builds of source dependencies
@@ -116,7 +104,7 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     }
 
     private void addBuildIncludes(BuildRequest request, final List<String> args) throws BuildException {
-        final Set<String> buildIncludes = request.getBuildIncludes();
+        final Set<Ga> buildIncludes = request.getBuildIncludes();
         if (!buildIncludes.isEmpty()) {
             args.add("-am");
             args.add("-pl");
@@ -125,8 +113,8 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
                     request.getEncoding());
             final Map<Ga, Module> modulesByGa = depTree.getModulesByGa();
             final int slashPomXmlLength = "/pom.xml".length();
-            for (String depGa : buildIncludes) {
-                final Module depModule = modulesByGa.get(Ga.of(depGa));
+            for (Ga depGa : buildIncludes) {
+                final Module depModule = modulesByGa.get(depGa);
                 if (depModule == null) {
                     throw new BuildException(
                             String.format("Could not find module path for artifact [%s] in source tree [%s]", depGa,
@@ -215,8 +203,7 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
         } else {
             final MavenSourceTree tree = MavenSourceTree.of(request.getProjectRootDirectory().resolve("pom.xml"),
                     request.getEncoding());
-            final String[] profiles = findProfiles(request.getBuildArguments());
-            tree.setVersions(request.getVersion().toString(), MavenSourceTree.profiles(profiles));
+            tree.setVersions(request.getVersion().toString(), ActiveProfiles.ofArgs(request.getBuildArguments()));
         }
 
         final Map<String, String> forwardProps = request.getForwardPropertyValues();

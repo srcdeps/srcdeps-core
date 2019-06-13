@@ -61,7 +61,7 @@ public class BuildRequest {
         private boolean addDefaultBuildEnvironment = true;
         private List<String> buildArguments = new ArrayList<>();
         private Map<String, String> buildEnvironment = new LinkedHashMap<>();
-        private Set<String> buildIncludes = new LinkedHashSet<>();
+        private Set<Ga> buildIncludes = new LinkedHashSet<>();
         private Path dependentProjectRootDirectory;
         private Charset encoding;
         private boolean excludeNonRequired = false;
@@ -120,7 +120,7 @@ public class BuildRequest {
             final Map<String, String> useBuildEnv = Collections.unmodifiableMap(buildEnvironment);
             this.buildEnvironment = null;
 
-            final Set<String> useBuildIncludes = Collections.unmodifiableSet(buildIncludes);
+            final Set<Ga> useBuildIncludes = Collections.unmodifiableSet(buildIncludes);
             this.buildIncludes = null;
 
             return new BuildRequest(dependentProjectRootDirectory, projectRootDirectory, srcVersion, useVersion, gavSet,
@@ -186,20 +186,20 @@ public class BuildRequest {
 
         /**
          * @see BuildRequest#getBuildIncludes()
-         * @param ga a {@code groupId:artifactId} identifier
+         * @param ga a {@link Ga} to include
          * @return this {@link BuildRequestBuilder}
          */
-        public BuildRequestBuilder buildInclude(String ga) {
+        public BuildRequestBuilder buildInclude(Ga ga) {
             buildIncludes.add(ga);
             return this;
         }
 
         /**
          * @see BuildRequest#getBuildIncludes()
-         * @param gas a {@link Collection} of {@code groupId:artifactId} identifiers
+         * @param gas a {@link Collection} of {@link Ga} identifiers
          * @return this {@link BuildRequestBuilder}
          */
-        public BuildRequestBuilder buildIncludes(Collection<String> gas) {
+        public BuildRequestBuilder buildIncludes(Collection<Ga> gas) {
             buildIncludes.addAll(gas);
             return this;
         }
@@ -462,7 +462,7 @@ public class BuildRequest {
     public static String computeHash(boolean addDefaultBuildArguments, boolean addDefaultBuildEnvironment,
             List<String> buildArguments, Map<String, String> buildEnvironment, Set<String> forwardProperties,
             Charset encoding, GavSet gavSet, List<String> scmUrls, boolean skipTests, SrcVersion srcVersion,
-            String version, boolean useVersionsMavenPlugin, Set<String> buildIncludes, boolean excludeNonRequired,
+            String version, boolean useVersionsMavenPlugin, Set<Ga> buildIncludes, boolean excludeNonRequired,
             long timeoutMs, Verbosity verbosity) {
 
         try (DigestOutputStream digester = new DigestOutputStream(MessageDigest.getInstance("SHA-1"))) {
@@ -497,8 +497,8 @@ public class BuildRequest {
                 w.write(srcVersion.toString());
                 w.write(version);
                 w.write(useVersionsMavenPlugin ? 1 : 0);
-                for (String e : buildIncludes) {
-                    w.write(e);
+                for (Ga e : buildIncludes) {
+                    w.write(e.toString());
                 }
                 digester.write(excludeNonRequired ? 1 : 0);
                 w.write(verbosity.name());
@@ -522,7 +522,7 @@ public class BuildRequest {
     private final boolean addDefaultBuildEnvironment;
     private final List<String> buildArguments;
     private final Map<String, String> buildEnvironment;
-    private final Set<String> buildIncludes;
+    private final Set<Ga> buildIncludes;
     private final Path dependentProjectRootDirectory;
     private final Charset encoding;
     private final boolean excludeNonRequired;
@@ -549,7 +549,7 @@ public class BuildRequest {
             Set<String> forwardPropertyNames, Map<String, String> forwardPropertyValues,
             Map<String, String> buildEnvironment, boolean addDefaultBuildEnvironment, Verbosity verbosity,
             IoRedirects ioRedirects, long timeoutMs, String versionsMavenPluginVersion, boolean useVersionsMavenPlugin,
-            Set<String> buildIncludes, boolean excludeNonRequired, CharStreamSource gradleModelTransformer) {
+            Set<Ga> buildIncludes, boolean excludeNonRequired, CharStreamSource gradleModelTransformer) {
         super();
 
         SrcdepsCoreUtils.assertArgNotNull(scmRepositoryId, "scmRepositoryId");
@@ -618,11 +618,11 @@ public class BuildRequest {
     }
 
     /**
-     * @return a list of {@code groupId:artifactId} identifiers to translate to module directories and pass as
-     *         {@code -pl} Maven command line option
+     * @return a list of {@link Ga} identifiers to translate to module directories and pass as {@code -pl} Maven command
+     *         line option
      * @see ScmRepositoryMaven#getIncludes()
      */
-    public Set<String> getBuildIncludes() {
+    public Set<Ga> getBuildIncludes() {
         return buildIncludes;
     }
 
