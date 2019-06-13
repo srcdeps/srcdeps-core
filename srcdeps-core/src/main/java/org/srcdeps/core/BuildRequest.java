@@ -63,6 +63,7 @@ public class BuildRequest {
         private Map<String, String> buildEnvironment = new LinkedHashMap<>();
         private Set<String> buildIncludes = new LinkedHashSet<>();
         private Path dependentProjectRootDirectory;
+        private Charset encoding;
         private boolean excludeNonRequired = false;
         private Set<String> forwardPropertyNames = new LinkedHashSet<>();
         private Map<String, String> forwardPropertyValues = new LinkedHashMap<>();
@@ -123,9 +124,9 @@ public class BuildRequest {
             this.buildIncludes = null;
 
             return new BuildRequest(dependentProjectRootDirectory, projectRootDirectory, srcVersion, useVersion, gavSet,
-                    scmRepositoryId, useScmUrls, useBuildArgs, skipTests, addDefaultBuildArguments, useFwdPropNames,
-                    useFwdPropValues, useBuildEnv, addDefaultBuildEnvironment, verbosity, ioRedirects, timeoutMs,
-                    versionsMavenPluginVersion, useVersionsMavenPlugin, useBuildIncludes, excludeNonRequired,
+                    scmRepositoryId, encoding, useScmUrls, useBuildArgs, skipTests, addDefaultBuildArguments,
+                    useFwdPropNames, useFwdPropValues, useBuildEnv, addDefaultBuildEnvironment, verbosity, ioRedirects,
+                    timeoutMs, versionsMavenPluginVersion, useVersionsMavenPlugin, useBuildIncludes, excludeNonRequired,
                     gradleModelTransformer);
         }
 
@@ -209,6 +210,15 @@ public class BuildRequest {
          */
         public BuildRequestBuilder dependentProjectRootDirectory(Path dependentProjectRootDirectory) {
             this.dependentProjectRootDirectory = dependentProjectRootDirectory;
+            return this;
+        }
+
+        /**
+         * @param encoding see {@link BuildRequest#getEncoding()}
+         * @return this {@link BuildRequestBuilder}
+         */
+        public BuildRequestBuilder encoding(Charset encoding) {
+            this.encoding = encoding;
             return this;
         }
 
@@ -438,6 +448,7 @@ public class BuildRequest {
      * @param buildArguments
      * @param buildEnvironment
      * @param forwardProperties
+     * @param encoding
      * @param gavSet
      * @param scmUrls
      * @param skipTests
@@ -450,9 +461,9 @@ public class BuildRequest {
      */
     public static String computeHash(boolean addDefaultBuildArguments, boolean addDefaultBuildEnvironment,
             List<String> buildArguments, Map<String, String> buildEnvironment, Set<String> forwardProperties,
-            GavSet gavSet, List<String> scmUrls, boolean skipTests, SrcVersion srcVersion, String version,
-            boolean useVersionsMavenPlugin, Set<String> buildIncludes, boolean excludeNonRequired, long timeoutMs,
-            Verbosity verbosity) {
+            Charset encoding, GavSet gavSet, List<String> scmUrls, boolean skipTests, SrcVersion srcVersion,
+            String version, boolean useVersionsMavenPlugin, Set<String> buildIncludes, boolean excludeNonRequired,
+            long timeoutMs, Verbosity verbosity) {
 
         try (DigestOutputStream digester = new DigestOutputStream(MessageDigest.getInstance("SHA-1"))) {
             digester.write(addDefaultBuildArguments ? 1 : 0);
@@ -474,6 +485,8 @@ public class BuildRequest {
                 for (String e : forwardProperties) {
                     w.write(e);
                 }
+
+                w.write(encoding.name());
 
                 gavSet.appendIncludes(w);
                 gavSet.appendExcludes(w);
@@ -511,6 +524,7 @@ public class BuildRequest {
     private final Map<String, String> buildEnvironment;
     private final Set<String> buildIncludes;
     private final Path dependentProjectRootDirectory;
+    private final Charset encoding;
     private final boolean excludeNonRequired;
     private final Set<String> forwardPropertyNames;
     private final Map<String, String> forwardPropertyValues;
@@ -526,20 +540,20 @@ public class BuildRequest {
     private final long timeoutMs;
     private final boolean useVersionsMavenPlugin;
     private final Verbosity verbosity;
-
     private final String version;
     private final String versionsMavenPluginVersion;
 
     private BuildRequest(Path dependentProjectRootDirectory, Path projectRootDirectory, SrcVersion srcVersion,
-            String version, GavSet gavSet, String scmRepositoryId, List<String> scmUrls, List<String> buildArguments,
-            boolean skipTests, boolean addDefaultBuildArguments, Set<String> forwardPropertyNames,
-            Map<String, String> forwardPropertyValues, Map<String, String> buildEnvironment,
-            boolean addDefaultBuildEnvironment, Verbosity verbosity, IoRedirects ioRedirects, long timeoutMs,
-            String versionsMavenPluginVersion, boolean useVersionsMavenPlugin, Set<String> buildIncludes,
-            boolean excludeNonRequired, CharStreamSource gradleModelTransformer) {
+            String version, GavSet gavSet, String scmRepositoryId, Charset encoding, List<String> scmUrls,
+            List<String> buildArguments, boolean skipTests, boolean addDefaultBuildArguments,
+            Set<String> forwardPropertyNames, Map<String, String> forwardPropertyValues,
+            Map<String, String> buildEnvironment, boolean addDefaultBuildEnvironment, Verbosity verbosity,
+            IoRedirects ioRedirects, long timeoutMs, String versionsMavenPluginVersion, boolean useVersionsMavenPlugin,
+            Set<String> buildIncludes, boolean excludeNonRequired, CharStreamSource gradleModelTransformer) {
         super();
 
         SrcdepsCoreUtils.assertArgNotNull(scmRepositoryId, "scmRepositoryId");
+        SrcdepsCoreUtils.assertArgNotNull(encoding, "encoding");
         SrcdepsCoreUtils.assertArgNotNull(dependentProjectRootDirectory, "dependentProjectRootDirectory");
         SrcdepsCoreUtils.assertArgNotNull(projectRootDirectory, "projectRootDirectory");
         SrcdepsCoreUtils.assertArgNotNull(srcVersion, "srcVersion");
@@ -561,6 +575,7 @@ public class BuildRequest {
         this.version = version;
         this.gavSet = gavSet;
         this.scmRepositoryId = scmRepositoryId;
+        this.encoding = encoding;
         this.scmUrls = scmUrls;
         this.buildArguments = buildArguments;
         this.skipTests = skipTests;
@@ -578,7 +593,7 @@ public class BuildRequest {
         this.excludeNonRequired = excludeNonRequired;
         this.gradleModelTransformer = gradleModelTransformer;
         this.hash = computeHash(addDefaultBuildArguments, addDefaultBuildEnvironment, buildArguments, buildEnvironment,
-                forwardPropertyNames, gavSet, scmUrls, skipTests, srcVersion, versionsMavenPluginVersion,
+                forwardPropertyNames, encoding, gavSet, scmUrls, skipTests, srcVersion, versionsMavenPluginVersion,
                 useVersionsMavenPlugin, buildIncludes, excludeNonRequired, timeoutMs, verbosity);
         log.debug("srcdeps: Computed hash [{}] of [{}]", hash, this);
     }
@@ -616,6 +631,13 @@ public class BuildRequest {
      */
     public Path getDependentProjectRootDirectory() {
         return dependentProjectRootDirectory;
+    }
+
+    /**
+     * @return the encoding to use when reading source files in the dependency's source tree
+     */
+    public Charset getEncoding() {
+        return encoding;
     }
 
     /**
@@ -783,17 +805,17 @@ public class BuildRequest {
 
     @Override
     public String toString() {
-        return "BuildRequest [scmRepositoryId=" + scmRepositoryId + ", addDefaultBuildArguments="
-                + addDefaultBuildArguments + ", addDefaultBuildEnvironment=" + addDefaultBuildEnvironment
-                + ", buildArguments=" + buildArguments + ", buildEnvironment=" + buildEnvironment
-                + ", dependentProjectRootDirectory=" + dependentProjectRootDirectory + ", forwardPropertyNames="
-                + forwardPropertyNames + ", forwardPropertyValues=" + forwardPropertyValues + ", gavSet=" + gavSet
-                + ", gradleModelTransformer=" + gradleModelTransformer + ", id=" + hash + ", ioRedirects=" + ioRedirects
-                + ", projectRootDirectory=" + projectRootDirectory + ", scmUrls=" + scmUrls + ", skipTests=" + skipTests
-                + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs + ", verbosity=" + verbosity + ", version="
-                + version + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + ", useVersionsMavenPlugin="
-                + useVersionsMavenPlugin + " buildIncludes=" + buildIncludes + ", excludeNonRequired="
-                + excludeNonRequired + "]";
+        return "BuildRequest [scmRepositoryId=" + scmRepositoryId + ", encoding=" + encoding
+                + ", addDefaultBuildArguments=" + addDefaultBuildArguments + ", addDefaultBuildEnvironment="
+                + addDefaultBuildEnvironment + ", buildArguments=" + buildArguments + ", buildEnvironment="
+                + buildEnvironment + ", dependentProjectRootDirectory=" + dependentProjectRootDirectory
+                + ", forwardPropertyNames=" + forwardPropertyNames + ", forwardPropertyValues=" + forwardPropertyValues
+                + ", gavSet=" + gavSet + ", gradleModelTransformer=" + gradleModelTransformer + ", id=" + hash
+                + ", ioRedirects=" + ioRedirects + ", projectRootDirectory=" + projectRootDirectory + ", scmUrls="
+                + scmUrls + ", skipTests=" + skipTests + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs
+                + ", verbosity=" + verbosity + ", version=" + version + ", versionsMavenPluginVersion="
+                + versionsMavenPluginVersion + ", useVersionsMavenPlugin=" + useVersionsMavenPlugin + " buildIncludes="
+                + buildIncludes + ", excludeNonRequired=" + excludeNonRequired + "]";
     }
 
 }

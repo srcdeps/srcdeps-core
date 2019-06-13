@@ -16,6 +16,7 @@
  */
 package org.srcdeps.core;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,17 +45,19 @@ public class BuildRequestTest {
         props.add("prop2");
 
         String id1 = BuildRequest.computeHash(true, true, Arrays.<String>asList("arg1", "arg2"), env1, props,
-                GavSet.builder().include("org.mygroup").exclude("other-group").build(), Arrays.asList("url1", "url2"),
-                true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", true, Collections.singleton("org:a"), false, 50000, Verbosity.error);
+                StandardCharsets.UTF_8, GavSet.builder().include("org.mygroup").exclude("other-group").build(),
+                Arrays.asList("url1", "url2"), true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", true,
+                Collections.singleton("org:a"), false, 50000, Verbosity.error);
         String id2 = BuildRequest.computeHash(true, true, new ArrayList<>(Arrays.<String>asList("arg1", "arg2")),
-                new LinkedHashMap<String, String>(env1), new LinkedHashSet<String>(props),
+                new LinkedHashMap<String, String>(env1), new LinkedHashSet<String>(props), StandardCharsets.UTF_8,
                 GavSet.builder().include("org.mygroup").exclude("other-group").build(),
                 new ArrayList<>(Arrays.<String>asList("url1", "url2")), true,
-                SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", true, Collections.singleton("org:a"), false, 50000, Verbosity.error);
+                SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", true, Collections.singleton("org:a"), false,
+                50000, Verbosity.error);
 
         Assert.assertEquals(id1, id2);
         Assert.assertEquals(id1.hashCode(), id2.hashCode());
-        Assert.assertEquals("b77169a9cceaba9dcc81e74ec8805367f462708b", id1);
+        Assert.assertEquals("7d688ae119206f98b165b07c32b2a77b341b061d", id1);
 
     }
 

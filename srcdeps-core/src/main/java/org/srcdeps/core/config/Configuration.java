@@ -16,6 +16,8 @@
  */
 package org.srcdeps.core.config;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +59,7 @@ public class Configuration {
                 Pattern.class, EqualsImplementations.equalsPattern());
         final ScalarNode<String> configModelVersion = new DefaultScalarNode<>("configModelVersion",
                 LATEST_CONFIG_MODEL_VERSION);
+        final ScalarNode<Charset> encoding = new DefaultScalarNode<>("encoding", DEFAULT_ENCODING);
         final ScalarNode<Boolean> forwardAsMasterConfig = new DefaultScalarNode<>("forwardAsMasterConfig",
                 Boolean.FALSE);
         final ListOfScalarsNode<String> forwardProperties = new DefaultListOfScalarsNode<String>(
@@ -86,6 +89,7 @@ public class Configuration {
             super("srcdeps");
             addChildren( //
                     configModelVersion, //
+                    encoding, //
                     forwardProperties, //
                     forwardAsMasterConfig, //
                     builderIo, //
@@ -163,6 +167,11 @@ public class Configuration {
             return this;
         }
 
+        public Builder encoding(Charset encoding) {
+            this.encoding.setValue(encoding);
+            return this;
+        }
+
         public Builder forwardAsMasterConfig(boolean value) {
             this.forwardAsMasterConfig.setValue(value);
             return this;
@@ -224,14 +233,16 @@ public class Configuration {
 
     }
 
-    private static final Set<String> DEFAULT_FORWARD_PROPERTIES;
-    private static final String FORWARD_PROPERTIES_ATTRIBUTE = "forwardProperties";
+    private static final Charset DEFAULT_ENCODING = StandardCharsets.UTF_8;
 
+    private static final Set<String> DEFAULT_FORWARD_PROPERTIES;
+
+    private static final String FORWARD_PROPERTIES_ATTRIBUTE = "forwardProperties";
     private static final String LATEST_CONFIG_MODEL_VERSION = "2.6";
 
     private static final String SRCDEPS_ENCODING_PROPERTY = "srcdeps.encoding";
-    private static final String SRCDEPS_MASTER_CONFIG_PROPERTY = "srcdeps.masterConfig";
 
+    private static final String SRCDEPS_MASTER_CONFIG_PROPERTY = "srcdeps.masterConfig";
     private static final Set<String> SUPPORTED_CONFIG_MODEL_VERSIONS = Collections.unmodifiableSet(
             new LinkedHashSet<>(Arrays.asList("2.0", "2.1", "2.2", "2.3", "2.4", "2.5", LATEST_CONFIG_MODEL_VERSION)));
 
@@ -242,6 +253,10 @@ public class Configuration {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public static Charset getDefaultEncoding() {
+        return DEFAULT_ENCODING;
     }
 
     /**

@@ -47,6 +47,13 @@
 # Since 1.0
 configModelVersion: 2.6
 
+# `encoding` - an encoding to use when reading source files in dependency source trees. Note that this value can be
+# overriden at the repository level - see below.
+#
+# Optional, default: UTF-8
+# Since 2.6
+encoding: UTF-8
+
 # `forwardProperties` - a list of property names that the top level builder A should pass as java system properties to
 # every dependency builder B using `-DmyProperty=myValue` style command line arguments. Further, in case a child
 # builder B spawns its own new child builder C, B must pass all these properties to C in the very same
@@ -327,6 +334,13 @@ repositories:
   # the `id` of the source repository, typically the `groupId` of its artifacts,
   # or any other string unique at this level of the yaml file.
   org.l2x6.maven.srcdeps.itest:
+
+    # `encoding` - an encoding to use when reading source files in the current dependency's source tree.
+    #
+    # Optional, if not set, the value is looked up in the top level encoding attribute above or the hard coded default
+    # UTF-8 is used.
+    # Since 2.6
+    encoding: UTF-8
 
     # `includes` - select which dependency artifacts should be built from this source repository.
     #

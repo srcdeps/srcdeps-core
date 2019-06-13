@@ -266,8 +266,6 @@ public class ScmRepositoryMaven {
      * version setter will be used.
      *
      * @return {@code true} or {@code false}
-     *
-     * @since 2.6.0
      */
     public boolean isUseVersionsMavenPlugin() {
         return useVersionsMavenPlugin;

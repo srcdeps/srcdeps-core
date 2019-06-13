@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
  */
 package org.srcdeps.core.config;
 
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -97,6 +98,22 @@ public class ScmRepository {
             }
 
         };
+        ScalarNode<Charset> encoding = new DefaultScalarNode<Charset>("encoding", null, Charset.class) {
+
+            @Override
+            public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                inheritFrom(configuratioBuilder.encoding, configurationStack);
+            }
+
+            @Override
+            public boolean isInDefaultState(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                return isInDefaultState(configuratioBuilder.encoding, configurationStack);
+            }
+
+        };
+
         final ListOfScalarsNode<String> excludes = new DefaultListOfScalarsNode<>("excludes", String.class);
         final ScmRepositoryGradle.Builder gradle = ScmRepositoryGradle.builder();
         final ListOfScalarsNode<String> includes = new DefaultListOfScalarsNode<>("includes", String.class);
@@ -124,6 +141,7 @@ public class ScmRepository {
         public Builder() {
             super("repository", true);
             addChildren( //
+                    encoding, //
                     includes, //
                     excludes, //
                     urls, //
@@ -147,6 +165,7 @@ public class ScmRepository {
         public ScmRepository build() {
             ScmRepository result = new ScmRepository( //
                     name, //
+                    encoding.getValue(), //
                     includes.asListOfValues(), //
                     excludes.asListOfValues(), //
                     urls.asListOfValues(), //
@@ -191,6 +210,11 @@ public class ScmRepository {
 
         public Builder commentBefore(String value) {
             commentBefore.add(value);
+            return this;
+        }
+
+        public Builder encoding(Charset encoding) {
+            this.encoding.setValue(encoding);
             return this;
         }
 
@@ -357,18 +381,19 @@ public class ScmRepository {
     private final SrcVersion buildRef;
     private final Duration buildTimeout;
     private final Pattern buildVersionPattern;
+    private final Charset encoding;
     private final List<String> excludes;
     private final GavSet gavSet;
     private final ScmRepositoryGradle gradle;
-    private final String id;
 
+    private final String id;
     private final List<String> includes;
     private final ScmRepositoryMaven maven;
     private final boolean skipTests;
     private final List<String> urls;
     private final Verbosity verbosity;
 
-    private ScmRepository(String id, List<String> includes, List<String> excludes, List<String> urls,
+    private ScmRepository(String id, Charset encoding, List<String> includes, List<String> excludes, List<String> urls,
             List<String> buildArgs, boolean skipTests, boolean addDefaultBuildArguments, ScmRepositoryMaven maven,
             ScmRepositoryGradle gradle, Duration buildTimeout, BuilderIo builderIo, Verbosity verbosity,
             SrcVersion buildRef, Pattern buildVersionPattern) {
@@ -376,6 +401,7 @@ public class ScmRepository {
         this.id = id;
         this.includes = includes;
         this.excludes = excludes;
+        this.encoding = encoding;
         this.gavSet = GavSet.builder().includes(includes).excludes(excludes).build();
         this.urls = urls;
         this.buildArguments = buildArgs;
@@ -430,6 +456,11 @@ public class ScmRepository {
             if (other.gradle != null)
                 return false;
         } else if (!gradle.equals(other.gradle))
+            return false;
+        if (encoding == null) {
+            if (other.encoding != null)
+                return false;
+        } else if (!encoding.equals(other.encoding))
             return false;
         if (id == null) {
             if (other.id != null)
@@ -496,6 +527,13 @@ public class ScmRepository {
 
     public Pattern getBuildVersionPattern() {
         return buildVersionPattern;
+    }
+
+    /**
+     * @return the encoding to use when reading and writing files in the current dependency's source tree.
+     */
+    public Charset getEncoding() {
+        return encoding;
     }
 
     /**
@@ -585,6 +623,7 @@ public class ScmRepository {
         result = prime * result + ((buildArguments == null) ? 0 : buildArguments.hashCode());
         result = prime * result + ((buildTimeout == null) ? 0 : buildTimeout.hashCode());
         result = prime * result + ((builderIo == null) ? 0 : builderIo.hashCode());
+        result = prime * result + ((encoding == null) ? 0 : encoding.hashCode());
         result = prime * result + ((excludes == null) ? 0 : excludes.hashCode());
         result = prime * result + ((gavSet == null) ? 0 : gavSet.hashCode());
         result = prime * result + ((gradle == null) ? 0 : gradle.hashCode());
@@ -623,10 +662,11 @@ public class ScmRepository {
     @Override
     public String toString() {
         return "ScmRepository [addDefaultBuildArguments=" + addDefaultBuildArguments + ", buildArguments="
-                + buildArguments + ", builderIo=" + builderIo + ", buildTimeout=" + buildTimeout + ", excludes="
-                + excludes + ", gavSet=" + gavSet + ", gradle=" + gradle + ", id=" + id + ", includes=" + includes
-                + ", maven=" + maven + ", skipTests=" + skipTests + ", urls=" + urls + ", verbosity=" + verbosity
-                + ", buildRef=" + buildRef + ", buildVersionPattern=" + buildVersionPattern + "]";
+                + buildArguments + ", builderIo=" + builderIo + ", buildTimeout=" + buildTimeout + ", encoding="
+                + encoding + ", excludes=" + excludes + ", gavSet=" + gavSet + ", gradle=" + gradle + ", id=" + id
+                + ", includes=" + includes + ", maven=" + maven + ", skipTests=" + skipTests + ", urls=" + urls
+                + ", verbosity=" + verbosity + ", buildRef=" + buildRef + ", buildVersionPattern=" + buildVersionPattern
+                + "]";
     }
 
 }

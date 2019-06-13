@@ -16,6 +16,7 @@
  */
 package org.srcdeps.core.fs;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -55,9 +56,9 @@ public class PersistentBuildMetadataStoreTest {
         props.add("prop2");
 
         String id1 = BuildRequest.computeHash(true, true, Arrays.<String>asList("arg1", "arg2"), env1, props,
-                GavSet.builder().include("org.mygroup").exclude("other-group").build(), Arrays.asList("url1", "url2"),
-                true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", true, Collections.singleton("org:a"), false,
-                50000, Verbosity.error);
+                StandardCharsets.UTF_8, GavSet.builder().include("org.mygroup").exclude("other-group").build(),
+                Arrays.asList("url1", "url2"), true, SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", true,
+                Collections.singleton("org:a"), false, 50000, Verbosity.error);
 
         final PersistentBuildMetadataStore store = new PersistentBuildMetadataStore(mdStorepath);
         {

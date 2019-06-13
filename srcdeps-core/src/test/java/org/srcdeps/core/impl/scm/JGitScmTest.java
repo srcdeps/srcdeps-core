@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,6 +75,7 @@ public class JGitScmTest {
         /* first clone */
         BuildRequest cloningRequest = BuildRequest.builder() //
                 .scmRepositoryId("test") //
+                .encoding(StandardCharsets.UTF_8) //
                 .srcVersion(SrcVersion.parse("0.0.1-SRC-tag-0.0.1")) //
                 .dependentProjectRootDirectory(dir) //
                 .projectRootDirectory(dir) //
@@ -93,6 +94,7 @@ public class JGitScmTest {
         /* try if the fetch works after we have cloned already */
         BuildRequest fetchingRequest = BuildRequest.builder() //
                 .scmRepositoryId("test") //
+                .encoding(StandardCharsets.UTF_8) //
                 .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-0a5ab902099b24c2b13ed1dad8c5f537458bcc89")) //
                 .dependentProjectRootDirectory(dir) //
                 .projectRootDirectory(dir) //
@@ -109,6 +111,7 @@ public class JGitScmTest {
 
         BuildRequest fetchBranchRequest = BuildRequest.builder() //
                 .scmRepositoryId("test") //
+                .encoding(StandardCharsets.UTF_8) //
                 .srcVersion(SrcVersion.parse("0.0.1-SRC-branch-morning-branch")) //
                 .dependentProjectRootDirectory(dir) //
                 .projectRootDirectory(dir) //
@@ -186,6 +189,7 @@ public class JGitScmTest {
             /* first clone */
             final BuildRequest cloningRequest = BuildRequest.builder() //
                     .scmRepositoryId("test") //
+                    .encoding(StandardCharsets.UTF_8) //
                     .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-" + addedCommitId)) //
                     .dependentProjectRootDirectory(dir) //
                     .projectRootDirectory(dir) //
@@ -212,6 +216,7 @@ public class JGitScmTest {
             /* fetch and reset */
             final BuildRequest fetchResetRequest = BuildRequest.builder() //
                     .scmRepositoryId("test") //
+                    .encoding(StandardCharsets.UTF_8) //
                     .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-" + addedCommitId)) //
                     .dependentProjectRootDirectory(dir) //
                     .projectRootDirectory(dir) //

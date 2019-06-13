@@ -17,6 +17,8 @@
 
 configModelVersion: 2.6
 
+encoding: UTF-16
+
 forwardAsMasterConfig: true
 
 forwardProperties:
@@ -67,6 +69,7 @@ maven:
 repositories:
 
   org.repo1:
+    encoding: UTF-8
     includes:
     - group1
     - group2:artifact2:*
@@ -97,6 +100,7 @@ repositories:
       modelTransformer: "file:my/file"
 
   org.repo2:
+    encoding: UTF-8
     includes:
     - group3:artifact3
     - group4:artifact4:1.2.3

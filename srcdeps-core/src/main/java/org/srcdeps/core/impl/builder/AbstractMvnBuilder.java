@@ -16,7 +16,6 @@
  */
 package org.srcdeps.core.impl.builder;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -123,7 +122,7 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
             args.add("-pl");
             final StringBuilder sb = new StringBuilder();
             final MavenSourceTree depTree = MavenSourceTree.of(request.getProjectRootDirectory().resolve("pom.xml"),
-                    StandardCharsets.UTF_8);
+                    request.getEncoding());
             final Map<Ga, Module> modulesByGa = depTree.getModulesByGa();
             final int slashPomXmlLength = "/pom.xml".length();
             for (String depGa : buildIncludes) {
@@ -215,7 +214,7 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
             this.restTimeoutMs = request.getTimeoutMs() - result.getRuntimeMs();
         } else {
             final MavenSourceTree tree = MavenSourceTree.of(request.getProjectRootDirectory().resolve("pom.xml"),
-                    StandardCharsets.UTF_8);
+                    request.getEncoding());
             final String[] profiles = findProfiles(request.getBuildArguments());
             tree.setVersions(request.getVersion().toString(), MavenSourceTree.profiles(profiles));
         }

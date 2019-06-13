@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -59,6 +60,7 @@ public class YamlConfigurationReaderTest {
             Configuration actual = new YamlConfigurationReader().read(in).build();
             Configuration expected = Configuration.builder() //
                     .configModelVersion("2.6") //
+                    .encoding(Charset.forName("UTF-16")) //
                     .forwardAsMasterConfig(true) //
                     .forwardProperty("myProp1") //
                     .forwardProperty("myProp2") //
@@ -97,6 +99,7 @@ public class YamlConfigurationReaderTest {
                     .repository( //
                             ScmRepository.builder() //
                                     .id("org.repo1") //
+                                    .encoding(Charset.forName("UTF-8")) //
                                     .verbosity(Verbosity.trace) //
                                     .include("group1") //
                                     .include("group2:artifact2:*") //
@@ -128,6 +131,7 @@ public class YamlConfigurationReaderTest {
                     .repository( //
                             ScmRepository.builder() //
                                     .id("org.repo2") //
+                                    .encoding(Charset.forName("UTF-8")) //
                                     .include("group3:artifact3") //
                                     .include("group4:artifact4:1.2.3") //
                                     .url("url3") //
