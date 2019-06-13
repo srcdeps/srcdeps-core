@@ -58,7 +58,7 @@ public class YamlWriterVisitorTest {
         String expectedConfig = "#\n" //
                 + "# srcdeps comment line 1\n" //
                 + "# srcdeps comment line 2\n" //
-                + "configModelVersion: 2.5\n" //
+                + "configModelVersion: 2.6\n" //
                 + "repositories:\n" //
                 + "\n" //
                 + "  # repo1 comment line 1\n" //
@@ -89,6 +89,7 @@ public class YamlWriterVisitorTest {
         /*
          * now read the serialized output we have written to the out StringWriter back into a new Configuration instance
          */
+        System.out.println(out);
         try (Reader in = new StringReader(out.toString())) {
             Configuration configFromOut = new YamlConfigurationReader() //
                     .read(in) //

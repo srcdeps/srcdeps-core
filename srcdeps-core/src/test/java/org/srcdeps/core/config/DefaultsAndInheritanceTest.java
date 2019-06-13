@@ -57,6 +57,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(configBuilder.builderIo.stderr.getValue());
 
         Assert.assertNull(configBuilder.maven.versionsMavenPluginVersion.getValue());
+        Assert.assertNull(configBuilder.maven.useVersionsMavenPlugin.getValue());
         MavenAssertions.FailWithBuilder failWithBuilder = configBuilder.maven.failWith;
         Stack<Node> stack = new Stack<>();
         stack.push(configBuilder);
@@ -73,6 +74,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(repo1Builder.addDefaultBuildArguments.getValue());
         Assert.assertEquals(Collections.emptyList(), repo1Builder.buildArguments.asListOfValues());
         Assert.assertNull(repo1Builder.maven.versionsMavenPluginVersion.getValue());
+        Assert.assertNull(repo1Builder.maven.useVersionsMavenPlugin.getValue());
         Assert.assertNull(repo1Builder.maven.excludeNonRequired.getValue());
         Assert.assertNull(repo1Builder.maven.includeRequired.getValue());
         Assert.assertEquals(Collections.emptyList(), repo1Builder.maven.includes.asListOfValues());
@@ -109,6 +111,8 @@ public class DefaultsAndInheritanceTest {
 
         Assert.assertEquals(Maven.getDefaultVersionsMavenPluginVersion(),
                 configBuilder.maven.versionsMavenPluginVersion.getValue());
+        Assert.assertEquals(Maven.getDefaultUseVersionsMavenPlugin(),
+                configBuilder.maven.useVersionsMavenPlugin.getValue());
         MavenAssertions failWith = config.getMaven().getFailWith();
         Assert.assertEquals(true, failWith.isAddDefaults());
         Assert.assertEquals(MavenAssertions.getDefaultFailGoals(), failWith.getGoals());
@@ -124,6 +128,8 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals(Collections.singletonList("file:///whereever"), repo1.getUrls());
         Assert.assertEquals(Maven.getDefaultVersionsMavenPluginVersion(),
                 repo1.getMaven().getVersionsMavenPluginVersion());
+        Assert.assertEquals(Maven.getDefaultUseVersionsMavenPlugin(),
+                repo1.getMaven().isUseVersionsMavenPlugin());
         Assert.assertEquals(false, repo1.getMaven().isExcludeNonRequired());
         Assert.assertEquals(false, repo1.getMaven().isIncludeRequired());
         Assert.assertEquals(Collections.emptyList(), repo1.getMaven().getIncludes());

@@ -38,6 +38,22 @@ public class ScmRepositoryMaven {
         final ScalarNode<Boolean> excludeNonRequired = new DefaultScalarNode<>("excludeNonRequired", Boolean.FALSE);
         final ScalarNode<Boolean> includeRequired = new DefaultScalarNode<>("includeRequired", Boolean.FALSE);
         final ListOfScalarsNode<String> includes = new DefaultListOfScalarsNode<>("includes", String.class);
+        ScalarNode<Boolean> useVersionsMavenPlugin = new DefaultScalarNode<Boolean>("useVersionsMavenPlugin", null,
+                Boolean.class) {
+
+            @Override
+            public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                inheritFrom(configuratioBuilder.maven.useVersionsMavenPlugin, configurationStack);
+            }
+
+            @Override
+            public boolean isInDefaultState(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                return isInDefaultState(configuratioBuilder.maven.useVersionsMavenPlugin, configurationStack);
+            }
+
+        };
         ScalarNode<String> versionsMavenPluginVersion = new DefaultScalarNode<String>("versionsMavenPluginVersion",
                 null, String.class) {
 
@@ -57,11 +73,13 @@ public class ScmRepositoryMaven {
 
         public Builder() {
             super("maven");
-            addChildren(versionsMavenPluginVersion, includeRequired, includes, excludeNonRequired);
+            addChildren(versionsMavenPluginVersion, useVersionsMavenPlugin, includeRequired, includes,
+                    excludeNonRequired);
         }
 
         public ScmRepositoryMaven build() {
             return new ScmRepositoryMaven(versionsMavenPluginVersion.getValue(), //
+                    useVersionsMavenPlugin.getValue(), //
                     includes.asListOfValues(), //
                     includeRequired.getValue(), //
                     excludeNonRequired.getValue());
@@ -97,6 +115,11 @@ public class ScmRepositoryMaven {
             return this;
         }
 
+        public Builder useVersionsMavenPlugin(boolean useVersionsMavenPlugin) {
+            this.useVersionsMavenPlugin.setValue(useVersionsMavenPlugin);
+            return this;
+        }
+
         public Builder versionsMavenPluginVersion(String versionsMavenPluginVersion) {
             this.versionsMavenPluginVersion.setValue(versionsMavenPluginVersion);
             return this;
@@ -114,15 +137,18 @@ public class ScmRepositoryMaven {
 
     private final List<String> includes;
 
+    private final boolean useVersionsMavenPlugin;
+
     private final String versionsMavenPluginVersion;
 
-    public ScmRepositoryMaven(String versionsMavenPluginVersion, List<String> includes, boolean includeRequired,
-            boolean excludeNonRequired) {
+    public ScmRepositoryMaven(String versionsMavenPluginVersion, boolean useVersionsMavenPlugin, List<String> includes,
+            boolean includeRequired, boolean excludeNonRequired) {
         super();
         this.versionsMavenPluginVersion = versionsMavenPluginVersion;
         this.includes = includes;
         this.includeRequired = includeRequired;
         this.excludeNonRequired = excludeNonRequired;
+        this.useVersionsMavenPlugin = useVersionsMavenPlugin;
     }
 
     @Override
@@ -142,6 +168,8 @@ public class ScmRepositoryMaven {
             if (other.includes != null)
                 return false;
         } else if (!includes.equals(other.includes))
+            return false;
+        if (useVersionsMavenPlugin != other.useVersionsMavenPlugin)
             return false;
         if (versionsMavenPluginVersion == null) {
             if (other.versionsMavenPluginVersion != null)
@@ -184,6 +212,7 @@ public class ScmRepositoryMaven {
         result = prime * result + (excludeNonRequired ? 1231 : 1237);
         result = prime * result + (includeRequired ? 1231 : 1237);
         result = prime * result + ((includes == null) ? 0 : includes.hashCode());
+        result = prime * result + (useVersionsMavenPlugin ? 1231 : 1237);
         result = prime * result + ((versionsMavenPluginVersion == null) ? 0 : versionsMavenPluginVersion.hashCode());
         return result;
     }
@@ -231,10 +260,24 @@ public class ScmRepositoryMaven {
         return includeRequired;
     }
 
+    /**
+     * Tells which tool should be used to set versions in source trees to prepare them for the building of a dependency.
+     * If {@code true} the versions will be set using {@code mvn versions:set -DnewVersion=...}; otherwise srcdep's own
+     * version setter will be used.
+     *
+     * @return {@code true} or {@code false}
+     *
+     * @since 2.6.0
+     */
+    public boolean isUseVersionsMavenPlugin() {
+        return useVersionsMavenPlugin;
+    }
+
     @Override
     public String toString() {
         return "ScmRepositoryMaven [excludeNonRequired=" + excludeNonRequired + ", includeRequired=" + includeRequired
-                + ", includes=" + includes + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + "]";
+                + ", includes=" + includes + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion
+                + ", useVersionsMavenPlugin=" + useVersionsMavenPlugin + "]";
     }
 
 }

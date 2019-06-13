@@ -38,6 +38,7 @@ buildTimeout: 35m
 
 maven:
   versionsMavenPluginVersion: 1.2
+  useVersionsMavenPlugin: false
   failWith:
     addDefaults: false
     goals:
@@ -78,6 +79,7 @@ repositories:
     verbosity: trace
     maven:
       versionsMavenPluginVersion: 2.2
+      useVersionsMavenPlugin: false
       excludeNonRequired: false
       includeRequired: false
 
@@ -93,5 +95,6 @@ repositories:
     addDefaultBuildArguments: false
     skipTests: false
     maven:
+      useVersionsMavenPlugin: false
       excludeNonRequired: false
       includeRequired: false

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,12 +33,14 @@ public class Maven {
     public static class Builder extends DefaultContainerNode<Node> {
         final MavenAssertions.FailWithBuilder failWith = MavenAssertions.failWithBuilder();
         final MavenAssertions.FailWithoutBuilder failWithout = MavenAssertions.failWithoutBuilder();
+        final ScalarNode<Boolean> useVersionsMavenPlugin = new DefaultScalarNode<>("useVersionsMavenPlugin",
+                DEFAULT_USE_VERSIONS_MAVEN_PLUGIN);
         final ScalarNode<String> versionsMavenPluginVersion = new DefaultScalarNode<>("versionsMavenPluginVersion",
                 DEFAULT_VERSIONS_MAVEN_PLUGIN_VERSION);
 
         public Builder() {
             super("maven");
-            addChildren(versionsMavenPluginVersion, failWith, failWithout);
+            addChildren(versionsMavenPluginVersion, useVersionsMavenPlugin, failWith, failWithout);
         }
 
         public Maven build() {
@@ -65,6 +67,11 @@ public class Maven {
             return children;
         }
 
+        public Builder useVersionsMavenPlugin(boolean useVersionsMavenPlugin) {
+            this.useVersionsMavenPlugin.setValue(useVersionsMavenPlugin);
+            return this;
+        }
+
         public Builder versionsMavenPluginVersion(String versionsMavenPluginVersion) {
             this.versionsMavenPluginVersion.setValue(versionsMavenPluginVersion);
             return this;
@@ -73,6 +80,7 @@ public class Maven {
     }
 
     /** Keep in sync with doc/srcdeps.yaml */
+    private static final boolean DEFAULT_USE_VERSIONS_MAVEN_PLUGIN = false;
     private static final String DEFAULT_VERSIONS_MAVEN_PLUGIN_VERSION = "2.3";
     private static final String SRCDEPS_MAVEN_PROPERTIES_PATTERN = "srcdeps.maven.*";
     private static final String SRCDEPS_MAVEN_SETTINGS_PROPERTY = "srcdeps.maven.settings";
@@ -80,6 +88,14 @@ public class Maven {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * @return the default value ({@value #DEFAULT_USE_VERSIONS_MAVEN_PLUGIN}) for
+     *         {@link Builder#useVersionsMavenPlugin}
+     */
+    public static boolean getDefaultUseVersionsMavenPlugin() {
+        return DEFAULT_USE_VERSIONS_MAVEN_PLUGIN;
     }
 
     /**
@@ -115,6 +131,7 @@ public class Maven {
     }
 
     private final MavenAssertions failWith;
+
     private final MavenAssertions failWithout;
 
     private Maven(MavenAssertions failWith, MavenAssertions failWithout) {

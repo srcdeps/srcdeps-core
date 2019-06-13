@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +53,18 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     protected static final List<String> POM_FILE_NAMES = Collections.unmodifiableList(
             Arrays.asList("pom.xml", "pom.atom", "pom.clj", "pom.groovy", "pom.rb", "pom.scala", "pom.yml"));
     protected static final List<String> SKIP_TESTS_ARGS = Collections.singletonList("-DskipTests");
+
+    static String[] findProfiles(List<String> args) {
+        for (Iterator<String> it = args.iterator(); it.hasNext();) {
+            final String arg = it.next();
+            if ("-P".equals(arg) || "--activate-profiles".equals(arg)) {
+                return it.next().split(",");
+            } else if (arg.startsWith("-P")) {
+                return arg.substring(2).split(",");
+            }
+        }
+        return new String[0];
+    }
 
     /**
      * @return the default build arguments used in Maven builds of source dependencies
@@ -103,6 +116,37 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
         super(executable);
     }
 
+    private void addBuildIncludes(BuildRequest request, final List<String> args) throws BuildException {
+        final Set<String> buildIncludes = request.getBuildIncludes();
+        if (!buildIncludes.isEmpty()) {
+            args.add("-am");
+            args.add("-pl");
+            final StringBuilder sb = new StringBuilder();
+            final MavenSourceTree depTree = MavenSourceTree.of(request.getProjectRootDirectory().resolve("pom.xml"),
+                    StandardCharsets.UTF_8);
+            final Map<Ga, Module> modulesByGa = depTree.getModulesByGa();
+            final int slashPomXmlLength = "/pom.xml".length();
+            for (String depGa : buildIncludes) {
+                final Module depModule = modulesByGa.get(Ga.of(depGa));
+                if (depModule == null) {
+                    throw new BuildException(
+                            String.format("Could not find module path for artifact [%s] in source tree [%s]", depGa,
+                                    request.getProjectRootDirectory()));
+                }
+                if (sb.length() > 0) {
+                    sb.append(',');
+                }
+                final String pomPath = depModule.getPomPath();
+                if ("pom.xml".equals(pomPath)) {
+                    sb.append('.');
+                } else {
+                    sb.append(pomPath.substring(0, pomPath.length() - slashPomXmlLength));
+                }
+            }
+            args.add(sb.toString());
+        }
+    }
+
     @Override
     protected List<String> getDefaultBuildArguments() {
         String settingsPath = System.getProperty(Maven.getSrcdepsMavenSettingsProperty());
@@ -147,7 +191,8 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     public void setVersions(BuildRequest request) throws BuildException {
         final Map<String, String> env = mergeEnvironment(request);
         final List<String> verbosityArgs = getVerbosityArguments(request.getVerbosity());
-        {
+
+        if (request.isUseVersionsMavenPlugin()) {
             final List<String> args = new ArrayList<>();
             args.add("org.codehaus.mojo:versions-maven-plugin:" + request.getVersionsMavenPluginVersion() + ":set");
             args.add("-DnewVersion=" + request.getVersion().toString());
@@ -168,6 +213,11 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
                     .build();
             final CommandResult result = Shell.execute(cliRequest).assertSuccess();
             this.restTimeoutMs = request.getTimeoutMs() - result.getRuntimeMs();
+        } else {
+            final MavenSourceTree tree = MavenSourceTree.of(request.getProjectRootDirectory().resolve("pom.xml"),
+                    StandardCharsets.UTF_8);
+            final String[] profiles = findProfiles(request.getBuildArguments());
+            tree.setVersions(request.getVersion().toString(), MavenSourceTree.profiles(profiles));
         }
 
         final Map<String, String> forwardProps = request.getForwardPropertyValues();
@@ -189,36 +239,6 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
             this.restTimeoutMs = request.getTimeoutMs() - result.getRuntimeMs();
         }
 
-    }
-
-    private void addBuildIncludes(BuildRequest request, final List<String> args) throws BuildException {
-        final Set<String> buildIncludes = request.getBuildIncludes();
-        if (!buildIncludes.isEmpty()) {
-            args.add("-am");
-            args.add("-pl");
-            final StringBuilder sb = new StringBuilder();
-            final MavenSourceTree depTree = MavenSourceTree.of(request.getProjectRootDirectory().resolve("pom.xml"), StandardCharsets.UTF_8);
-            final Map<Ga, Module> modulesByGa = depTree.getModulesByGa();
-            final int slashPomXmlLength = "/pom.xml".length();
-            for (String depGa : buildIncludes) {
-                final Module depModule = modulesByGa.get(Ga.of(depGa));
-                if (depModule == null) {
-                    throw new BuildException(
-                            String.format("Could not find module path for artifact [%s] in source tree [%s]", depGa,
-                                    request.getProjectRootDirectory()));
-                }
-                if (sb.length() > 0) {
-                    sb.append(',');
-                }
-                final String pomPath = depModule.getPomPath();
-                if ("pom.xml".equals(pomPath)) {
-                    sb.append('.');
-                } else {
-                    sb.append(pomPath.substring(0, pomPath.length() - slashPomXmlLength));
-                }
-            }
-            args.add(sb.toString());
-        }
     }
 
 }

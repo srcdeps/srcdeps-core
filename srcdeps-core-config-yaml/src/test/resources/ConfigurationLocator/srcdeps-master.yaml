@@ -15,6 +15,6 @@
 # limitations under the License.
 #
 
-configModelVersion: 2.5
+configModelVersion: 2.6
 
 sourcesDirectory: master

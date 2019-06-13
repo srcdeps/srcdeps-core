@@ -41,10 +41,11 @@
 #  3.3.x        | 3.3.x         | 2.3, 2.2, 2.1, 2.0
 #  4.0.x        | 3.4.x         | 2.4, 2.3, 2.2, 2.1, 2.0
 #  4.1.x        | 3.5.x         | 2.5, 2.4, 2.3, 2.2, 2.1, 2.0
+#  4.2.x        | 3.6.x         | 2.6, 2.5, 2.4, 2.3, 2.2, 2.1, 2.0
 #
 # Required, no default
 # Since 1.0
-configModelVersion: 2.5
+configModelVersion: 2.6
 
 # `forwardProperties` - a list of property names that the top level builder A should pass as java system properties to
 # every dependency builder B using `-DmyProperty=myValue` style command line arguments. Further, in case a child
@@ -189,6 +190,20 @@ maven:
   # Optional, default: 2.3
   # Since 2.0
   versionsMavenPluginVersion: 2.3
+
+  # `useVersionsMavenPlugin` - which tool should be used to set versions in source trees to prepare them for the
+  # building of a dependency. If `true` the versions will be set using `mvn versions:set -DnewVersion=...`; otherwise
+  # srcdep's own version setter will be used.
+  #
+  # You may want to set `useVersionsMavenPlugin` to `true` if the srcdep's own version setter does not work well for
+  # you. In all other cases the implicit or explicit `useVersionsMavenPlugin: false` should prefered because the
+  # srcdep's internal version setter is much faster than `mvn versions:set`.
+  #
+  # Note that this value can be overriden at the repository level - see below.
+  #
+  # Optional, default: `false`
+  # Since 2.6
+  useVersionsMavenPlugin: false
 
   # `failWith` - a configuration node to define conditions whose presence will make the outer Maven build fail
   # as long as it has source dependencies.
@@ -456,12 +471,26 @@ repositories:
     maven:
 
       # `versionsMavenPluginVersion` - the version of `org.codehaus.mojo:versions-maven-plugin` to use when
-      # setting versions in this source repository.
+      # setting versions in this source repository. Effective only if `useVersionsMavenPlugin` is `true`.
       #
       # Optional, if not set, the value is looked up first in maven.versionsMavenPluginVersion above or the
       # hard coded default 2.3 is used
       # Since 2.0
+      # Deprecated since 2.6
       versionsMavenPluginVersion: 2.3
+
+      # `useVersionsMavenPlugin` - which tool should be used to set versions in source trees to prepare them for the
+      # building of a dependency. If `true` the versions will be set using `mvn versions:set -DnewVersion=...`;
+      # otherwise srcdep's own version setter will be used.
+      #
+      # You may want to set `useVersionsMavenPlugin` to `true` if the srcdep's own version setter does not work well for
+      # you. In all other cases the implicit or explicit `useVersionsMavenPlugin: false` should prefered because the
+      # srcdep's internal version setter is much faster than `mvn versions:set`.
+      #
+      # Optional, if not set, the value is looked up first in maven.useVersionsMavenPlugin above or the
+      # hard coded default `false` is used.
+      # Since 2.6
+      useVersionsMavenPlugin: false
 
       # `excludeNonRequired` - if `true` and `includes` is a non-empty list, `srcdeps` will remove uneeded `<module>`
       # elements from `pom.xml` files in the dependency project before building it. Otherwise, the value returned by
