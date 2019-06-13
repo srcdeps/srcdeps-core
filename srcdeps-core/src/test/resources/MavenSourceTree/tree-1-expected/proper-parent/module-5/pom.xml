@@ -28,4 +28,8 @@
   </parent>
 
   <artifactId>tree-module-5</artifactId>
+
+  <properties>
+    <prop1>val-5</prop1>
+  </properties>
 </project>

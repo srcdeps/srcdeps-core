@@ -75,6 +75,7 @@ public class BuildRequest {
         private boolean skipTests = true;
         private SrcVersion srcVersion;
         private long timeoutMs = DEFAULT_TIMEOUT_MS;
+        private boolean useVersionsMavenPlugin = false;
         private Verbosity verbosity = Verbosity.info;
         private String version;
         private String versionsMavenPluginVersion;
@@ -124,7 +125,8 @@ public class BuildRequest {
             return new BuildRequest(dependentProjectRootDirectory, projectRootDirectory, srcVersion, useVersion, gavSet,
                     scmRepositoryId, useScmUrls, useBuildArgs, skipTests, addDefaultBuildArguments, useFwdPropNames,
                     useFwdPropValues, useBuildEnv, addDefaultBuildEnvironment, verbosity, ioRedirects, timeoutMs,
-                    versionsMavenPluginVersion, useBuildIncludes, excludeNonRequired, gradleModelTransformer);
+                    versionsMavenPluginVersion, useVersionsMavenPlugin, useBuildIncludes, excludeNonRequired,
+                    gradleModelTransformer);
         }
 
         /**
@@ -352,6 +354,11 @@ public class BuildRequest {
             return this;
         }
 
+        public BuildRequestBuilder useVersionsMavenPlugin(boolean useVersionsMavenPlugin) {
+            this.useVersionsMavenPlugin = useVersionsMavenPlugin;
+            return this;
+        }
+
         /**
          * @param verbosity see {@link BuildRequest#getVerbosity()}
          * @return this {@link BuildRequestBuilder}
@@ -436,6 +443,7 @@ public class BuildRequest {
      * @param skipTests
      * @param srcVersion
      * @param version
+     * @param useVersionsMavenPlugin
      * @param timeoutMs
      * @param verbosity
      * @return a sha1 hash in hex form
@@ -443,7 +451,8 @@ public class BuildRequest {
     public static String computeHash(boolean addDefaultBuildArguments, boolean addDefaultBuildEnvironment,
             List<String> buildArguments, Map<String, String> buildEnvironment, Set<String> forwardProperties,
             GavSet gavSet, List<String> scmUrls, boolean skipTests, SrcVersion srcVersion, String version,
-            Set<String> buildIncludes, boolean excludeNonRequired, long timeoutMs, Verbosity verbosity) {
+            boolean useVersionsMavenPlugin, Set<String> buildIncludes, boolean excludeNonRequired, long timeoutMs,
+            Verbosity verbosity) {
 
         try (DigestOutputStream digester = new DigestOutputStream(MessageDigest.getInstance("SHA-1"))) {
             digester.write(addDefaultBuildArguments ? 1 : 0);
@@ -474,6 +483,7 @@ public class BuildRequest {
 
                 w.write(srcVersion.toString());
                 w.write(version);
+                w.write(useVersionsMavenPlugin ? 1 : 0);
                 for (String e : buildIncludes) {
                     w.write(e);
                 }
@@ -514,7 +524,9 @@ public class BuildRequest {
     private final boolean skipTests;
     private final SrcVersion srcVersion;
     private final long timeoutMs;
+    private final boolean useVersionsMavenPlugin;
     private final Verbosity verbosity;
+
     private final String version;
     private final String versionsMavenPluginVersion;
 
@@ -523,8 +535,8 @@ public class BuildRequest {
             boolean skipTests, boolean addDefaultBuildArguments, Set<String> forwardPropertyNames,
             Map<String, String> forwardPropertyValues, Map<String, String> buildEnvironment,
             boolean addDefaultBuildEnvironment, Verbosity verbosity, IoRedirects ioRedirects, long timeoutMs,
-            String versionsMavenPluginVersion, Set<String> buildIncludes, boolean excludeNonRequired,
-            CharStreamSource gradleModelTransformer) {
+            String versionsMavenPluginVersion, boolean useVersionsMavenPlugin, Set<String> buildIncludes,
+            boolean excludeNonRequired, CharStreamSource gradleModelTransformer) {
         super();
 
         SrcdepsCoreUtils.assertArgNotNull(scmRepositoryId, "scmRepositoryId");
@@ -561,12 +573,13 @@ public class BuildRequest {
         this.forwardPropertyValues = forwardPropertyValues;
         this.ioRedirects = ioRedirects;
         this.versionsMavenPluginVersion = versionsMavenPluginVersion;
+        this.useVersionsMavenPlugin = useVersionsMavenPlugin;
         this.buildIncludes = buildIncludes;
         this.excludeNonRequired = excludeNonRequired;
         this.gradleModelTransformer = gradleModelTransformer;
         this.hash = computeHash(addDefaultBuildArguments, addDefaultBuildEnvironment, buildArguments, buildEnvironment,
-                forwardPropertyNames, gavSet, scmUrls, skipTests, srcVersion, versionsMavenPluginVersion, buildIncludes,
-                excludeNonRequired, timeoutMs, verbosity);
+                forwardPropertyNames, gavSet, scmUrls, skipTests, srcVersion, versionsMavenPluginVersion,
+                useVersionsMavenPlugin, buildIncludes, excludeNonRequired, timeoutMs, verbosity);
         log.debug("srcdeps: Computed hash [{}] of [{}]", hash, this);
     }
 
@@ -758,6 +771,16 @@ public class BuildRequest {
         return skipTests;
     }
 
+    /**
+     * @return {@code true} if {@code mvn versions:set -DnewVersion...} should be used to set version in the dependency
+     *         source tree. Otherwise {@link MavenSourceTree#setVersions(String, java.util.function.Predicate)} will be
+     *         used. {@link MavenSourceTree#setVersions(String, java.util.function.Predicate)} should be preferred
+     *         because it is faster.
+     */
+    public boolean isUseVersionsMavenPlugin() {
+        return useVersionsMavenPlugin;
+    }
+
     @Override
     public String toString() {
         return "BuildRequest [scmRepositoryId=" + scmRepositoryId + ", addDefaultBuildArguments="
@@ -768,8 +791,9 @@ public class BuildRequest {
                 + ", gradleModelTransformer=" + gradleModelTransformer + ", id=" + hash + ", ioRedirects=" + ioRedirects
                 + ", projectRootDirectory=" + projectRootDirectory + ", scmUrls=" + scmUrls + ", skipTests=" + skipTests
                 + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs + ", verbosity=" + verbosity + ", version="
-                + version + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + ", buildIncludes="
-                + buildIncludes + ", excludeNonRequired=" + excludeNonRequired + "]";
+                + version + ", versionsMavenPluginVersion=" + versionsMavenPluginVersion + ", useVersionsMavenPlugin="
+                + useVersionsMavenPlugin + " buildIncludes=" + buildIncludes + ", excludeNonRequired="
+                + excludeNonRequired + "]";
     }
 
 }

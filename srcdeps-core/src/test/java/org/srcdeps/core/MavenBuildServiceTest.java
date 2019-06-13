@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,35 +19,56 @@ package org.srcdeps.core;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.srcdeps.core.BuildRequest.BuildRequestBuilder;
 
 /**
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class MavenBuildServiceTest extends AbstractBuildServiceTest {
 
-    private void assertMvnBuild(String srcVersion) throws IOException, BuildException {
-        assertBuild("git:https://github.com/srcdeps/srcdeps-test-artifact.git", srcVersion,
+    protected static final BuilderTransformer MAVEN_SOURCE_TREE_VERSIONS_SET = new BuilderTransformer() {
+
+        @Override
+        public BuildRequestBuilder transform(BuildRequestBuilder builder) {
+            return builder.useVersionsMavenPlugin(false);
+        }
+    };
+    protected static final BuilderTransformer VERSIONS_SET_MAVEN_PLUGIN = new BuilderTransformer() {
+
+        @Override
+        public BuildRequestBuilder transform(BuildRequestBuilder builder) {
+            return builder.useVersionsMavenPlugin(true);
+        }
+    };
+
+    private void assertMvnBuild(String srcVersion, BuilderTransformer transformer) throws IOException, BuildException {
+        assertBuild("git:https://github.com/srcdeps/srcdeps-test-artifact.git", srcVersion, transformer,
                 "org.l2x6.maven.srcdeps.itest:srcdeps-test-artifact:${version}:[pom,jar]");
     }
 
     @Test
     public void testMvnGitBranch() throws BuildException, IOException {
-        assertMvnBuild("0.0.1-SRC-branch-morning-branch");
+        assertMvnBuild("0.0.1-SRC-branch-morning-branch", MAVEN_SOURCE_TREE_VERSIONS_SET);
     }
 
     @Test
     public void testMvnGitRevision() throws BuildException, IOException {
-        assertMvnBuild("0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b");
+        assertMvnBuild("0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b", MAVEN_SOURCE_TREE_VERSIONS_SET);
+    }
+
+    @Test
+    public void testMvnGitRevisionSetVersionsPlugin() throws BuildException, IOException {
+        assertMvnBuild("0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b", VERSIONS_SET_MAVEN_PLUGIN);
     }
 
     @Test
     public void testMvnGitRevisionNonMaster() throws BuildException, IOException {
-        assertMvnBuild("0.0.1-SRC-revision-dbad2cdc30b5bb3ff62fc89f57987689a5f3c220");
+        assertMvnBuild("0.0.1-SRC-revision-dbad2cdc30b5bb3ff62fc89f57987689a5f3c220", MAVEN_SOURCE_TREE_VERSIONS_SET);
     }
 
     @Test
     public void testMvnGitTag() throws BuildException, IOException {
-        assertMvnBuild("0.0.1-SRC-tag-0.0.1");
+        assertMvnBuild("0.0.1-SRC-tag-0.0.1", MAVEN_SOURCE_TREE_VERSIONS_SET);
     }
 
 }

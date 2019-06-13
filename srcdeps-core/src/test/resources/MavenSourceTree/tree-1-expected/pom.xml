@@ -31,6 +31,10 @@
 
   <name>A Maven source tree parent</name>
 
+  <properties>
+    <prop1>val-parent</prop1>
+  </properties>
+
   <modules>
     <module>module-1</module>
     <module>module-2</module>

@@ -227,13 +227,13 @@ public class Configuration {
     private static final Set<String> DEFAULT_FORWARD_PROPERTIES;
     private static final String FORWARD_PROPERTIES_ATTRIBUTE = "forwardProperties";
 
-    private static final String LATEST_CONFIG_MODEL_VERSION = "2.5";
+    private static final String LATEST_CONFIG_MODEL_VERSION = "2.6";
 
     private static final String SRCDEPS_ENCODING_PROPERTY = "srcdeps.encoding";
     private static final String SRCDEPS_MASTER_CONFIG_PROPERTY = "srcdeps.masterConfig";
 
     private static final Set<String> SUPPORTED_CONFIG_MODEL_VERSIONS = Collections.unmodifiableSet(
-            new LinkedHashSet<>(Arrays.asList("2.0", "2.1", "2.2", "2.3", "2.4", LATEST_CONFIG_MODEL_VERSION)));
+            new LinkedHashSet<>(Arrays.asList("2.0", "2.1", "2.2", "2.3", "2.4", "2.5", LATEST_CONFIG_MODEL_VERSION)));
 
     static {
         DEFAULT_FORWARD_PROPERTIES = Collections.unmodifiableSet(new LinkedHashSet<>(

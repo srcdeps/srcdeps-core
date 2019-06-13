@@ -58,7 +58,7 @@ public class YamlConfigurationReaderTest {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full.yaml"), "utf-8")) {
             Configuration actual = new YamlConfigurationReader().read(in).build();
             Configuration expected = Configuration.builder() //
-                    .configModelVersion("2.5") //
+                    .configModelVersion("2.6") //
                     .forwardAsMasterConfig(true) //
                     .forwardProperty("myProp1") //
                     .forwardProperty("myProp2") //
@@ -73,6 +73,7 @@ public class YamlConfigurationReaderTest {
                     .maven( //
                             Maven.builder() //
                                     .versionsMavenPluginVersion("1.2") //
+                                    .useVersionsMavenPlugin(true) //
                                     .failWith( //
                                             MavenAssertions.failWithBuilder() //
                                                     .addDefaults(false) //
@@ -113,6 +114,7 @@ public class YamlConfigurationReaderTest {
                                     .maven( //
                                             ScmRepositoryMaven.builder() //
                                                     .versionsMavenPluginVersion("2.2") //
+                                                    .useVersionsMavenPlugin(true) //
                                                     .excludeNonRequired(true) //
                                                     .includeRequired(true) //
                                                     .include("org.srcdeps.example:artifact1") //
@@ -135,6 +137,7 @@ public class YamlConfigurationReaderTest {
                                     .skipTests(false) //
                                     .maven( //
                                             ScmRepositoryMaven.builder() //
+                                                    .useVersionsMavenPlugin(true) //
                                                     .excludeNonRequired(true) //
                                                     .includeRequired(true) //
                                     ) //
@@ -167,6 +170,7 @@ public class YamlConfigurationReaderTest {
                     .maven( //
                             Maven.builder() //
                                     .versionsMavenPluginVersion("1.2") //
+                                    .useVersionsMavenPlugin(false) //
                                     .failWith( //
                                             MavenAssertions.failWithBuilder() //
                                                     .addDefaults(false) //
@@ -203,6 +207,7 @@ public class YamlConfigurationReaderTest {
                                     .maven( //
                                             ScmRepositoryMaven.builder() //
                                                     .versionsMavenPluginVersion("2.2") //
+                                                    .useVersionsMavenPlugin(false) //
                                                     .excludeNonRequired(false) //
                                                     .includeRequired(false) //
                                     ) //
@@ -219,6 +224,7 @@ public class YamlConfigurationReaderTest {
                                     .skipTests(false)
                                     .maven( //
                                             ScmRepositoryMaven.builder() //
+                                                    .useVersionsMavenPlugin(false) //
                                                     .excludeNonRequired(false) //
                                                     .includeRequired(false) //
                                     ) //

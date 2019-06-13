@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-configModelVersion: 2.5
+configModelVersion: 2.6
 
 forwardAsMasterConfig: true
 
@@ -41,6 +41,7 @@ buildRef: branch-3.x
 
 maven:
   versionsMavenPluginVersion: 1.2
+  useVersionsMavenPlugin: false
   failWith:
     addDefaults: false
     goals:
@@ -86,6 +87,7 @@ repositories:
     buildRef: revision-deadbeef
     maven:
       versionsMavenPluginVersion: 2.2
+      useVersionsMavenPlugin: true
       excludeNonRequired: true
       includeRequired: true
       includes:
@@ -106,5 +108,6 @@ repositories:
     addDefaultBuildArguments: false
     skipTests: false
     maven:
+      useVersionsMavenPlugin: true
       excludeNonRequired: true
       includeRequired: true
