@@ -46,6 +46,8 @@ import java.util.stream.Collectors;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -595,6 +597,13 @@ public class MavenSourceTree {
 
         public static class PluginGavBuilder extends DependencyGavBuilder {
 
+            private List<DependencyGavBuilder> dependencies = new ArrayList<>();
+
+            PluginGavBuilder(ModuleGavBuilder module) {
+                super(module);
+                this.groupId = "org.apache.maven.plugins";
+            }
+
             public PluginGav build() {
                 final Ga ga = new Ga(groupId, artifactId);
                 final Set<GavExpression> useDependencies = Collections.unmodifiableSet(dependencies.stream()
@@ -602,13 +611,6 @@ public class MavenSourceTree {
                 dependencies = null;
                 return new PluginGav(ga, version != null ? Expression.of(version, module.getGa()) : null,
                         useDependencies);
-            }
-
-            private List<DependencyGavBuilder> dependencies = new ArrayList<>();
-
-            PluginGavBuilder(ModuleGavBuilder module) {
-                super(module);
-                this.groupId = "org.apache.maven.plugins";
             }
 
             public void dependency(DependencyGavBuilder gav) {
@@ -726,8 +728,9 @@ public class MavenSourceTree {
                                     final PluginGavBuilder pluginGavBuilder = (PluginGavBuilder) gavBuilderStack.peek();
                                     pluginGavBuilder.dependency(gav);
                                 } else {
-                                    throw new IllegalStateException(String
-                                            .format("Unexpected grand parent of <dependency>: <%s>", grandParent));
+                                    throw new IllegalStateException(
+                                            String.format("Unexpected grand parent of <dependency>: <%s> in [%s]",
+                                                    grandParent, pomXml));
                                 }
                                 gavBuilderStack.push(gav);
                             } else if ("plugin".equals(elementName)) {
@@ -741,7 +744,8 @@ public class MavenSourceTree {
                                     profile.plugins.add(gav);
                                 } else {
                                     throw new IllegalStateException(
-                                            String.format("Unexpected grand parent of <plugin>: <%s>", parentElement));
+                                            String.format("Unexpected grand parent of <plugin>: <%s> in [%s]",
+                                                    parentElement, pomXml));
                                 }
                             } else if ("module".equals(elementName)) {
                                 final String relPath = r.nextEvent().asCharacters().getData() + "/pom.xml";
@@ -749,8 +753,16 @@ public class MavenSourceTree {
                                 final String rootRelPath = rootDirectory.relativize(childPomXml).toString();
                                 profile.children.add(SrcdepsCoreUtils.toUnixPath(rootRelPath));
                             } else if (elementStackSize > 0 && "properties".equals(elementStack.peek())) {
-                                profile.properties.add(new Profile.PropertyBuilder(elementName,
-                                        r.nextEvent().asCharacters().getData(), moduleGav));
+                                final XMLEvent nextEvent = r.peek();
+                                if (nextEvent instanceof Characters) {
+                                    profile.properties.add(new Profile.PropertyBuilder(elementName,
+                                            r.nextEvent().asCharacters().getData(), moduleGav));
+                                } else if (nextEvent instanceof EndElement) {
+                                    profile.properties.add(new Profile.PropertyBuilder(elementName, "", moduleGav));
+                                } else {
+                                    throw new IllegalStateException(String.format("Unexpected XML event [%s] in [%s]",
+                                            nextEvent.getClass().getName(), pomXml));
+                                }
                             } else if ("profile".equals(elementName)) {
                                 profile = new Profile.Builder();
                             } else if ("id".equals(elementName)) {
@@ -827,8 +839,9 @@ public class MavenSourceTree {
                     final Set<PluginGav> usePlugins = Collections.<PluginGav>unmodifiableSet(plugins.stream()
                             .map(PluginGavBuilder::build).collect(Collectors.toCollection(LinkedHashSet::new)));
                     plugins = null;
-                    final Set<PluginGav> usePluginManagement = Collections.<PluginGav>unmodifiableSet(pluginManagement.stream()
-                            .map(PluginGavBuilder::build).collect(Collectors.toCollection(LinkedHashSet::new)));
+                    final Set<PluginGav> usePluginManagement = Collections
+                            .<PluginGav>unmodifiableSet(pluginManagement.stream().map(PluginGavBuilder::build)
+                                    .collect(Collectors.toCollection(LinkedHashSet::new)));
                     pluginManagement = null;
                     final Map<String, Expression> useProps = Collections.unmodifiableMap(properties.stream() //
                             .map(PropertyBuilder::build) //
@@ -1160,14 +1173,13 @@ public class MavenSourceTree {
         return result.toString();
     }
 
-    static String xPathDependencyVersion(String dependencyKind, Ga ga) {
-        return xPathDependency(dependencyKind, ga) + "/*[local-name()='version']";
-    }
-
     static String xPathDependency(String dependencyKind, Ga ga) {
         return "/*[local-name()='" + dependencyKind + "' and *[local-name()='groupId' and text()='" + ga.getGroupId()
-                + "'] and *[local-name()='artifactId' and text()='" + ga.getArtifactId()
-                + "']]";
+                + "'] and *[local-name()='artifactId' and text()='" + ga.getArtifactId() + "']]";
+    }
+
+    static String xPathDependencyVersion(String dependencyKind, Ga ga) {
+        return xPathDependency(dependencyKind, ga) + "/*[local-name()='version']";
     }
 
     static String xPathProfile(String id, String... elements) {
@@ -1281,7 +1293,8 @@ public class MavenSourceTree {
                     edit(newVersion, isProfileActive, edits, module, pluginGav.getVersion(), xPath);
                 }
                 if (!pluginGav.getDependencies().isEmpty()) {
-                    final String prefix = xPathProfile + xPathDependency("plugin", pluginGav.getGa()) + xPath("dependencies");
+                    final String prefix = xPathProfile + xPathDependency("plugin", pluginGav.getGa())
+                            + xPath("dependencies");
                     for (GavExpression dep : pluginGav.getDependencies()) {
                         if (dep.getVersion() != null && modulesByGa.containsKey(dep.getGa())) {
                             final String xPath = prefix + xPathDependencyVersion("dependency", dep.getGa());
