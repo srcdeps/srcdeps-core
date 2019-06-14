@@ -1472,7 +1472,6 @@ public class MavenSourceTree {
      */
     public void setVersions(final String newVersion, final Predicate<Profile> isProfileActive) {
         final DomEdits edits = new DomEdits();
-        final Ga rootGa = getRootModule().getGav().resolveGa(this, isProfileActive);
         for (Module module : modulesByGa.values()) {
 
             /* self */
@@ -1484,7 +1483,7 @@ public class MavenSourceTree {
             }
 
             /* parent */
-            if (parentGav != null && parentGav.resolveGa(this, isProfileActive).equals(rootGa)) {
+            if (parentGav != null && modulesByGa.containsKey(parentGav.resolveGa(this, isProfileActive))) {
                 final Expression parentVersion = parentGav.getVersion();
                 edit(newVersion, isProfileActive, edits, module, parentVersion, xPath("project", "parent", "version"));
             }
