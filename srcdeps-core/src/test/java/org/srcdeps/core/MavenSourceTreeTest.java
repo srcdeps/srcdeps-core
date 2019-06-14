@@ -97,7 +97,8 @@ public class MavenSourceTreeTest {
     static GavExpression moduleGae(String gavString) {
         final Gav gav = Gav.of(gavString);
         final Ga ga = new Ga(gav.getGroupId(), gav.getArtifactId());
-        return new GavExpression(ga, Expression.of(gav.getVersion(), ga));
+        return new GavExpression(Expression.of(gav.getGroupId(), ga), Expression.of(gav.getArtifactId(), ga),
+                Expression.of(gav.getVersion(), ga));
     }
 
     static Map<String, Expression> props(Ga ga, String... keyVals) {
@@ -193,7 +194,7 @@ public class MavenSourceTreeTest {
         Assert.assertEquals(Collections.emptyList(), parent.profiles.get(0).dependencies.stream()
                 .map(bu -> bu.build().toString()).collect(Collectors.toList()));
         Assert.assertEquals(//
-                props(treeParentGav.getGa(), "prop1", "val-parent").entrySet(), //
+                props(treeParentGav.resolveGa(null, null), "prop1", "val-parent").entrySet(), //
                 parent.profiles.get(0).properties.stream().map(PropertyBuilder::build)
                         .collect(Collectors.toCollection(LinkedHashSet::new)));
 
@@ -209,7 +210,7 @@ public class MavenSourceTreeTest {
             Assert.assertEquals(Collections.emptyList(), properParent.profiles.get(0).dependencies.stream()
                     .map(bu -> bu.build().toString()).collect(Collectors.toList()));
             Assert.assertEquals(//
-                    props(gav.getGa(), "prop1", "val-proper-parent").entrySet(), //
+                    props(gav.resolveGa(null, null), "prop1", "val-proper-parent").entrySet(), //
                     properParent.profiles.get(0).properties.stream().map(PropertyBuilder::build)
                             .collect(Collectors.toCollection(LinkedHashSet::new)));
         }
@@ -274,7 +275,7 @@ public class MavenSourceTreeTest {
                     .map(bu -> bu.build().toString()).collect(Collectors.toList()));
             Assert.assertEquals(Collections.emptySet(), m5.profiles.get(0).children);
             Assert.assertEquals(//
-                    props(gav.getGa(), "prop1", "val-5").entrySet(), //
+                    props(gav.resolveGa(null, null), "prop1", "val-5").entrySet(), //
                     m5.profiles.get(0).properties.stream().map(PropertyBuilder::build)
                             .collect(Collectors.toCollection(LinkedHashSet::new)));
         }
