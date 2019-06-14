@@ -26,4 +26,70 @@
 
   <artifactId>module-5</artifactId>
 
+  <properties>
+    <org.srcdeps.versions.version>2.2.2</org.srcdeps.versions.version>
+  </properties>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.srcdeps.versions</groupId>
+          <artifactId>plugin-1</artifactId>
+          <version>2.2.2</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.srcdeps.versions</groupId>
+              <artifactId>module-1</artifactId>
+              <version>2.2.2</version>
+            </dependency>
+            <dependency>
+              <groupId>org.srcdeps.versions</groupId>
+              <artifactId>module-2</artifactId>
+              <version>${project.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>org.srcdeps.versions</groupId>
+              <artifactId>module-3</artifactId>
+              <version>${org.srcdeps.versions.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.srcdeps.versions</groupId>
+        <artifactId>plugin-1</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>org.srcdeps.versions</groupId>
+            <artifactId>module-1</artifactId>
+            <version>2.2.2</version>
+          </dependency>
+          <dependency>
+            <groupId>org.srcdeps.versions</groupId>
+            <artifactId>module-2</artifactId>
+            <version>${project.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.srcdeps.versions</groupId>
+            <artifactId>module-3</artifactId>
+            <version>${org.srcdeps.versions.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.srcdeps.versions</groupId>
+        <artifactId>plugin-2</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.srcdeps.versions</groupId>
+        <artifactId>plugin-3</artifactId>
+        <version>2.2.2</version>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>
