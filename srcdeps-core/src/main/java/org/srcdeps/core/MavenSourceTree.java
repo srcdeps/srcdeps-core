@@ -722,7 +722,7 @@ public class MavenSourceTree {
                                 final String grandParent = elementStack.get(elementStackSize - 2);
                                 if ("dependencyManagement".equals(grandParent)) {
                                     profile.dependencyManagement.add(gav);
-                                } else if ("project".equals(grandParent)) {
+                                } else if ("project".equals(grandParent) || "profile".equals(grandParent)) {
                                     profile.dependencies.add(gav);
                                 } else if ("plugin".equals(grandParent)) {
                                     final PluginGavBuilder pluginGavBuilder = (PluginGavBuilder) gavBuilderStack.peek();
