@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.srcdeps.core.BuildException;
 import org.srcdeps.core.BuildRequest;
 import org.srcdeps.core.BuildRequest.Verbosity;
@@ -52,6 +54,7 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     protected static final List<String> POM_FILE_NAMES = Collections.unmodifiableList(
             Arrays.asList("pom.xml", "pom.atom", "pom.clj", "pom.groovy", "pom.rb", "pom.scala", "pom.yml"));
     protected static final List<String> SKIP_TESTS_ARGS = Collections.singletonList("-DskipTests");
+    private static final Logger log = LoggerFactory.getLogger(Shell.class);
 
     /**
      * @return the default build arguments used in Maven builds of source dependencies
@@ -179,10 +182,11 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
         final Map<String, String> env = mergeEnvironment(request);
         final List<String> verbosityArgs = getVerbosityArguments(request.getVerbosity());
 
+        final String newVersion = request.getVersion().toString();
         if (request.isUseVersionsMavenPlugin()) {
             final List<String> args = new ArrayList<>();
             args.add("org.codehaus.mojo:versions-maven-plugin:" + request.getVersionsMavenPluginVersion() + ":set");
-            args.add("-DnewVersion=" + request.getVersion().toString());
+            args.add("-DnewVersion=" + newVersion);
             args.add("-DartifactId=*");
             args.add("-DgroupId=*");
             args.add("-DoldVersion=*");
@@ -201,9 +205,10 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
             final CommandResult result = Shell.execute(cliRequest).assertSuccess();
             this.restTimeoutMs = request.getTimeoutMs() - result.getRuntimeMs();
         } else {
+            log.info("srcdeps: Setting versions to [{}] using srcdeps version setters", newVersion);
             final MavenSourceTree tree = MavenSourceTree.of(request.getProjectRootDirectory().resolve("pom.xml"),
                     request.getEncoding());
-            tree.setVersions(request.getVersion().toString(), ActiveProfiles.ofArgs(request.getBuildArguments()));
+            tree.setVersions(newVersion, ActiveProfiles.ofArgs(request.getBuildArguments()));
         }
 
         final Map<String, String> forwardProps = request.getForwardPropertyValues();

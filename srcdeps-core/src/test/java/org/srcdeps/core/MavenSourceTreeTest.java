@@ -134,6 +134,10 @@ public class MavenSourceTreeTest {
         assertProperty(t, "prop1", Ga.of("org.srcdeps.properties:module-1"), "val-1/p1", "p1");
         assertProperty(t, "prop1", Ga.of("org.srcdeps.properties:module-1"), "val-1/p2", "p2");
         assertProperty(t, "prop1", Ga.of("org.srcdeps.properties:module-1"), "val-1/p2", "p1", "p2");
+        assertProperty(t, "empty1", Ga.of("org.srcdeps.properties:tree-parent"), "");
+        assertProperty(t, "empty2", Ga.of("org.srcdeps.properties:tree-parent"), "");
+
+        Assert.assertEquals(3, t.getRootModule().getProfiles().get(0).getProperties().size());
     }
 
     @Test

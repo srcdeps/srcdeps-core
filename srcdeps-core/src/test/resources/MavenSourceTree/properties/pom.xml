@@ -29,6 +29,8 @@
 
   <properties>
     <prop1>val-parent/main</prop1>
+    <empty1></empty1>
+    <empty2/>
   </properties>
 
   <modules>
