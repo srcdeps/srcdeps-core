@@ -54,7 +54,7 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     protected static final List<String> POM_FILE_NAMES = Collections.unmodifiableList(
             Arrays.asList("pom.xml", "pom.atom", "pom.clj", "pom.groovy", "pom.rb", "pom.scala", "pom.yml"));
     protected static final List<String> SKIP_TESTS_ARGS = Collections.singletonList("-DskipTests");
-    private static final Logger log = LoggerFactory.getLogger(Shell.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractMvnBuilder.class);
 
     /**
      * @return the default build arguments used in Maven builds of source dependencies

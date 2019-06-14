@@ -63,6 +63,8 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.srcdeps.core.MavenSourceTree.Expression.Constant;
 import org.srcdeps.core.MavenSourceTree.Expression.NonConstant;
 import org.srcdeps.core.MavenSourceTree.GavExpression.DependencyGavBuilder;
@@ -85,7 +87,6 @@ import org.w3c.dom.NodeList;
  * @since 4.1
  */
 public class MavenSourceTree {
-
     public static class ActiveProfiles implements Predicate<Profile> {
 
         static final Predicate<Profile> EMPTY = new ActiveProfiles();
@@ -718,8 +719,8 @@ public class MavenSourceTree {
                             if ("parent".equals(elementName) && r.hasNext()) {
                                 gavBuilderStack.push(parentGav);
                             } else if ("dependency".equals(elementName)) {
-                                final DependencyGavBuilder gav = new DependencyGavBuilder(moduleGav);
                                 final String grandParent = elementStack.get(elementStackSize - 2);
+                                final DependencyGavBuilder gav = new DependencyGavBuilder(moduleGav);
                                 if ("dependencyManagement".equals(grandParent)) {
                                     profile.dependencyManagement.add(gav);
                                 } else if ("project".equals(grandParent) || "profile".equals(grandParent)) {
@@ -727,10 +728,11 @@ public class MavenSourceTree {
                                 } else if ("plugin".equals(grandParent)) {
                                     final PluginGavBuilder pluginGavBuilder = (PluginGavBuilder) gavBuilderStack.peek();
                                     pluginGavBuilder.dependency(gav);
+                                } else if ("configuration".equals(grandParent)) {
+                                    /* Ignore: some plugins, such as maven-surefire-plugin have <dependency> in their config */
                                 } else {
-                                    throw new IllegalStateException(
-                                            String.format("Unexpected grand parent of <dependency>: <%s> in [%s]",
-                                                    grandParent, pomXml));
+                                    log.warn("srcdeps: Unexpected grand parent of <dependency>: <{}> in [{}]",
+                                            grandParent, pomXml);
                                 }
                                 gavBuilderStack.push(gav);
                             } else if ("plugin".equals(elementName)) {
@@ -1133,6 +1135,8 @@ public class MavenSourceTree {
             return xPath;
         }
     }
+
+    private static final Logger log = LoggerFactory.getLogger(MavenSourceTree.class);
 
     private static final String PROJECT_VERSION_XPATH = "/*[local-name()='project']/*[local-name()='version']";
 
