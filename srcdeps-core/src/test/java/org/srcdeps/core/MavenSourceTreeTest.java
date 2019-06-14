@@ -109,6 +109,18 @@ public class MavenSourceTreeTest {
         return props;
     }
 
+//    @Test
+//    public void quarkus() {
+//        MavenSourceTree t = MavenSourceTree.of(Paths.get("/home/ppalaga/.m2/srcdeps/io/quarkus/0/pom.xml"), StandardCharsets.UTF_8);
+//        t.setVersions("999-SRC-revision-123", ActiveProfiles.of());
+//    }
+//
+//    @Test
+//    public void camel() {
+//        MavenSourceTree t = MavenSourceTree.of(Paths.get("/home/ppalaga/.m2/srcdeps/org/apache/camel/0/pom.xml"), StandardCharsets.UTF_8);
+//        t.setVersions("999-SRC-revision-123", ActiveProfiles.of());
+//    }
+
     @Test
     public void propertyEval() throws IOException, CommandTimeoutException, BuildException {
         final Path root = BASEDIR.resolve("target/test-classes/MavenSourceTree/properties");
