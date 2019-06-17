@@ -553,6 +553,11 @@ public class MavenSourceTree {
                 return new Dependency(Expression.of(groupId, ga), Expression.of(artifactId, ga),
                         version != null ? Expression.of(version, ga) : null, scope);
             }
+
+            public void scope(String scope) {
+                this.scope = scope;
+            }
+
         }
 
         interface GavBuilder {
@@ -853,6 +858,10 @@ public class MavenSourceTree {
                                 gavBuilderStack.peek().artifactId(r.nextEvent().asCharacters().getData());
                             } else if ("version".equals(elementName)) {
                                 gavBuilderStack.peek().version(r.nextEvent().asCharacters().getData());
+                            } else if ("scope".equals(elementName)
+                                    && gavBuilderStack.peek() instanceof DependencyBuilder) {
+                                ((DependencyBuilder) gavBuilderStack.peek())
+                                        .scope(r.nextEvent().asCharacters().getData());
                             }
                             elementStack.push(elementName);
                         } else if (e.isEndElement()) {
