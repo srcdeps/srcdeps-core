@@ -57,6 +57,14 @@
 
   <build>
 
+    <extensions>
+      <extension>
+        <groupId>org.srcdeps.versions</groupId>
+        <artifactId>module-7</artifactId>
+        <version>0.0.1</version>
+      </extension>
+    </extensions>
+
     <pluginManagement>
       <plugins>
         <plugin>
