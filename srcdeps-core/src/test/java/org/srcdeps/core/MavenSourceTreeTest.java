@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -109,17 +110,35 @@ public class MavenSourceTreeTest {
         return props;
     }
 
-//    @Test
-//    public void quarkus() {
-//        MavenSourceTree t = MavenSourceTree.of(Paths.get("/home/ppalaga/.m2/srcdeps/io/quarkus/0/pom.xml"), StandardCharsets.UTF_8);
-//        t.setVersions("999-SRC-revision-123", ActiveProfiles.of());
-//    }
-//
-//    @Test
-//    public void camel() {
-//        MavenSourceTree t = MavenSourceTree.of(Paths.get("/home/ppalaga/.m2/srcdeps/org/apache/camel/0/pom.xml"), StandardCharsets.UTF_8);
-//        t.setVersions("999-SRC-revision-123", ActiveProfiles.of());
-//    }
+    // @Test
+    // public void quarkus() {
+    // MavenSourceTree t = MavenSourceTree.of(Paths.get("/home/ppalaga/.m2/srcdeps/io/quarkus/0/pom.xml"),
+    // StandardCharsets.UTF_8);
+    // t.setVersions("999-SRC-revision-123", ActiveProfiles.of());
+    // }
+    //
+    // @Test
+    // public void camel() {
+    // MavenSourceTree t = MavenSourceTree.of(Paths.get("/home/ppalaga/.m2/srcdeps/org/apache/camel/0/pom.xml"),
+    // StandardCharsets.UTF_8);
+    // t.setVersions("999-SRC-revision-123", ActiveProfiles.of());
+    // }
+
+    @Test
+    public void filterDependencies() throws IOException {
+        final Path root = BASEDIR.resolve("target/test-classes/MavenSourceTree/set-versions");
+        final MavenSourceTree t = new Builder(root, StandardCharsets.UTF_8).pomXml(root.resolve("pom.xml")).build();
+        final GavSet gavSet = GavSet.builder().include("org.srcdeps.external").build();
+        final Set<Ga> actual = t.filterDependencies(gavSet, ActiveProfiles.of());
+        final Set<Ga> expected = new TreeSet<Ga>(Arrays.asList( //
+                Ga.of("org.srcdeps.external:extenal-parent"), //
+                Ga.of("org.srcdeps.external:extenal-bom"), //
+                Ga.of("org.srcdeps.external:external-extension"), //
+                Ga.of("org.srcdeps.external:external-plugin-1"), //
+                Ga.of("org.srcdeps.external:external-plugin-2") //
+        ));
+        Assert.assertEquals(expected, actual);
+    }
 
     @Test
     public void propertyEval() throws IOException, CommandTimeoutException, BuildException {
@@ -170,18 +189,16 @@ public class MavenSourceTreeTest {
         }
 
     }
+
     @Test
     public void ofArgs() {
         Assert.assertEquals(ActiveProfiles.EMPTY, ActiveProfiles.ofArgs(Arrays.asList()));
         Assert.assertEquals(ActiveProfiles.of("p1"), ActiveProfiles.ofArgs(Arrays.asList("-Pp1")));
-        Assert.assertEquals(ActiveProfiles.of("p1", "p2" ),
-                ActiveProfiles.ofArgs(Arrays.asList("-Pp1,p2")));
-        Assert.assertEquals(ActiveProfiles.of("p1" ), ActiveProfiles.ofArgs(Arrays.asList("-P", "p1")));
-        Assert.assertEquals(ActiveProfiles.of("p1", "p2" ),
-                ActiveProfiles.ofArgs(Arrays.asList("-P", "p1,p2")));
-        Assert.assertEquals(ActiveProfiles.of("p1" ),
-                ActiveProfiles.ofArgs(Arrays.asList("--activate-profiles", "p1")));
-        Assert.assertEquals(ActiveProfiles.of("p1", "p2" ),
+        Assert.assertEquals(ActiveProfiles.of("p1", "p2"), ActiveProfiles.ofArgs(Arrays.asList("-Pp1,p2")));
+        Assert.assertEquals(ActiveProfiles.of("p1"), ActiveProfiles.ofArgs(Arrays.asList("-P", "p1")));
+        Assert.assertEquals(ActiveProfiles.of("p1", "p2"), ActiveProfiles.ofArgs(Arrays.asList("-P", "p1,p2")));
+        Assert.assertEquals(ActiveProfiles.of("p1"), ActiveProfiles.ofArgs(Arrays.asList("--activate-profiles", "p1")));
+        Assert.assertEquals(ActiveProfiles.of("p1", "p2"),
                 ActiveProfiles.ofArgs(Arrays.asList("--activate-profiles", "p1,p2")));
     }
 

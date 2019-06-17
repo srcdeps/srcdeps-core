@@ -61,6 +61,11 @@
         <artifactId>module-7</artifactId>
         <version>2.2.2</version>
       </extension>
+      <extension>
+        <groupId>org.srcdeps.external</groupId>
+        <artifactId>external-extension</artifactId>
+        <version>1.2.3</version>
+      </extension>
     </extensions>
 
     <pluginManagement>

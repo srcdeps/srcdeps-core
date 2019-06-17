@@ -63,6 +63,11 @@
         <artifactId>module-7</artifactId>
         <version>0.0.1</version>
       </extension>
+      <extension>
+        <groupId>org.srcdeps.external</groupId>
+        <artifactId>external-extension</artifactId>
+        <version>1.2.3</version>
+      </extension>
     </extensions>
 
     <pluginManagement>
