@@ -754,7 +754,9 @@ public class MavenSourceTree {
                         if (e.isStartElement()) {
                             final String elementName = e.asStartElement().getName().getLocalPart();
                             final int elementStackSize = elementStack.size();
-                            if ("parent".equals(elementName) && r.hasNext()) {
+                            if (elementStack.contains("configuration")) {
+                                /* ignore elements under <configuration> */
+                            } else if ("parent".equals(elementName) && r.hasNext()) {
                                 gavBuilderStack.push(parentGav);
                             } else if ("dependency".equals(elementName)) {
                                 final String grandParent = elementStack.get(elementStackSize - 2);
@@ -766,12 +768,14 @@ public class MavenSourceTree {
                                 } else if ("plugin".equals(grandParent)) {
                                     final PluginGavBuilder pluginGavBuilder = (PluginGavBuilder) gavBuilderStack.peek();
                                     pluginGavBuilder.dependency(gav);
-                                } else if ("configuration".equals(grandParent)) {
-                                    /* Ignore: some plugins, such as maven-surefire-plugin have <dependency> in their config */
                                 } else {
                                     log.warn("srcdeps: Unexpected grand parent of <dependency>: <{}> in [{}]",
                                             grandParent, pomXml);
                                 }
+                                gavBuilderStack.push(gav);
+                            } else if ("extension".equals(elementName)) {
+                                final DependencyGavBuilder gav = new DependencyGavBuilder(moduleGav);
+                                // TODO support extensions properly
                                 gavBuilderStack.push(gav);
                             } else if ("plugin".equals(elementName)) {
                                 final PluginGavBuilder gav = new PluginGavBuilder(moduleGav);
@@ -821,10 +825,15 @@ public class MavenSourceTree {
                             elementStack.push(elementName);
                         } else if (e.isEndElement()) {
                             final String elementName = elementStack.pop();
-                            if ("parent".equals(elementName)) {
+                            if (elementStack.contains("configuration")) {
+                                /* ignore */
+                            } else if ("parent".equals(elementName)) {
                                 final GavBuilder gav = gavBuilderStack.pop();
                                 assert gav instanceof ParentGavBuilder;
                             } else if ("dependency".equals(elementName)) {
+                                final GavBuilder gav = gavBuilderStack.pop();
+                                assert gav instanceof DependencyGavBuilder;
+                            } else if ("extension".equals(elementName)) {
                                 final GavBuilder gav = gavBuilderStack.pop();
                                 assert gav instanceof DependencyGavBuilder;
                             } else if ("plugin".equals(elementName)) {

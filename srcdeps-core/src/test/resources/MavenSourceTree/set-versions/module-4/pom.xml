@@ -30,6 +30,8 @@
 
   <properties>
     <plugin-1.version>0.0.1</plugin-1.version>
+    <external-plugin-1.version>6.7.8</external-plugin-1.version>
+    <external-plugin-2.version>7.8.9</external-plugin-2.version>
   </properties>
 
   <dependencies>
@@ -54,6 +56,17 @@
   </dependencies>
 
   <build>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.srcdeps.external</groupId>
+          <artifactId>external-plugin-2</artifactId>
+          <version>${external-plugin-2.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
     <plugins>
       <plugin>
         <groupId>org.srcdeps.versions</groupId>
@@ -67,6 +80,11 @@
         <groupId>org.srcdeps.versions</groupId>
         <artifactId>plugin-3</artifactId>
         <version>0.0.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.srcdeps.external</groupId>
+        <artifactId>external-plugin-1</artifactId>
+        <version>${external-plugin-1.version}</version>
       </plugin>
     </plugins>
   </build>
