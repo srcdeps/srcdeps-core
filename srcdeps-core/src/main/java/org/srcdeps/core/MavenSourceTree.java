@@ -786,13 +786,18 @@ public class MavenSourceTree {
                     gavBuilderStack.push(moduleGav);
                     Profile.Builder profile = implicitProfile;
 
+                    int ignoredSubtreesCount = 0;
+
                     while (r.hasNext()) {
                         final XMLEvent e = r.nextEvent();
                         if (e.isStartElement()) {
                             final String elementName = e.asStartElement().getName().getLocalPart();
                             final int elementStackSize = elementStack.size();
-                            if (elementStack.contains("configuration")) {
-                                /* ignore elements under <configuration> */
+                            if (ignoredSubtreesCount > 0) {
+                                /* ignore */
+                            } else if ("configuration".equals(elementName) || "exclusions".equals(elementName)) {
+                                /* ignore elements under <configuration>, etc. */
+                                ignoredSubtreesCount++;
                             } else if ("parent".equals(elementName) && r.hasNext()) {
                                 gavBuilderStack.push(parentGav);
                             } else if ("dependency".equals(elementName)) {
@@ -866,7 +871,10 @@ public class MavenSourceTree {
                             elementStack.push(elementName);
                         } else if (e.isEndElement()) {
                             final String elementName = elementStack.pop();
-                            if (elementStack.contains("configuration")) {
+                            if ("configuration".equals(elementName) || "exclusions".equals(elementName)) {
+                                /* ignore elements under <configuration>, etc. */
+                                ignoredSubtreesCount--;
+                            } else if (ignoredSubtreesCount > 0) {
                                 /* ignore */
                             } else if ("parent".equals(elementName)) {
                                 final GavBuilder gav = gavBuilderStack.pop();
