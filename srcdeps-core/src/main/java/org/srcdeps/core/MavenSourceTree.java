@@ -67,10 +67,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.srcdeps.core.MavenSourceTree.Expression.Constant;
 import org.srcdeps.core.MavenSourceTree.Expression.NonConstant;
-import org.srcdeps.core.MavenSourceTree.GavExpression.DependencyGavBuilder;
+import org.srcdeps.core.MavenSourceTree.GavExpression.DependencyBuilder;
 import org.srcdeps.core.MavenSourceTree.GavExpression.GavBuilder;
 import org.srcdeps.core.MavenSourceTree.GavExpression.ModuleGavBuilder;
 import org.srcdeps.core.MavenSourceTree.GavExpression.ParentGavBuilder;
+import org.srcdeps.core.MavenSourceTree.GavExpression.PlainGavBuilder;
 import org.srcdeps.core.MavenSourceTree.GavExpression.PluginGavBuilder;
 import org.srcdeps.core.MavenSourceTree.Module.Profile;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
@@ -203,6 +204,19 @@ public class MavenSourceTree {
                 }
             }
             return this;
+        }
+    }
+
+    public static class Dependency extends GavExpression {
+        private final String scope;
+
+        public Dependency(Expression groupId, Expression artifactId, Expression version, String scope) {
+            super(groupId, artifactId, version);
+            this.scope = scope;
+        }
+
+        public String getScope() {
+            return scope;
         }
     }
 
@@ -404,9 +418,11 @@ public class MavenSourceTree {
                 if ("project.version".equals(propertyName)) {
                     consumer.accept(new ValueDefinition(context, PROJECT_VERSION_XPATH, context.getGav().getVersion()));
                 } else if ("project.groupId".equals(propertyName)) {
-                    consumer.accept(new ValueDefinition(context, PROJECT_GROUP_ID_XPATH, context.getGav().getGroupId()));
+                    consumer.accept(
+                            new ValueDefinition(context, PROJECT_GROUP_ID_XPATH, context.getGav().getGroupId()));
                 } else if ("project.artifactId".equals(propertyName)) {
-                    consumer.accept(new ValueDefinition(context, PROJECT_ARTIFACT_ID_XPATH, context.getGav().getGroupId()));
+                    consumer.accept(
+                            new ValueDefinition(context, PROJECT_ARTIFACT_ID_XPATH, context.getGav().getGroupId()));
                 } else {
                     final ValueDefinition propertyDefinition = context.findPropertyDefinition(propertyName,
                             isProfileActive);
@@ -524,19 +540,18 @@ public class MavenSourceTree {
      */
     public static class GavExpression {
 
-        public static class DependencyGavBuilder extends ParentGavBuilder {
+        public static class DependencyBuilder extends PlainGavBuilder {
 
-            final ModuleGavBuilder module;
+            private String scope = "compile";
 
-            DependencyGavBuilder(ModuleGavBuilder module) {
-                super();
-                this.module = module;
+            public DependencyBuilder(ModuleGavBuilder module) {
+                super(module);
             }
 
-            public GavExpression build() {
+            public Dependency build() {
                 final Ga ga = module.getGa();
-                return new GavExpression(Expression.of(groupId, ga), Expression.of(artifactId, ga),
-                        version != null ? Expression.of(version, ga) : null);
+                return new Dependency(Expression.of(groupId, ga), Expression.of(artifactId, ga),
+                        version != null ? Expression.of(version, ga) : null, scope);
             }
         }
 
@@ -592,7 +607,8 @@ public class MavenSourceTree {
                     return null;
                 case 3:
                     final Ga ga = new Ga(groupId, artifactId);
-                    return new GavExpression(Expression.of(groupId, ga), Expression.of(artifactId, ga), Expression.of(version, ga));
+                    return new GavExpression(Expression.of(groupId, ga), Expression.of(artifactId, ga),
+                            Expression.of(version, ga));
                 default:
                     throw new IllegalStateException(String.format(
                             "groupId, artifactId and version must be all null or both not null: groupId: [%s], artifactId: [%s], version: [%s]",
@@ -611,25 +627,41 @@ public class MavenSourceTree {
             }
         }
 
-        public static class PluginGavBuilder extends DependencyGavBuilder {
+        public static class PlainGavBuilder extends ParentGavBuilder {
 
-            private List<DependencyGavBuilder> dependencies = new ArrayList<>();
+            final ModuleGavBuilder module;
+
+            PlainGavBuilder(ModuleGavBuilder module) {
+                super();
+                this.module = module;
+            }
+
+            public GavExpression build() {
+                final Ga ga = module.getGa();
+                return new GavExpression(Expression.of(groupId, ga), Expression.of(artifactId, ga),
+                        version != null ? Expression.of(version, ga) : null);
+            }
+        }
+
+        public static class PluginGavBuilder extends PlainGavBuilder {
+
+            private List<PlainGavBuilder> dependencies = new ArrayList<>();
 
             PluginGavBuilder(ModuleGavBuilder module) {
                 super(module);
                 this.groupId = "org.apache.maven.plugins";
             }
 
-            public PluginGav build() {
+            public Plugin build() {
                 final Set<GavExpression> useDependencies = Collections.unmodifiableSet(dependencies.stream()
-                        .map(DependencyGavBuilder::build).collect(Collectors.toCollection(LinkedHashSet::new)));
+                        .map(PlainGavBuilder::build).collect(Collectors.toCollection(LinkedHashSet::new)));
                 dependencies = null;
                 final Ga ga = module.getGa();
-                return new PluginGav(Expression.of(groupId, ga), Expression.of(artifactId, ga),
+                return new Plugin(Expression.of(groupId, ga), Expression.of(artifactId, ga),
                         version != null ? Expression.of(version, ga) : null, useDependencies);
             }
 
-            public void dependency(DependencyGavBuilder gav) {
+            public void dependency(PlainGavBuilder gav) {
                 dependencies.add(gav);
             }
 
@@ -760,7 +792,7 @@ public class MavenSourceTree {
                                 gavBuilderStack.push(parentGav);
                             } else if ("dependency".equals(elementName)) {
                                 final String grandParent = elementStack.get(elementStackSize - 2);
-                                final DependencyGavBuilder gav = new DependencyGavBuilder(moduleGav);
+                                final DependencyBuilder gav = new DependencyBuilder(moduleGav);
                                 if ("dependencyManagement".equals(grandParent)) {
                                     profile.dependencyManagement.add(gav);
                                 } else if ("project".equals(grandParent) || "profile".equals(grandParent)) {
@@ -774,7 +806,7 @@ public class MavenSourceTree {
                                 }
                                 gavBuilderStack.push(gav);
                             } else if ("extension".equals(elementName)) {
-                                final DependencyGavBuilder gav = new DependencyGavBuilder(moduleGav);
+                                final PlainGavBuilder gav = new PlainGavBuilder(moduleGav);
                                 // TODO support extensions properly
                                 gavBuilderStack.push(gav);
                             } else if ("plugin".equals(elementName)) {
@@ -832,10 +864,10 @@ public class MavenSourceTree {
                                 assert gav instanceof ParentGavBuilder;
                             } else if ("dependency".equals(elementName)) {
                                 final GavBuilder gav = gavBuilderStack.pop();
-                                assert gav instanceof DependencyGavBuilder;
+                                assert gav instanceof PlainGavBuilder;
                             } else if ("extension".equals(elementName)) {
                                 final GavBuilder gav = gavBuilderStack.pop();
-                                assert gav instanceof DependencyGavBuilder;
+                                assert gav instanceof PlainGavBuilder;
                             } else if ("plugin".equals(elementName)) {
                                 final GavBuilder gav = gavBuilderStack.pop();
                                 assert gav instanceof PluginGavBuilder;
@@ -868,8 +900,8 @@ public class MavenSourceTree {
              */
             public static class Builder {
                 Set<String> children = new LinkedHashSet<>();
-                List<DependencyGavBuilder> dependencies = new ArrayList<>();
-                List<DependencyGavBuilder> dependencyManagement = new ArrayList<>();
+                List<DependencyBuilder> dependencies = new ArrayList<>();
+                List<DependencyBuilder> dependencyManagement = new ArrayList<>();
                 private String id;
                 List<PluginGavBuilder> pluginManagement = new ArrayList<>();
                 List<PluginGavBuilder> plugins = new ArrayList<>();
@@ -878,18 +910,18 @@ public class MavenSourceTree {
                 public Profile build() {
                     final Set<String> useChildren = Collections.unmodifiableSet(children);
                     children = null;
-                    final Set<GavExpression> useDependencies = Collections.unmodifiableSet(dependencies.stream()
-                            .map(DependencyGavBuilder::build).collect(Collectors.toCollection(LinkedHashSet::new)));
+                    final Set<Dependency> useDependencies = Collections.<Dependency>unmodifiableSet(dependencies.stream()
+                            .map(DependencyBuilder::build).collect(Collectors.toCollection(LinkedHashSet::new)));
                     dependencies = null;
-                    final Set<GavExpression> useManagedDependencies = Collections
-                            .unmodifiableSet(dependencyManagement.stream().map(DependencyGavBuilder::build)
+                    final Set<Dependency> useManagedDependencies = Collections
+                            .<Dependency>unmodifiableSet(dependencyManagement.stream().map(DependencyBuilder::build)
                                     .collect(Collectors.toCollection(LinkedHashSet::new)));
                     dependencyManagement = null;
-                    final Set<PluginGav> usePlugins = Collections.<PluginGav>unmodifiableSet(plugins.stream()
+                    final Set<Plugin> usePlugins = Collections.<Plugin>unmodifiableSet(plugins.stream()
                             .map(PluginGavBuilder::build).collect(Collectors.toCollection(LinkedHashSet::new)));
                     plugins = null;
-                    final Set<PluginGav> usePluginManagement = Collections
-                            .<PluginGav>unmodifiableSet(pluginManagement.stream().map(PluginGavBuilder::build)
+                    final Set<Plugin> usePluginManagement = Collections
+                            .<Plugin>unmodifiableSet(pluginManagement.stream().map(PluginGavBuilder::build)
                                     .collect(Collectors.toCollection(LinkedHashSet::new)));
                     pluginManagement = null;
                     final Map<String, Expression> useProps = Collections.unmodifiableMap(properties.stream() //
@@ -936,17 +968,16 @@ public class MavenSourceTree {
 
             /** A path to child project's pom.xml relative to {@link MavenSourceTree#rootDirectory} */
             private final Set<String> children;
-            private final Set<GavExpression> dependencies;
-            private final Set<GavExpression> dependencyManagement;
+            private final Set<Dependency> dependencies;
+            private final Set<Dependency> dependencyManagement;
             private final String id;
-            private final Set<PluginGav> pluginManagement;
+            private final Set<Plugin> pluginManagement;
 
-            private final Set<PluginGav> plugins;
+            private final Set<Plugin> plugins;
             private final Map<String, Expression> properties;
 
-            Profile(String id, Set<String> children, Set<GavExpression> dependencies,
-                    Set<GavExpression> dependencyManagement, Set<PluginGav> plugins, Set<PluginGav> pluginManagement,
-                    Map<String, Expression> properties) {
+            Profile(String id, Set<String> children, Set<Dependency> dependencies, Set<Dependency> dependencyManagement,
+                    Set<Plugin> plugins, Set<Plugin> pluginManagement, Map<String, Expression> properties) {
                 super();
                 this.id = id;
                 this.children = children;
@@ -968,14 +999,14 @@ public class MavenSourceTree {
             /**
              * @return a {@link Set} of dependencies declared in this {@link Profile}
              */
-            public Set<GavExpression> getDependencies() {
+            public Set<Dependency> getDependencies() {
                 return dependencies;
             }
 
             /**
              * @return a {@link Set} of dependencyManagement entries declared in this {@link Profile}
              */
-            public Set<GavExpression> getDependencyManagement() {
+            public Set<Dependency> getDependencyManagement() {
                 return dependencyManagement;
             }
 
@@ -990,14 +1021,14 @@ public class MavenSourceTree {
             /**
              * @return a {@link Set} of pluginManagement entries declared in this {@link Profile}
              */
-            public Set<PluginGav> getPluginManagement() {
+            public Set<Plugin> getPluginManagement() {
                 return pluginManagement;
             }
 
             /**
              * @return a {@link Set} of plugins declared in this {@link Profile}
              */
-            public Set<PluginGav> getPlugins() {
+            public Set<Plugin> getPlugins() {
                 return plugins;
             }
 
@@ -1097,11 +1128,10 @@ public class MavenSourceTree {
 
     }
 
-    public static class PluginGav extends GavExpression {
+    public static class Plugin extends GavExpression {
         private final Set<GavExpression> dependencies;
 
-        public PluginGav(Expression groupId, Expression artifactId, Expression version,
-                Set<GavExpression> dependencies) {
+        public Plugin(Expression groupId, Expression artifactId, Expression version, Set<GavExpression> dependencies) {
             super(groupId, artifactId, version);
             this.dependencies = dependencies;
         }
@@ -1186,9 +1216,9 @@ public class MavenSourceTree {
 
     private static final Logger log = LoggerFactory.getLogger(MavenSourceTree.class);
 
-    private static final String PROJECT_VERSION_XPATH = "/*[local-name()='project']/*[local-name()='version']";
-    private static final String PROJECT_GROUP_ID_XPATH = "/*[local-name()='project']/*[local-name()='groupId']";
     private static final String PROJECT_ARTIFACT_ID_XPATH = "/*[local-name()='project']/*[local-name()='artifactId']";
+    private static final String PROJECT_GROUP_ID_XPATH = "/*[local-name()='project']/*[local-name()='groupId']";
+    private static final String PROJECT_VERSION_XPATH = "/*[local-name()='project']/*[local-name()='version']";
 
     private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 
@@ -1328,7 +1358,7 @@ public class MavenSourceTree {
     }
 
     void editDependencies(String newVersion, final Predicate<Profile> isProfileActive, final DomEdits edits,
-            Module module, String profileId, Set<GavExpression> dependencies, String... path) {
+            Module module, String profileId, Set<Dependency> dependencies, String... path) {
         for (GavExpression gav : dependencies) {
             if (gav.getVersion() != null && modulesByGa.containsKey(gav.resolveGa(this, isProfileActive))) {
                 final String xPath = xPathProfile(profileId, path) + xPathDependencyVersion("dependency", gav);
@@ -1338,9 +1368,10 @@ public class MavenSourceTree {
     }
 
     void editPlugins(String newVersion, final Predicate<Profile> isProfileActive, final DomEdits edits, Module module,
-            String profileId, Set<PluginGav> dependencies, String... path) {
-        for (PluginGav pluginGav : dependencies) {
-            final boolean editPlugin = pluginGav.getVersion() != null && modulesByGa.containsKey(pluginGav.resolveGa(this, isProfileActive));
+            String profileId, Set<Plugin> dependencies, String... path) {
+        for (Plugin pluginGav : dependencies) {
+            final boolean editPlugin = pluginGav.getVersion() != null
+                    && modulesByGa.containsKey(pluginGav.resolveGa(this, isProfileActive));
             if (editPlugin || !pluginGav.getDependencies().isEmpty()) {
                 final String xPathProfile = xPathProfile(profileId, path);
                 if (editPlugin) {
@@ -1348,8 +1379,7 @@ public class MavenSourceTree {
                     edit(newVersion, isProfileActive, edits, module, pluginGav.getVersion(), xPath);
                 }
                 if (!pluginGav.getDependencies().isEmpty()) {
-                    final String prefix = xPathProfile + xPathDependency("plugin", pluginGav)
-                            + xPath("dependencies");
+                    final String prefix = xPathProfile + xPathDependency("plugin", pluginGav) + xPath("dependencies");
                     for (GavExpression dep : pluginGav.getDependencies()) {
                         if (dep.getVersion() != null && modulesByGa.containsKey(dep.resolveGa(this, isProfileActive))) {
                             final String xPath = prefix + xPathDependencyVersion("dependency", dep);
@@ -1392,16 +1422,44 @@ public class MavenSourceTree {
             }
             for (Profile p : module.getProfiles()) {
                 if (isProfileActive.test(p)) {
-                    for (GavExpression depGa : p.getDependencies()) {
+                    for (Dependency depGa : p.getDependencies()) {
                         final Ga ga = depGa.resolveGa(this, isProfileActive);
                         if (gavSet.contains(ga.getGroupId(), ga.getArtifactId())) {
                             result.add(ga);
                         }
                     }
-                    for (GavExpression depGa : p.getPlugins()) {
+                    for (Dependency depGa : p.getDependencyManagement()) {
                         final Ga ga = depGa.resolveGa(this, isProfileActive);
-                        if (gavSet.contains(ga.getGroupId(), ga.getArtifactId())) {
+                        if ("import".equals(depGa.getScope()) && gavSet.contains(ga.getGroupId(), ga.getArtifactId())) {
                             result.add(ga);
+                        }
+                    }
+                    for (Plugin plugin : p.getPlugins()) {
+                        {
+                            final Ga ga = plugin.resolveGa(this, isProfileActive);
+                            if (gavSet.contains(ga.getGroupId(), ga.getArtifactId())) {
+                                result.add(ga);
+                            }
+                        }
+                        for (GavExpression plugnDep : plugin.getDependencies()) {
+                            final Ga plugnDepGa = plugnDep.resolveGa(this, isProfileActive);
+                            if (gavSet.contains(plugnDepGa.getGroupId(), plugnDepGa.getArtifactId())) {
+                                result.add(plugnDepGa);
+                            }
+                        }
+                    }
+                    for (Plugin plugin : p.getPluginManagement()) {
+                        {
+                            final Ga ga = plugin.resolveGa(this, isProfileActive);
+                            if (gavSet.contains(ga.getGroupId(), ga.getArtifactId())) {
+                                result.add(ga);
+                            }
+                        }
+                        for (GavExpression pluginDep : plugin.getDependencies()) {
+                            final Ga plugnDepGa = pluginDep.resolveGa(this, isProfileActive);
+                            if (gavSet.contains(plugnDepGa.getGroupId(), plugnDepGa.getArtifactId())) {
+                                result.add(plugnDepGa);
+                            }
                         }
                     }
                 }
