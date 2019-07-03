@@ -1,5 +1,21 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
+ * Plugin contributors as indicated by the @author tags.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+  * Copyright 2015-2016 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +38,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 
@@ -35,7 +52,8 @@ public class ShellCommand {
         private List<String> arguments = new ArrayList<>();
         private Map<String, String> environment = new LinkedHashMap<>();
         private String executable;
-        private IoRedirects ioRedirects = IoRedirects.inheritAll();
+        private String id;
+        private Supplier<LineConsumer> output;
         private long timeoutMs = Long.MAX_VALUE;
         private Path workingDirectory;
 
@@ -52,8 +70,8 @@ public class ShellCommand {
         }
 
         public ShellCommand build() {
-            return new ShellCommand(executable, Collections.unmodifiableList(arguments), workingDirectory,
-                    Collections.unmodifiableMap(environment), ioRedirects, timeoutMs);
+            return new ShellCommand(id, executable, Collections.unmodifiableList(arguments), workingDirectory,
+                    Collections.unmodifiableMap(environment), output, timeoutMs);
         }
 
         public ShellCommandBuilder environment(Map<String, String> buildEnvironment) {
@@ -71,8 +89,13 @@ public class ShellCommand {
             return this;
         }
 
-        public ShellCommandBuilder ioRedirects(IoRedirects ioRedirects) {
-            this.ioRedirects = ioRedirects;
+        public ShellCommandBuilder id(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public ShellCommandBuilder output(Supplier<LineConsumer> output) {
+            this.output = output;
             return this;
         }
 
@@ -95,25 +118,29 @@ public class ShellCommand {
     private final List<String> arguments;
     private final Map<String, String> environment;
     private final String executable;
-    private final IoRedirects ioRedirects;
+    private final String id;
+    private final Supplier<LineConsumer> output;
+
     private final long timeoutMs;
+
     private final Path workingDirectory;
 
-    private ShellCommand(String executable, List<String> arguments, Path workingDirectory,
-            Map<String, String> environment, IoRedirects ioRedirects, long timeoutMs) {
+    private ShellCommand(String id, String executable, List<String> arguments, Path workingDirectory,
+            Map<String, String> environment, Supplier<LineConsumer> output, long timeoutMs) {
         super();
+        SrcdepsCoreUtils.assertArgNotNull(id, "id");
         SrcdepsCoreUtils.assertArgNotNull(executable, "executable");
         SrcdepsCoreUtils.assertArgNotNull(arguments, "arguments");
         SrcdepsCoreUtils.assertArgNotNull(workingDirectory, "workingDirectory");
         SrcdepsCoreUtils.assertArgNotNull(environment, "environment");
-        SrcdepsCoreUtils.assertArgNotNull(ioRedirects, "ioRedirects");
+        SrcdepsCoreUtils.assertArgNotNull(output, "output");
 
+        this.id = id;
         this.executable = executable;
         this.arguments = arguments;
         this.workingDirectory = workingDirectory;
         this.environment = environment;
-        this.ioRedirects = ioRedirects;
-
+        this.output = output;
         this.timeoutMs = timeoutMs;
     }
 
@@ -155,11 +182,16 @@ public class ShellCommand {
         return executable;
     }
 
-    /**
-     * @return the {@link IoRedirects} to use when the {@link Shell} spawns a new {@link Process}
-     */
-    public IoRedirects getIoRedirects() {
-        return ioRedirects;
+    public String getId() {
+        return id;
+    }
+    //
+    // public Consumer<String> getLogger() {
+    // return logger;
+    // }
+
+    public Supplier<LineConsumer> getOutput() {
+        return output;
     }
 
     /**

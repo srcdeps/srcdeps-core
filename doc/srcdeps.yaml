@@ -42,10 +42,11 @@
 #  4.0.x        | 3.4.x         | 2.4, 2.3, 2.2, 2.1, 2.0
 #  4.1.x        | 3.5.x         | 2.5, 2.4, 2.3, 2.2, 2.1, 2.0
 #  4.2.x        | 3.6.x         | 2.6, 2.5, 2.4, 2.3, 2.2, 2.1, 2.0
+#  5.0.x        | 4.0.x         | 3.0
 #
 # Required, no default
 # Since 1.0
-configModelVersion: 2.6
+configModelVersion: 3.0
 
 # `encoding` - an encoding to use when reading source files in dependency source trees. Note that this value can be
 # overriden at the repository level - see below.
@@ -76,23 +77,31 @@ forwardProperties:
 # Since 2.4
 forwardAsMasterConfig: false
 
-# `builderIo` - a triple of definitions how to handle the three standard I/O steams of the child builder
-# process. The syntax of the definitions mostly follows the semantics of
-# `java.lang.ProcessBuilder.Redirect`.
+# `logToFile` - if `true` the output of each dependency's build process will be stored in a file; otherwise, the
+# outputs of the dependency build processes will not be stored in a file.
 #
-# Possible values:
-# * `inherit` - use the I/O of the parent process; applicable to all three streams
-# * `read:/path/to/input/file` - use the specified file for input; applicable to stdin
-# * `write:/path/to/output/file` - use the specified file for output; applicable to stdout and stderr
-# * `append:/path/to/output/file` - use the specified file for output; applicable to stdout and stderr
-# * `err2out` - redirect `stderr` to `stdout`; applicable to stderr
+# The log file path is constructed using the following expression:
+# `sourcesDirectory + "/" + scmRepoId.replace('.', '/') + "/log.txt"`
 #
-# Optional, default is inherit all.
-# Since 1.0
-builderIo:
-  stdin: inherit
-  stdout: inherit
-  stderr: inherit
+# The builders are supposed to do some basic log rotation - i.e. instead of overwriting an old file, the file is renamed
+# to `log-{n}.txt` where `{n}` is a positive integer. The number of kept files is 4.
+#
+# Note that one dependency build may result in more than one log file, e.g. when `useVersionsMavenPlugin` is true.
+#
+# This value can be overriden at the repository level - see below.
+#
+# Optional, default is true
+# Since 3.0
+logToFile: true
+
+# `logToConsole` - if `true` the output of each dependency's build process will be forwarded to parent build's console;
+# otherwise, the outputs of the dependency build processes will not be forwarded to parent build's console.
+#
+# This value can be overriden at the repository level - see below.
+#
+# Optional, default is true
+# Since 3.0
+logToConsole: true
 
 # `skip` - skip the srcdeps processing altogether
 #
@@ -436,15 +445,27 @@ repositories:
     # Since 2.0
     buildTimeout: 14d
 
-    # `builderIo` - a triple of definitions how to handle the three standard I/O steams of the child builder
-    # process. See `builderIo` at the top level of this file for syntax and other details.
+    # `logToFile` - if `true` the output of this source tree's build process will be stored in a file; otherwise, the
+    # output of this source tree's build will not be stored in a file.
     #
-    # Optional, default: inherited from the top level `builderIo`
-    # Since 2.0
-    builderIo:
-      stdin: inherit
-      stdout: inherit
-      stderr: inherit
+    # The log file path is constructed using the following expression:
+    # `sourcesDirectory + "/" + scmRepoId.replace('.', '/') + "/log.txt"`
+    #
+    # The builders are supposed to do some basic log rotation - i.e. instead of overwriting an old file, the file is renamed
+    # to `log-{n}.txt` where `{n}` is a positive integer. The number of kept files is 4.
+    #
+    # Note that one dependency build may result in more than one log file, e.g. when `useVersionsMavenPlugin` is true.
+    #
+    # Optional, default: inherited from the top level `logToFile`
+    # Since 3.0
+    logToFile: true
+
+    # `logToConsole` - if `true` the output of this source tree's build process will be forwarded to parent build's console;
+    # otherwise, the output of this source tree's build process will not be forwarded to parent build's console.
+    #
+    # Optional, default: inherited from the top level `logToConsole`
+    # Since 3.0
+    logToConsole: true
 
     # `verbosity` - the verbosity level the appropriate dependency build tool (such as Maven) should use
     # during the build of a dependency from this repository. See `builderIo` at the top level of this file

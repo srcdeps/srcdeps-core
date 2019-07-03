@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,24 +41,25 @@ public class FetchLog {
     private final Set<FetchId> fetchIds = Collections.newSetFromMap(new ConcurrentHashMap<FetchId, Boolean>());
 
     /**
+     * Mark the given {@link FetchId} as being up-to-date (i.e. fetched) and eventually re-built in the current JVM.
+     *
+     * @param fetchId the {@link FetchId} to add
+     */
+    public void add(FetchId fetchId) {
+        log.debug("srcdeps[{}]: Adding SCM repo to {}: [{}]", fetchId.getScmRepoId(), FetchLog.class.getSimpleName(),
+                fetchId);
+        fetchIds.add(fetchId);
+    }
+
+    /**
      * @param fetchId the {@link FetchId} to query
      * @return {@code true} if the repository identified by the given {@link FetchId} can be considered up-to-date (i.e.
      *         fetched) and built in the current JVM; {@code false} otherwise
      */
     public boolean contains(FetchId fetchId) {
         final boolean result = fetchIds.contains(fetchId);
-        log.debug("srcdeps: SCM repo {} in {}: [{}]", (result ? "present" : "absent"), FetchLog.class.getSimpleName(),
-                fetchId);
+        log.debug("srcdeps[{}]: SCM repo {} in {}: [{}]", fetchId.getScmRepoId(), (result ? "present" : "absent"),
+                FetchLog.class.getSimpleName(), fetchId);
         return result;
-    }
-
-    /**
-     * Mark the given {@link FetchId} as being up-to-date (i.e. fetched) and eventually re-built in the current JVM.
-     *
-     * @param fetchId the {@link FetchId} to add
-     */
-    public void add(FetchId fetchId) {
-        log.debug("srcdeps: Adding SCM repo to {}: [{}]", FetchLog.class.getSimpleName(), fetchId);
-        fetchIds.add(fetchId);
     }
 }

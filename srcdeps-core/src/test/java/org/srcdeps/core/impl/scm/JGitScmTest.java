@@ -34,6 +34,7 @@ import org.srcdeps.core.ScmException;
 import org.srcdeps.core.SrcVersion;
 import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.config.scalar.CharStreamSource;
+import org.srcdeps.core.shell.LineConsumer;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 
 /**
@@ -76,6 +77,7 @@ public class JGitScmTest {
         BuildRequest cloningRequest = BuildRequest.builder() //
                 .scmRepositoryId("test") //
                 .encoding(StandardCharsets.UTF_8) //
+                .output(LineConsumer::dummy) //
                 .srcVersion(SrcVersion.parse("0.0.1-SRC-tag-0.0.1")) //
                 .dependentProjectRootDirectory(dir) //
                 .projectRootDirectory(dir) //
@@ -95,6 +97,7 @@ public class JGitScmTest {
         BuildRequest fetchingRequest = BuildRequest.builder() //
                 .scmRepositoryId("test") //
                 .encoding(StandardCharsets.UTF_8) //
+                .output(LineConsumer::dummy) //
                 .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-0a5ab902099b24c2b13ed1dad8c5f537458bcc89")) //
                 .dependentProjectRootDirectory(dir) //
                 .projectRootDirectory(dir) //
@@ -112,6 +115,7 @@ public class JGitScmTest {
         BuildRequest fetchBranchRequest = BuildRequest.builder() //
                 .scmRepositoryId("test") //
                 .encoding(StandardCharsets.UTF_8) //
+                .output(LineConsumer::dummy) //
                 .srcVersion(SrcVersion.parse("0.0.1-SRC-branch-morning-branch")) //
                 .dependentProjectRootDirectory(dir) //
                 .projectRootDirectory(dir) //
@@ -190,6 +194,7 @@ public class JGitScmTest {
             final BuildRequest cloningRequest = BuildRequest.builder() //
                     .scmRepositoryId("test") //
                     .encoding(StandardCharsets.UTF_8) //
+                    .output(LineConsumer::dummy) //
                     .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-" + addedCommitId)) //
                     .dependentProjectRootDirectory(dir) //
                     .projectRootDirectory(dir) //
@@ -217,6 +222,7 @@ public class JGitScmTest {
             final BuildRequest fetchResetRequest = BuildRequest.builder() //
                     .scmRepositoryId("test") //
                     .encoding(StandardCharsets.UTF_8) //
+                    .output(LineConsumer::dummy) //
                     .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-" + addedCommitId)) //
                     .dependentProjectRootDirectory(dir) //
                     .projectRootDirectory(dir) //

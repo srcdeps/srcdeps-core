@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,16 +77,17 @@ public class PathLocker<M> {
     /**
      * An internal null-safe release of all resources
      *
-     * @param lockFile        the {@link RandomAccessFile} to close
-     * @param lockFilePath    the {@link Path} of the {@code lockFile}
+     * @param lockFile the {@link RandomAccessFile} to close
+     * @param lockFilePath the {@link Path} of the {@code lockFile}
      * @param threadLevelLock the {@link ReentrantLock} to release
      */
-    private static void close(RandomAccessFile lockFile, Path lockFilePath, ReentrantLock threadLevelLock) {
+    private static void close(String requestId, RandomAccessFile lockFile, Path lockFilePath,
+            ReentrantLock threadLevelLock) {
         if (lockFile != null) {
             try {
                 lockFile.close();
             } catch (IOException e1) {
-                log.warn(String.format("srcdeps: Could not close lock file [%s]", lockFilePath), e1);
+                log.warn(String.format("srcdeps[%s]: Could not close lock file [%s]", requestId, lockFilePath), e1);
             }
         }
         threadLevelLock.unlock();
@@ -144,13 +145,14 @@ public class PathLocker<M> {
      * <p>
      * The returned {@link PathLock} should be released using its {@link Closeable#close()} method.
      *
-     * @param path         the {@link Path} to lock
+     * @param path the {@link Path} to lock
      * @param pathMetadata a metadata associated with the given {@code path}
      * @return a {@link PathLock} whose holder is guaranteed to have an exclusive access to {@link PathLock#getPath()}
-     * @throws IOException                if the given {@code path} cannot be created as a directory
+     * @throws IOException if the given {@code path} cannot be created as a directory
      * @throws CannotAcquireLockException if the lock cannot be acquired immediately
      */
-    public PathLock lockDirectory(Path path, M pathMetadata) throws IOException, CannotAcquireLockException {
+    public PathLock lockDirectory(String requestId, Path path, M pathMetadata)
+            throws IOException, CannotAcquireLockException {
         SrcdepsCoreUtils.ensureDirectoryExists(path);
         // resolve(String.valueOf(i) + ".lock");
         final LockMetadataPair<M> newPair = new LockMetadataPair<M>(new ReentrantLock(), pathMetadata);
@@ -162,17 +164,17 @@ public class PathLocker<M> {
             final M oldMd = mdPair.getMetadata();
             if (oldMd.equals(pathMetadata)) {
                 lock.lock();
-                log.debug("srcdeps: Locked on thread level [{}]", path);
-                return lockInFilesystem(path, lock);
+                log.debug("srcdeps[{}]: Locked on thread level [{}]", requestId, path);
+                return lockInFilesystem(requestId, path, lock);
             } else {
                 /*
                  * in case the mdPair has a different metadata from a previous call we try to lock immediately and
                  * change the md only if we succeed
                  */
                 if (lock.tryLock()) {
-                    log.debug("srcdeps: Locked on thread level [{}]", path);
+                    log.debug("srcdeps[{}]: Locked on thread level [{}]", requestId, path);
                     mdPair.setMetadata(pathMetadata);
-                    return lockInFilesystem(path, lock);
+                    return lockInFilesystem(requestId, path, lock);
                 } else {
                     throw new CannotAcquireLockException(
                             String.format("Path [%s] is locked by another thread for [%s]", path, oldPair));
@@ -181,34 +183,35 @@ public class PathLocker<M> {
         }
     }
 
-    private PathLock lockInFilesystem(Path path, final ReentrantLock lock) throws CannotAcquireLockException {
+    private PathLock lockInFilesystem(String requestId, Path path, final ReentrantLock lock)
+            throws CannotAcquireLockException {
         Path lockFilePath = path.resolveSibling(path.getName(path.getNameCount() - 1) + ".lock");
         RandomAccessFile lockFile = null;
         try {
             lockFile = new RandomAccessFile(lockFilePath.toFile(), "rw");
             FileLock fsLock = lockFile.getChannel().tryLock();
-            log.debug("srcdeps: Locked on FS [{}] with lock {}", path, fsLock);
+            log.debug("srcdeps[{}]: Locked on FS [{}] with lock {}", requestId, path, fsLock);
             if (fsLock == null) {
                 throw new CannotAcquireLockException(
                         String.format("Could not acquire filesystem level lock on [%s]", lockFilePath));
             } else {
-                return new PathLock(path, lockFile, lockFilePath, lock);
+                return new PathLock(requestId, path, lockFile, lockFilePath, lock);
             }
         } catch (CannotAcquireLockException e) {
-            close(lockFile, lockFilePath, lock);
+            close(requestId, lockFile, lockFilePath, lock);
             throw e;
         } catch (OverlappingFileLockException e) {
             /*
              * OverlappingFileLockException may happen if another OS level process holds the channel lock - that is a
              * normal situation, no need to log anything
              */
-            close(lockFile, lockFilePath, lock);
+            close(requestId, lockFile, lockFilePath, lock);
             throw new CannotAcquireLockException(
                     String.format("Could not acquire filesystem level lock on [%s]", lockFilePath), e);
         } catch (Throwable e) {
             /* All other Exceptions are rather unexpected - log those */
-            log.warn(String.format("srcdeps: Could not acquire a lock for path [%s]", lockFilePath), e);
-            close(lockFile, lockFilePath, lock);
+            log.warn(String.format("srcdeps[%s]: Could not acquire a lock for path [%s]", requestId, lockFilePath), e);
+            close(requestId, lockFile, lockFilePath, lock);
             throw new CannotAcquireLockException(
                     String.format("Could not acquire filesystem level lock on [%s]", lockFilePath), e);
         }

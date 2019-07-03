@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,13 +36,15 @@ public class PathLock implements Closeable {
     private final RandomAccessFile lockFile;
     private final Path lockFilePath;
     private final Path path;
+    private final String requestId;
     private final ReentrantLock threadLevelLock;
 
-    PathLock(Path path, RandomAccessFile lockFile, Path lockFilePath, ReentrantLock threadLevelLock) {
+    PathLock(String requestId, Path path, RandomAccessFile lockFile, Path lockFilePath, ReentrantLock threadLevelLock) {
         this.path = path;
         this.lockFile = lockFile;
         this.lockFilePath = lockFilePath;
         this.threadLevelLock = threadLevelLock;
+        this.requestId = requestId;
     }
 
     /**
@@ -53,7 +55,7 @@ public class PathLock implements Closeable {
         try {
             lockFile.close();
         } catch (IOException e) {
-            log.warn(String.format("srcdeps: Could not close lock file [%s]", lockFilePath), e);
+            log.warn(String.format("srcdeps[%s]: Could not close lock file [%s]", requestId, lockFilePath), e);
         }
         threadLevelLock.unlock();
     }

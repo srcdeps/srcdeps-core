@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,11 +54,11 @@ public class DefaultScmService implements ScmService {
     public String checkout(BuildRequest request) throws ScmException {
         final Path dir = request.getProjectRootDirectory();
         final String firstUrl = request.getScmUrls().iterator().next();
-        log.info("srcdeps: Executing build request [{}]", request);
+        log.info("srcdeps[{}]: Executing build request [{}]", request.getScmRepositoryId(), request);
         for (Scm scm : scms) {
             if (scm.supports(firstUrl)) {
-                log.info("srcdeps: Using SCM implementation [{}] to check out URL [{}] to directory [{}]",
-                        scm.getClass().getName(), firstUrl, dir);
+                log.info("srcdeps[{}]: Using SCM implementation [{}] to check out URL [{}] to directory [{}]",
+                        request.getScmRepositoryId(), scm.getClass().getName(), firstUrl, dir);
                 return scm.checkout(request);
             }
         }

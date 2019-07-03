@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,11 +63,12 @@ public abstract class ShellBuilder implements Builder {
 
         List<String> args = mergeArguments(request);
         ShellCommand command = ShellCommand.builder() //
+                .id(request.getScmRepositoryId()) //
                 .executable(locateExecutable(request)) //
                 .arguments(args) //
                 .workingDirectory(request.getProjectRootDirectory()) //
                 .environment(mergeEnvironment(request)) //
-                .ioRedirects(request.getIoRedirects()) //
+                .output(request.getOuput()) //
                 .timeoutMs(timeoutMs) //
                 .build();
         Shell.execute(command).assertSuccess();
@@ -80,7 +81,8 @@ public abstract class ShellBuilder implements Builder {
     protected List<String> getForwardPropertiesArguments(final BuildRequest request) {
         final List<String> result = new ArrayList<>();
         request.getForwardPropertyValues().entrySet().forEach(e -> result.add("-D" + e.getKey() + "=" + e.getValue()));
-        result.add("-Dsrcdeps.forwardProperties=" + request.getForwardPropertyNames().stream().collect(Collectors.joining(",")));
+        result.add("-Dsrcdeps.forwardProperties="
+                + request.getForwardPropertyNames().stream().collect(Collectors.joining(",")));
         return result;
     }
 

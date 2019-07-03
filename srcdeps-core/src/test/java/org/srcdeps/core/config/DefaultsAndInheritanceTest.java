@@ -25,7 +25,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.srcdeps.core.BuildRequest.Verbosity;
 import org.srcdeps.core.SrcVersion;
-import org.srcdeps.core.config.BuilderIo.BuilderIoScheme;
 import org.srcdeps.core.config.ScmRepository.Builder;
 import org.srcdeps.core.config.scalar.Duration;
 import org.srcdeps.core.config.tree.Node;
@@ -53,9 +52,8 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(configBuilder.buildTimeout.getValue());
         Assert.assertNull(configBuilder.buildVersionPattern.getValue());
         Assert.assertNull(configBuilder.buildRef.getValue());
-        Assert.assertNull(configBuilder.builderIo.stdin.getValue());
-        Assert.assertNull(configBuilder.builderIo.stdout.getValue());
-        Assert.assertNull(configBuilder.builderIo.stderr.getValue());
+        Assert.assertNull(configBuilder.logToFile.getValue());
+        Assert.assertNull(configBuilder.logToConsole.getValue());
 
         Assert.assertNull(configBuilder.maven.versionsMavenPluginVersion.getValue());
         Assert.assertNull(configBuilder.maven.useVersionsMavenPlugin.getValue());
@@ -85,9 +83,8 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(repo1Builder.skipTests.getValue());
         Assert.assertEquals(Collections.singletonList("file:///whereever"), repo1Builder.urls.asListOfValues());
         Assert.assertNull(repo1Builder.buildTimeout.getValue());
-        Assert.assertNull(repo1Builder.builderIo.stdin.getValue());
-        Assert.assertNull(repo1Builder.builderIo.stdout.getValue());
-        Assert.assertNull(repo1Builder.builderIo.stderr.getValue());
+        Assert.assertNull(repo1Builder.logToFile.getValue());
+        Assert.assertNull(repo1Builder.logToConsole.getValue());
         Assert.assertNull(repo1Builder.verbosity.getValue());
         Assert.assertNull(repo1Builder.encoding.getValue());
         Assert.assertNull(repo1Builder.buildVersionPattern.getValue());
@@ -108,9 +105,8 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(configBuilder.buildVersionPattern.getValue());
         Assert.assertEquals(SrcVersion.getBranchMaster(), configBuilder.buildRef.getValue());
 
-        Assert.assertEquals(BuilderIoScheme.inherit.name(), configBuilder.builderIo.stdin.getValue());
-        Assert.assertEquals(BuilderIoScheme.inherit.name(), configBuilder.builderIo.stdout.getValue());
-        Assert.assertEquals(BuilderIoScheme.inherit.name(), configBuilder.builderIo.stderr.getValue());
+        Assert.assertTrue(configBuilder.logToFile.getValue());
+        Assert.assertTrue(configBuilder.logToConsole.getValue());
 
         Assert.assertEquals(Maven.getDefaultVersionsMavenPluginVersion(),
                 configBuilder.maven.versionsMavenPluginVersion.getValue());
@@ -131,8 +127,7 @@ public class DefaultsAndInheritanceTest {
         Assert.assertEquals(Collections.singletonList("file:///whereever"), repo1.getUrls());
         Assert.assertEquals(Maven.getDefaultVersionsMavenPluginVersion(),
                 repo1.getMaven().getVersionsMavenPluginVersion());
-        Assert.assertEquals(Maven.getDefaultUseVersionsMavenPlugin(),
-                repo1.getMaven().isUseVersionsMavenPlugin());
+        Assert.assertEquals(Maven.getDefaultUseVersionsMavenPlugin(), repo1.getMaven().isUseVersionsMavenPlugin());
         Assert.assertEquals(false, repo1.getMaven().isExcludeNonRequired());
         Assert.assertEquals(false, repo1.getMaven().isIncludeRequired());
         Assert.assertEquals(Collections.emptyList(), repo1.getMaven().getIncludes());
@@ -145,9 +140,8 @@ public class DefaultsAndInheritanceTest {
         Assert.assertNull(repo1.getBuildVersionPattern());
         Assert.assertEquals(SrcVersion.getBranchMaster(), repo1.getBuildRef());
 
-        Assert.assertEquals(BuilderIoScheme.inherit.name(), repo1.getBuilderIo().getStdin());
-        Assert.assertEquals(BuilderIoScheme.inherit.name(), repo1.getBuilderIo().getStdout());
-        Assert.assertEquals(BuilderIoScheme.inherit.name(), repo1.getBuilderIo().getStderr());
+        Assert.assertTrue(repo1.isLogToFile());
+        Assert.assertTrue(repo1.isLogToConsole());
 
     }
 
@@ -167,12 +161,8 @@ public class DefaultsAndInheritanceTest {
                 .buildTimeout(Duration.of("32m")) //
                 .verbosity(Verbosity.trace) //
                 .buildVersionPattern(Pattern.compile(".*-SNAPSHOT")).buildRef(SrcVersion.parseRef("branch-3.x"))
-                .builderIo( //
-                        BuilderIo.builder() //
-                                .stdin("read:/path/to/input-file.txt") //
-                                .stdout("write:/path/to/log.txt") //
-                                .stderr("write:/path/to/err.txt") //
-                ) //
+                .logToFile(false) //
+                .logToConsole(false) //
                 .maven( //
                         Maven.builder() //
                                 .versionsMavenPluginVersion("0.1")) //
@@ -189,17 +179,15 @@ public class DefaultsAndInheritanceTest {
                 configBuilder.buildVersionPattern.getValue()));
         Assert.assertEquals(SrcVersion.parseRef("branch-3.x"), configBuilder.buildRef.getValue());
         Assert.assertEquals("0.1", configBuilder.maven.versionsMavenPluginVersion.getValue());
-        Assert.assertEquals("read:/path/to/input-file.txt", configBuilder.builderIo.stdin.getValue());
-        Assert.assertEquals("write:/path/to/log.txt", configBuilder.builderIo.stdout.getValue());
-        Assert.assertEquals("write:/path/to/err.txt", configBuilder.builderIo.stderr.getValue());
+        Assert.assertFalse(configBuilder.logToFile.getValue());
+        Assert.assertFalse(configBuilder.logToConsole.getValue());
 
         Builder repo1Builder = configBuilder.repositories.getChildren().get("repo1");
         Assert.assertNull(repo1Builder.buildTimeout.getValue());
         Assert.assertNull(repo1Builder.maven.versionsMavenPluginVersion.getValue());
         Assert.assertNull(repo1Builder.gradle.modelTransformer.getValue());
-        Assert.assertNull(repo1Builder.builderIo.stdin.getValue());
-        Assert.assertNull(repo1Builder.builderIo.stdout.getValue());
-        Assert.assertNull(repo1Builder.builderIo.stderr.getValue());
+        Assert.assertNull(repo1Builder.logToFile.getValue());
+        Assert.assertNull(repo1Builder.logToConsole.getValue());
         Assert.assertNull(repo1Builder.verbosity.getValue());
         Assert.assertNull(repo1Builder.buildVersionPattern.getValue());
         Assert.assertNull(repo1Builder.buildRef.getValue());
@@ -213,9 +201,8 @@ public class DefaultsAndInheritanceTest {
                 configBuilder.buildVersionPattern.getValue()));
         Assert.assertEquals(SrcVersion.parseRef("branch-3.x"), configBuilder.buildRef.getValue());
         Assert.assertEquals("0.1", configBuilder.maven.versionsMavenPluginVersion.getValue());
-        Assert.assertEquals("read:/path/to/input-file.txt", configBuilder.builderIo.stdin.getValue());
-        Assert.assertEquals("write:/path/to/log.txt", configBuilder.builderIo.stdout.getValue());
-        Assert.assertEquals("write:/path/to/err.txt", configBuilder.builderIo.stderr.getValue());
+        Assert.assertFalse(configBuilder.logToFile.getValue());
+        Assert.assertFalse(configBuilder.logToConsole.getValue());
 
         ScmRepository repo1 = config.getRepositories().iterator().next();
         Assert.assertEquals("repo1", repo1.getId());
@@ -225,9 +212,8 @@ public class DefaultsAndInheritanceTest {
                 repo1.getBuildVersionPattern()));
         Assert.assertEquals(SrcVersion.parseRef("branch-3.x"), repo1.getBuildRef());
         Assert.assertEquals("0.1", repo1.getMaven().getVersionsMavenPluginVersion());
-        Assert.assertEquals("read:/path/to/input-file.txt", repo1.getBuilderIo().getStdin());
-        Assert.assertEquals("write:/path/to/log.txt", repo1.getBuilderIo().getStdout());
-        Assert.assertEquals("write:/path/to/err.txt", repo1.getBuilderIo().getStderr());
+        Assert.assertFalse(repo1.isLogToFile());
+        Assert.assertFalse(repo1.isLogToConsole());
 
     }
 

@@ -29,7 +29,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.srcdeps.core.BuildRequest.Verbosity;
 import org.srcdeps.core.SrcVersion;
-import org.srcdeps.core.config.BuilderIo;
 import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.ConfigurationException;
 import org.srcdeps.core.config.Maven;
@@ -59,13 +58,13 @@ public class YamlConfigurationReaderTest {
         try (Reader in = new InputStreamReader(getClass().getResourceAsStream("/srcdeps-full.yaml"), "utf-8")) {
             Configuration actual = new YamlConfigurationReader().read(in).build();
             Configuration expected = Configuration.builder() //
-                    .configModelVersion("2.6") //
+                    .configModelVersion("3.0") //
                     .encoding(Charset.forName("UTF-16")) //
                     .forwardAsMasterConfig(true) //
                     .forwardProperty("myProp1") //
                     .forwardProperty("myProp2") //
-                    .builderIo(BuilderIo.builder().stdin("read:/path/to/input/file")
-                            .stdout("write:/path/to/output/file").stderr("err2out"))
+                    .logToFile(false) //
+                    .logToConsole(true) //
                     .skip(true) //
                     .sourcesDirectory(Paths.get("/home/me/.m2/srcdeps")) //
                     .verbosity(Verbosity.debug) //
@@ -101,6 +100,8 @@ public class YamlConfigurationReaderTest {
                                     .id("org.repo1") //
                                     .encoding(Charset.forName("UTF-8")) //
                                     .verbosity(Verbosity.trace) //
+                                    .logToFile(true) //
+                                    .logToConsole(false) //
                                     .include("group1") //
                                     .include("group2:artifact2:*") //
                                     .exclude("group3") //
@@ -132,6 +133,8 @@ public class YamlConfigurationReaderTest {
                             ScmRepository.builder() //
                                     .id("org.repo2") //
                                     .encoding(Charset.forName("UTF-8")) //
+                                    .logToFile(true) //
+                                    .logToConsole(false) //
                                     .include("group3:artifact3") //
                                     .include("group4:artifact4:1.2.3") //
                                     .url("url3") //
@@ -146,7 +149,7 @@ public class YamlConfigurationReaderTest {
                                                     .includeRequired(true) //
                                     ) //
 
-                            ) //
+                    ) //
                     .build();
             Assert.assertEquals(expected, actual);
             final ScmRepository repo1 = actual.getRepositories().iterator().next();
@@ -161,12 +164,12 @@ public class YamlConfigurationReaderTest {
                 "utf-8")) {
             Configuration actual = new YamlConfigurationReader().read(in).build();
             Configuration expected = Configuration.builder() //
-                    .configModelVersion("2.1") //
+                    .configModelVersion("3.0") //
                     .forwardAsMasterConfig(false) //
                     .forwardProperty("myProp1") //
                     .forwardProperty("myProp2") //
-                    .builderIo(BuilderIo.builder().stdin("read:/path/to/input/file")
-                            .stdout("write:/path/to/output/file").stderr("err2out"))
+                    .logToFile(true) //
+                    .logToConsole(false) //
                     .skip(true) //
                     .sourcesDirectory(Paths.get("/home/me/.m2/srcdeps")) //
                     .verbosity(Verbosity.debug) //
@@ -199,6 +202,8 @@ public class YamlConfigurationReaderTest {
                             ScmRepository.builder() //
                                     .id("org.repo1") //
                                     .verbosity(Verbosity.trace) //
+                                    .logToFile(false) //
+                                    .logToConsole(true) //
                                     .include("group1") //
                                     .include("group2:artifact2:*") //
                                     .url("url1") //
@@ -219,20 +224,21 @@ public class YamlConfigurationReaderTest {
                     .repository( //
                             ScmRepository.builder() //
                                     .id("org.repo2") //
+                                    .logToFile(false) //
+                                    .logToConsole(true) //
                                     .include("group3:artifact3") //
                                     .include("group4:artifact4:1.2.3") //
                                     .url("url3") //
                                     .url("url4") //
                                     .buildArgument("arg3") //
                                     .addDefaultBuildArguments(false) //
-                                    .skipTests(false)
-                                    .maven( //
+                                    .skipTests(false).maven( //
                                             ScmRepositoryMaven.builder() //
                                                     .useVersionsMavenPlugin(false) //
                                                     .excludeNonRequired(false) //
                                                     .includeRequired(false) //
                                     ) //
-                            ) //
+                    ) //
                     .build();
             Assert.assertEquals(expected, actual);
         }

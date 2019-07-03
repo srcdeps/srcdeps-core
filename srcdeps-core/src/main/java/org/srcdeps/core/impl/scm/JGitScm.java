@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -94,11 +94,11 @@ public class JGitScm implements Scm {
         return SRCDEPS_WORKING_BRANCH;
     }
 
-    private static Git openGit(Path dir) throws ScmException {
+    private static Git openGit(String requestId, Path dir) throws ScmException {
         try {
             return Git.open(dir.toFile());
         } catch (IOException e) {
-            log.debug(String.format("srcdeps: No git repository in [%s]", dir), e);
+            log.debug(String.format("srcdeps[%s]: No git repository in [%s]", requestId, dir), e);
         }
         try {
             SrcdepsCoreUtils.ensureDirectoryExistsAndEmpty(dir);
@@ -131,8 +131,8 @@ public class JGitScm implements Scm {
      * Makes sure that the given {@code refToFind} is available in the {@code advertisedRefs}.
      *
      * @param advertisedRefs the {@link Collection} of {@link Ref}s to search in
-     * @param refToFind      the ref name to find
-     * @param url            the URL used to fetch
+     * @param refToFind the ref name to find
+     * @param url the URL used to fetch
      * @throws ScmException if the given {@code refToFind} could not be found in the {@code advertisedRefs}
      */
     private void assertRefFetched(Collection<Ref> advertisedRefs, String refToFind, String url) throws ScmException {
@@ -147,12 +147,12 @@ public class JGitScm implements Scm {
     /**
      * Walks back through the history of the {@code advertisedRefs} and tries to find the given {@code commitSha1}.
      *
-     * @param repository     the current {@link Repository} to search in
+     * @param repository the current {@link Repository} to search in
      * @param advertisedRefs the list of refs that were fetched and whose histories should be searched through
-     * @param commitSha1     the commit to find
-     * @param url            the URL that was used to fetch
+     * @param commitSha1 the commit to find
+     * @param url the URL that was used to fetch
      * @throws ScmException if the given {@code commitSha1} could not be found in the history of any of the
-     *                      {@code advertisedRefs}
+     *         {@code advertisedRefs}
      */
     private void assertRevisionFetched(Repository repository, Collection<Ref> advertisedRefs, String commitSha1,
             String url) throws ScmException {
@@ -197,10 +197,11 @@ public class JGitScm implements Scm {
         int i = 0;
         final List<String> urls = request.getScmUrls();
 
-        try (Git git = openGit(dir)) {
+        try (Git git = openGit(request.getScmRepositoryId(), dir)) {
             for (String url : urls) {
                 final String useUrl = stripUriPrefix(url);
-                final String result = fetchAndReset(useUrl, i, urls.size(), request.getSrcVersion(), dir, git);
+                final String result = fetchAndReset(request.getScmRepositoryId(), useUrl, i, urls.size(),
+                        request.getSrcVersion(), dir, git);
                 if (result != null) {
                     return result;
                 }
@@ -211,21 +212,22 @@ public class JGitScm implements Scm {
                 String.format("Could not checkout [%s] from URLs %s", request.getSrcVersion(), request.getScmUrls()));
     }
 
-    String fetchAndReset(String useUrl, int urlIndex, int urlCount, SrcVersion srcVersion, Path dir, Git git)
-            throws ScmException {
+    String fetchAndReset(String requestId, String useUrl, int urlIndex, int urlCount, SrcVersion srcVersion, Path dir,
+            Git git) throws ScmException {
         /* Forget local changes */
         try {
             Set<String> removedFiles = git.clean().setCleanDirectories(true).call();
             for (String removedFile : removedFiles) {
-                log.debug("srcdeps: Removed an unstaged file [{}]", removedFile);
+                log.debug("srcdeps[{}]: Removed an unstaged file [{}]", requestId, removedFile);
             }
             git.reset().setMode(ResetType.HARD).call();
 
         } catch (Exception e) {
-            log.warn(String.format("srcdeps: Could not forget local changes in [%s]", dir), e);
+            log.warn(String.format("srcdeps[%s]: Could not forget local changes in [%s]", requestId, dir), e);
         }
 
-        log.info("srcdeps: Fetching version [{}] from SCM URL {}/{} [{}]", srcVersion, urlIndex + 1, urlCount, useUrl);
+        log.info("srcdeps[{}]: Fetching version [{}] from SCM URL {}/{} [{}]", requestId, srcVersion, urlIndex + 1,
+                urlCount, useUrl);
         final String remoteAlias = toRemoteAlias(useUrl);
         try {
 
@@ -287,8 +289,8 @@ public class JGitScm implements Scm {
 
             return ref.getObjectId().getName();
         } catch (ScmException e) {
-            final String msg = String.format("srcdeps: Could not checkout [%s] from SCM URL %d/%d [%s]", srcVersion,
-                    urlIndex + 1, urlCount, useUrl);
+            final String msg = String.format("srcdeps[%s]: Could not checkout [%s] from SCM URL %d/%d [%s]", requestId,
+                    srcVersion, urlIndex + 1, urlCount, useUrl);
             if (urlIndex + 1 == urlCount) {
                 throw new ScmException(msg, e);
             } else {

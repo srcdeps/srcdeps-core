@@ -58,7 +58,7 @@ public class YamlWriterVisitorTest {
         String expectedConfig = "#\n" //
                 + "# srcdeps comment line 1\n" //
                 + "# srcdeps comment line 2\n" //
-                + "configModelVersion: 2.6\n" //
+                + "configModelVersion: 3.0\n" //
                 + "repositories:\n" //
                 + "\n" //
                 + "  # repo1 comment line 1\n" //

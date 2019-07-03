@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-configModelVersion: 2.1
+configModelVersion: 3.0
 
 forwardAsMasterConfig: false
 
@@ -23,16 +23,13 @@ forwardProperties:
 - myProp1
 - myProp2
 
-builderIo:
-  stdin: read:/path/to/input/file
-  stdout: write:/path/to/output/file
-  stderr: err2out
-
 skip: true
 
 sourcesDirectory: /home/me/.m2/srcdeps
 
 verbosity: debug
+logToFile: true
+logToConsole: false
 
 buildTimeout: 35m
 
@@ -77,6 +74,8 @@ repositories:
     skipTests: false
     buildTimeout: 64s
     verbosity: trace
+    logToFile: false
+    logToConsole: true
     maven:
       versionsMavenPluginVersion: 2.2
       useVersionsMavenPlugin: false
@@ -84,6 +83,8 @@ repositories:
       includeRequired: false
 
   org.repo2:
+    logToFile: false
+    logToConsole: true
     selectors:
     - group3:artifact3
     - group4:artifact4:1.2.3

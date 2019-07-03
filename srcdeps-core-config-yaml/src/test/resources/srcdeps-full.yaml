@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-configModelVersion: 2.6
+configModelVersion: 3.0
 
 encoding: UTF-16
 
@@ -25,16 +25,13 @@ forwardProperties:
 - myProp1
 - myProp2
 
-builderIo:
-  stdin: read:/path/to/input/file
-  stdout: write:/path/to/output/file
-  stderr: err2out
-
 skip: true
 
 sourcesDirectory: /home/me/.m2/srcdeps
 
 verbosity: debug
+logToFile: false
+logToConsole: true
 
 buildTimeout: 35m
 
@@ -86,6 +83,8 @@ repositories:
     skipTests: false
     buildTimeout: 64s
     verbosity: trace
+    logToFile: true
+    logToConsole: false
     buildVersionPattern: 3\.2\..*
     buildRef: revision-deadbeef
     maven:
@@ -101,6 +100,8 @@ repositories:
 
   org.repo2:
     encoding: UTF-8
+    logToFile: true
+    logToConsole: false
     includes:
     - group3:artifact3
     - group4:artifact4:1.2.3

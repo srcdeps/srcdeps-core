@@ -52,8 +52,8 @@ public class BuildRequestTest {
                 new LinkedHashMap<String, String>(env1), new LinkedHashSet<String>(props), StandardCharsets.UTF_8,
                 GavSet.builder().include("org.mygroup").exclude("other-group").build(),
                 new ArrayList<>(Arrays.<String>asList("url1", "url2")), true,
-                SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", true, Collections.singleton(Ga.of("org:a")), false,
-                50000, Verbosity.error);
+                SrcVersion.parse("1.2.3-SRC-revision-deadbeef"), "1.2.3", true, Collections.singleton(Ga.of("org:a")),
+                false, 50000, Verbosity.error);
 
         Assert.assertEquals(id1, id2);
         Assert.assertEquals(id1.hashCode(), id2.hashCode());

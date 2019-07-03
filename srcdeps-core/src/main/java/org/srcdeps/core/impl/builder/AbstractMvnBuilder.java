@@ -45,16 +45,16 @@ import org.srcdeps.core.shell.ShellCommand;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public abstract class AbstractMvnBuilder extends ShellBuilder {
+    private static final Logger log = LoggerFactory.getLogger(AbstractMvnBuilder.class);
     protected static final List<String> MVN_DEFAULT_ARGS = Collections
             .unmodifiableList(Arrays.asList("clean", "install"));
     protected static final Map<String, String> MVN_DEFAULT_BUILD_ENVIRONMENT = Collections.emptyMap();
+
     protected static final List<String> MVNW_FILE_NAMES = Collections
             .unmodifiableList(Arrays.asList("mvnw", "mvnw.cmd"));
-
     protected static final List<String> POM_FILE_NAMES = Collections.unmodifiableList(
             Arrays.asList("pom.xml", "pom.atom", "pom.clj", "pom.groovy", "pom.rb", "pom.scala", "pom.yml"));
     protected static final List<String> SKIP_TESTS_ARGS = Collections.singletonList("-DskipTests");
-    private static final Logger log = LoggerFactory.getLogger(AbstractMvnBuilder.class);
 
     /**
      * @return the default build arguments used in Maven builds of source dependencies
@@ -178,6 +178,21 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     }
 
     @Override
+    protected List<String> mergeArguments(BuildRequest request) {
+        List<String> result = super.mergeArguments(request);
+
+        /* Make sure batch mode is there */
+        for (String arg : result) {
+            if ("-B".equals(arg) || "--batch-mode".equals(arg)) {
+                return result;
+            }
+        }
+        result.add("-B");
+
+        return result;
+    }
+
+    @Override
     public void setVersions(BuildRequest request) throws BuildException {
         final Map<String, String> env = mergeEnvironment(request);
         final List<String> verbosityArgs = getVerbosityArguments(request.getVerbosity());
@@ -195,17 +210,19 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
             addBuildIncludes(request, args);
 
             final ShellCommand cliRequest = ShellCommand.builder() //
+                    .id(request.getScmRepositoryId()) //
                     .executable(locateExecutable(request))//
                     .arguments(args) //
                     .workingDirectory(request.getProjectRootDirectory()) //
                     .environment(env) //
-                    .ioRedirects(request.getIoRedirects()) //
+                    .output(request.getOuput()) //
                     .timeoutMs(request.getTimeoutMs()) //
                     .build();
             final CommandResult result = Shell.execute(cliRequest).assertSuccess();
             this.restTimeoutMs = request.getTimeoutMs() - result.getRuntimeMs();
         } else {
-            log.info("srcdeps: Setting versions to [{}] using srcdeps version setters", newVersion);
+            log.info("srcdeps[{}]: Setting versions to [{}] using srcdeps version setters",
+                    request.getScmRepositoryId(), newVersion);
             final MavenSourceTree tree = MavenSourceTree.of(request.getProjectRootDirectory().resolve("pom.xml"),
                     request.getEncoding());
             tree.setVersions(newVersion, ActiveProfiles.ofArgs(request.getBuildArguments()));
@@ -220,10 +237,11 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
             args.addAll(verbosityArgs);
 
             final ShellCommand cliRequest = ShellCommand.builder() //
+                    .id(request.getScmRepositoryId()) //
                     .executable(locateExecutable(request)).arguments(args) //
                     .workingDirectory(request.getProjectRootDirectory()) //
                     .environment(env) //
-                    .ioRedirects(request.getIoRedirects()) //
+                    .output(request.getOuput()) //
                     .timeoutMs(request.getTimeoutMs()) //
                     .build();
             final CommandResult result = Shell.execute(cliRequest).assertSuccess();

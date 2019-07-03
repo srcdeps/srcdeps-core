@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,19 +45,6 @@ import org.srcdeps.core.util.Consumer;
 @Singleton
 public class PersistentBuildMetadataStore implements BuildMetadataStore {
 
-    public static class BuildRequestIdCollector implements Consumer<String> {
-        private final List<String> hashes = new ArrayList<>();
-
-        @Override
-        public void accept(String t) {
-            hashes.add(t);
-        }
-
-        public List<String> getHashes() {
-            return hashes;
-        }
-    }
-
     static class BuildRequestHashVisitor implements FileVisitor<Path> {
         private Consumer<String> consumer;
 
@@ -101,6 +88,19 @@ public class PersistentBuildMetadataStore implements BuildMetadataStore {
 
     }
 
+    public static class BuildRequestIdCollector implements Consumer<String> {
+        private final List<String> hashes = new ArrayList<>();
+
+        @Override
+        public void accept(String t) {
+            hashes.add(t);
+        }
+
+        public List<String> getHashes() {
+            return hashes;
+        }
+    }
+
     private static final String COMMIT_ID = "commitId";
 
     private static final int DISTRIBUTION_DEPTH = 4 + 1;
@@ -139,53 +139,65 @@ public class PersistentBuildMetadataStore implements BuildMetadataStore {
 
     /** {@inheritDoc} */
     @Override
-    public String retrieveCommitId(String buildRequestIdHash) {
+    public CheckSha1Consumer createCheckSha1Checker(String requestId, String buildRequestIdHash) {
+        return new CheckSha1Consumer(this, requestId, buildRequestIdHash);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public StoreSha1Consumer createStoreSha1Consumer(String requestId, String buildRequestIdHash) {
+        return new StoreSha1Consumer(this, requestId, buildRequestIdHash);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String retrieveCommitId(String requestId, String buildRequestIdHash) {
         final Path p = createBuildRequestIdPath(buildRequestIdHash).resolve(COMMIT_ID);
         if (Files.exists(p)) {
             try {
                 String result = new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
-                log.debug("srcdeps: Path [{}] points at commitId [{}]", p, result);
+                log.debug("srcdeps[{}]: Path [{}] points at commitId [{}]", requestId, p, result);
                 return result;
             } catch (IOException e) {
                 throw new RuntimeException(String.format("Could not read %s", p), e);
             }
         }
-        log.debug("srcdeps: commitId path [{}] does not exist", p);
+        log.debug("srcdeps[{}]: commitId path [{}] does not exist", requestId, p);
         return null;
     }
 
     /** {@inheritDoc} */
     @Override
-    public String retrieveSha1(String buildRequestIdHash, Gavtc gavtc) {
+    public String retrieveSha1(String requestId, String buildRequestIdHash, Gavtc gavtc) {
         final String gavtcString = gavtc.getGavtcString().replace(':', '_');
         final Path p = createBuildRequestIdPath(buildRequestIdHash).resolve(gavtcString);
         if (Files.exists(p)) {
             try {
                 final String result = new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
-                log.debug("srcdeps: Path [{}] points at sha1 [{}]", p, result);
+                log.debug("srcdeps[{}]: Path [{}] points at sha1 [{}]", requestId, p, result);
                 return result;
             } catch (IOException e) {
                 throw new RuntimeException(String.format("Could not read %s", p), e);
             }
         }
-        log.debug("srcdeps: sha1 path [{}] does not exist", p);
+        log.debug("srcdeps[{}]: sha1 path [{}] does not exist", requestId, p);
         return null;
     }
 
     /** {@inheritDoc} */
     @Override
-    public void storeCommitId(String buildRequestIdHash, String commitId) {
+    public void storeCommitId(String requestId, String buildRequestIdHash, String commitId) {
         final Path p = createBuildRequestIdPath(buildRequestIdHash).resolve(COMMIT_ID);
-        log.debug("srcdeps: Path [{}] will point at commitId [{}]", p, commitId);
+        log.debug("srcdeps[{}]: Path [{}] will point at commitId [{}]", requestId, p, commitId);
         store(p, commitId);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void storeSha1(String buildRequestIdHash, Gavtc gavtc, String sha1) {
+    public void storeSha1(String requestId, String buildRequestIdHash, Gavtc gavtc, String sha1) {
         final String gavtcString = gavtc.getGavtcString().replace(':', '_');
         final Path p = createBuildRequestIdPath(buildRequestIdHash).resolve(gavtcString);
-        log.debug("srcdeps: Path [{}] will point at sha1 [{}]", p, sha1);
+        log.debug("srcdeps[{}]: Path [{}] will point at sha1 [{}]", requestId, p, sha1);
         store(p, sha1);
     }
 
@@ -197,18 +209,6 @@ public class PersistentBuildMetadataStore implements BuildMetadataStore {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public StoreSha1Consumer createStoreSha1Consumer(String buildRequestIdHash) {
-        return new StoreSha1Consumer(this, buildRequestIdHash);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public CheckSha1Consumer createCheckSha1Checker(String buildRequestIdHash) {
-        return new CheckSha1Consumer(this, buildRequestIdHash);
     }
 
 }
