@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,12 @@
  */
 package org.srcdeps.core.shell;
 
+import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +37,7 @@ import org.srcdeps.core.BuildException;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class Shell {
+
     /**
      * A simple wrapper over {@link Process} that manages its destroying and offers Java 8-like
      * {@link #waitFor(long, TimeUnit, String[])} with timeout.
@@ -41,13 +46,19 @@ public class Shell {
 
         private final Process process;
         private final Thread shutDownHook;
+        private final StreamGobbler stdOut;
 
-        public CommandProcess(Process process) {
+        public CommandProcess(String requestId, Process process, LineConsumer out) {
             super();
             this.process = process;
+            this.stdOut = new StreamGobbler(process.getInputStream(), out);
+            stdOut.start();
+
             this.shutDownHook = new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    stdOut.cancel();
+                    // stdErr.cancel();
                     CommandProcess.this.process.destroy();
                 }
             });
@@ -60,7 +71,7 @@ public class Shell {
         }
 
         public CommandResult waitFor(long timeout, TimeUnit unit, String[] cmdArray)
-                throws CommandTimeoutException, InterruptedException {
+                throws CommandTimeoutException, InterruptedException, IOException {
             final long startMillisTime = System.currentTimeMillis();
             final long startNanoTime = System.nanoTime();
             long rem = unit.toNanos(timeout);
@@ -72,6 +83,10 @@ public class Shell {
                         Runtime.getRuntime().removeShutdownHook(shutDownHook);
                     } catch (Exception ignored) {
                     }
+
+                    stdOut.join();
+                    stdOut.assertSuccess();
+
                     return new CommandResult(cmdArray, exitCode, System.currentTimeMillis() - startMillisTime);
                 } catch (IllegalThreadStateException ex) {
                     if (rem > 0) {
@@ -124,37 +139,67 @@ public class Shell {
         }
     }
 
-    private static final Logger log = LoggerFactory.getLogger(Shell.class);
+    /**
+     * The usual friend of {@link Process#getInputStream()} / {@link Process#getErrorStream()}.
+     */
+    static class StreamGobbler extends Thread {
+        private volatile boolean cancelled;
+        private IOException exception;
+        private final InputStream in;
+        private final LineConsumer out;
+
+        private StreamGobbler(InputStream in, LineConsumer out) {
+            this.in = in;
+            this.out = out;
+        }
+
+        public void assertSuccess() throws IOException {
+            if (exception != null) {
+                throw exception;
+            }
+        }
+
+        public void cancel() {
+            this.cancelled = true;
+        }
+
+        @Override
+        public void run() {
+            try (BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+                String line;
+                while (!cancelled && (line = r.readLine()) != null) {
+                    out.accept(line);
+                }
+            } catch (IOException e) {
+                exception = e;
+            }
+        }
+    }
+
+    static final Logger log = LoggerFactory.getLogger(Shell.class);
 
     /**
      * Executes the given {@link ShellCommand} synchronously.
      *
      * @param command the command to execute
      * @return the {@link CommandResult} that can be used to determine if the execution was successful
-     * @throws BuildException          on any build related problems
+     * @throws BuildException on any build related problems
      * @throws CommandTimeoutException if the execution is not finished within the timeout defined in
-     *                                 {@link ShellCommand#getTimeoutMs()}
+     *         {@link ShellCommand#getTimeoutMs()}
      */
     public static CommandResult execute(ShellCommand command) throws BuildException, CommandTimeoutException {
         final String[] cmdArray = command.asCmdArray();
         final String cmdArrayString = Arrays.stream(cmdArray).collect(Collectors.joining(" "));
-        final IoRedirects redirects = command.getIoRedirects();
         final Map<String, String> env = command.getEnvironment();
-        log.info("srcdeps: Executing command [{}] using redirects {} and env {}", cmdArrayString, redirects, env);
+        log.info("srcdeps[{}]: Executing command [{}] using env {}", command.getId(), cmdArrayString, env);
         ProcessBuilder builder = new ProcessBuilder(cmdArray) //
                 .directory(command.getWorkingDirectory().toFile()) //
-                .redirectInput(redirects.getStdin()) //
-                .redirectOutput(redirects.getStdout()) //
-        ;
-        if (redirects.isErr2Out()) {
-            builder.redirectErrorStream(redirects.isErr2Out());
-        } else {
-            builder.redirectError(redirects.getStderr());
-        }
+                .redirectErrorStream(true);
         if (!env.isEmpty()) {
             builder.environment().putAll(env);
         }
-        try (CommandProcess process = new CommandProcess(builder.start())) {
+        try (LineConsumer out = command.getOutput().get();
+                CommandProcess process = new CommandProcess(command.getId(), builder.start(), out)) {
             return process.waitFor(command.getTimeoutMs(), TimeUnit.MILLISECONDS, cmdArray).assertSuccess();
         } catch (IOException | InterruptedException e) {
             throw new BuildException(String.format("Could not start command [%s]", cmdArrayString), e);

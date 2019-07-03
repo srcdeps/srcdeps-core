@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.srcdeps.core.SrcVersion;
+import org.srcdeps.core.shell.LineConsumer;
 import org.srcdeps.core.shell.Shell;
 import org.srcdeps.core.shell.ShellCommand;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
@@ -90,10 +91,19 @@ public class PathLockerTest {
         final String classPath = targetDirectory.resolve("classes").toString() + File.pathSeparator
                 + targetDirectory.resolve("test-classes").toString() + File.pathSeparator + slfApiJar
                 + File.pathSeparator + slfSimpleJar;
-        final ShellCommand command = ShellCommand.builder().executable(SrcdepsCoreUtils.getCurrentJavaExecutable())
-                .arguments("-cp", classPath, PathLockerProcess.class.getName(), dirToLock.toString(),
-                        srcVersion.toString(), keepRunnigFile.toString(), lockSuccessFile.toString())
-                .workingDirectory(lockerDirectory).build();
+        final ShellCommand command = ShellCommand.builder() //
+                .id("anotherProcess").executable(SrcdepsCoreUtils.getCurrentJavaExecutable()) //
+                .arguments( //
+                        "-cp", //
+                        classPath, //
+                        PathLockerProcess.class.getName(), //
+                        dirToLock.toString(), //
+                        srcVersion.toString(), //
+                        keepRunnigFile.toString(), //
+                        lockSuccessFile.toString() //
+                ) //
+                .workingDirectory(lockerDirectory) //
+                .output(LineConsumer::dummy).build();
         final ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executor.submit(new Callable<Boolean>() {
             @Override
@@ -118,7 +128,7 @@ public class PathLockerTest {
 
         log.debug(pid + " Lock success file exists {}", lockSuccessFile);
 
-        try (PathLock lock1 = pathLocker.lockDirectory(dirToLock, srcVersion)) {
+        try (PathLock lock1 = pathLocker.lockDirectory("org.srcdeps.example", dirToLock, srcVersion)) {
             /* locked for the current thread */
             Assert.fail(String.format("The current thread and process should not be able to lock [%s]", dirToLock));
         } catch (CannotAcquireLockException e) {
@@ -134,7 +144,7 @@ public class PathLockerTest {
         /*
          * PathLockerProcess must have unlocked at this point and we must succeed in locking from here now
          */
-        try (PathLock lock1 = pathLocker.lockDirectory(dirToLock, srcVersion)) {
+        try (PathLock lock1 = pathLocker.lockDirectory("org.srcdeps.example", dirToLock, srcVersion)) {
             Assert.assertTrue(lock1 != null);
         }
 
@@ -146,7 +156,7 @@ public class PathLockerTest {
         return executor.submit(new Callable<PathLock>() {
             @Override
             public PathLock call() throws Exception {
-                return pathLocker.lockDirectory(path, srcVersion);
+                return pathLocker.lockDirectory("org.srcdeps.example", path, srcVersion);
             }
         });
     }
@@ -161,7 +171,7 @@ public class PathLockerTest {
         final SrcVersion srcVersion2 = SrcVersion.parse("2.3.4-SRC-revision-coffeebabe");
 
         Future<PathLock> concurrLockFuture = null;
-        try (PathLock lock1 = pathLocker.lockDirectory(dir1, srcVersion1)) {
+        try (PathLock lock1 = pathLocker.lockDirectory("org.srcdeps.example", dir1, srcVersion1)) {
             /* locked for the current thread */
 
             /*
@@ -220,7 +230,7 @@ public class PathLockerTest {
         final SrcVersion srcVersion = SrcVersion.parse("1.2.3-SRC-revision-deadbeef");
 
         Future<PathLock> concurrLockFuture = null;
-        try (PathLock lock1 = pathLocker.lockDirectory(dir1, srcVersion)) {
+        try (PathLock lock1 = pathLocker.lockDirectory("org.srcdeps.example", dir1, srcVersion)) {
             /* locked for the current thread */
 
             /*

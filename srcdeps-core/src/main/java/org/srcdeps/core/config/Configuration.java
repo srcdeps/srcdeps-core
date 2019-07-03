@@ -52,7 +52,6 @@ import org.srcdeps.core.util.Equals.EqualsImplementations;
 public class Configuration {
     public static class Builder extends DefaultContainerNode<Node> {
 
-        final BuilderIo.Builder builderIo = BuilderIo.builder();
         final ScalarNode<SrcVersion> buildRef = new DefaultScalarNode<>("buildRef", SrcVersion.getBranchMaster());
         final ScalarNode<Duration> buildTimeout = new DefaultScalarNode<>("buildTimeout", Duration.maxValue());
         final ScalarNode<Pattern> buildVersionPattern = new DefaultScalarNode<>("buildVersionPattern", null,
@@ -79,6 +78,8 @@ public class Configuration {
 
         };
         private Map<String, String> forwardPropertyValues = new TreeMap<>();
+        final ScalarNode<Boolean> logToConsole = new DefaultScalarNode<>("logToConsole", Boolean.TRUE);
+        final ScalarNode<Boolean> logToFile = new DefaultScalarNode<>("logToFile", Boolean.TRUE);
         final Maven.Builder maven = Maven.builder();
         final DefaultContainerNode<ScmRepository.Builder> repositories = new DefaultContainerNode<>("repositories");
         final ScalarNode<Boolean> skip = new DefaultScalarNode<>("skip", Boolean.FALSE);
@@ -92,7 +93,8 @@ public class Configuration {
                     encoding, //
                     forwardProperties, //
                     forwardAsMasterConfig, //
-                    builderIo, //
+                    logToFile, //
+                    logToConsole, //
                     skip, //
                     sourcesDirectory, //
                     verbosity, //
@@ -124,17 +126,11 @@ public class Configuration {
                     forwardAsMasterConfig.getValue(), Collections.unmodifiableList(repos), //
                     sourcesDirectory.getValue(), //
                     skip.getValue(), //
-                    builderIo.build(), //
                     forwardProperties.asSetOfValues(), //
                     useFwdPropValues, //
                     maven.build() //
             );
             return result;
-        }
-
-        public Builder builderIo(BuilderIo.Builder builderIo) {
-            this.builderIo.init(builderIo);
-            return this;
         }
 
         public Builder buildRef(SrcVersion value) {
@@ -197,6 +193,16 @@ public class Configuration {
             return children;
         }
 
+        public Builder logToConsole(boolean value) {
+            this.logToConsole.setValue(value);
+            return this;
+        }
+
+        public Builder logToFile(boolean value) {
+            this.logToFile.setValue(value);
+            return this;
+        }
+
         public Builder maven(Maven.Builder maven) {
             this.maven.init(maven);
             return this;
@@ -238,13 +244,13 @@ public class Configuration {
     private static final Set<String> DEFAULT_FORWARD_PROPERTIES;
 
     private static final String FORWARD_PROPERTIES_ATTRIBUTE = "forwardProperties";
-    private static final String LATEST_CONFIG_MODEL_VERSION = "2.6";
+    private static final String LATEST_CONFIG_MODEL_VERSION = "3.0";
 
     private static final String SRCDEPS_ENCODING_PROPERTY = "srcdeps.encoding";
 
     private static final String SRCDEPS_MASTER_CONFIG_PROPERTY = "srcdeps.masterConfig";
-    private static final Set<String> SUPPORTED_CONFIG_MODEL_VERSIONS = Collections.unmodifiableSet(
-            new LinkedHashSet<>(Arrays.asList("2.0", "2.1", "2.2", "2.3", "2.4", "2.5", LATEST_CONFIG_MODEL_VERSION)));
+    private static final Set<String> SUPPORTED_CONFIG_MODEL_VERSIONS = Collections
+            .unmodifiableSet(new LinkedHashSet<>(Arrays.asList(LATEST_CONFIG_MODEL_VERSION)));
 
     static {
         DEFAULT_FORWARD_PROPERTIES = Collections.unmodifiableSet(new LinkedHashSet<>(
@@ -314,7 +320,7 @@ public class Configuration {
     private final Path sourcesDirectory;
 
     private Configuration(String configModelVersion, boolean forwardAsMasterConfig, List<ScmRepository> repositories,
-            Path sourcesDirectory, boolean skip, BuilderIo redirects, Set<String> forwardPropertyNames,
+            Path sourcesDirectory, boolean skip, Set<String> forwardPropertyNames,
             Map<String, String> forwardProperties, Maven maven) {
         super();
         this.configModelVersion = configModelVersion;

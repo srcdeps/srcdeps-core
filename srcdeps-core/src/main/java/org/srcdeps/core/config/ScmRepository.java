@@ -51,7 +51,6 @@ public class ScmRepository {
                 Boolean.TRUE);
 
         final ListOfScalarsNode<String> buildArguments = new DefaultListOfScalarsNode<>("buildArguments", String.class);
-        final BuilderIo.Builder builderIo = BuilderIo.builder();
         final ScalarNode<SrcVersion> buildRef = new DefaultScalarNode<SrcVersion>("buildRef", SrcVersion.class) {
 
             @Override
@@ -117,6 +116,36 @@ public class ScmRepository {
         final ListOfScalarsNode<String> excludes = new DefaultListOfScalarsNode<>("excludes", String.class);
         final ScmRepositoryGradle.Builder gradle = ScmRepositoryGradle.builder();
         final ListOfScalarsNode<String> includes = new DefaultListOfScalarsNode<>("includes", String.class);
+        final ScalarNode<Boolean> logToConsole = new DefaultScalarNode<Boolean>("logToConsole", Boolean.class) {
+
+            @Override
+            public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                inheritFrom(configuratioBuilder.logToConsole, configurationStack);
+            }
+
+            @Override
+            public boolean isInDefaultState(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                return isInDefaultState(configuratioBuilder.logToConsole, configurationStack);
+            }
+
+        };
+        final ScalarNode<Boolean> logToFile = new DefaultScalarNode<Boolean>("logToFile", Boolean.class) {
+
+            @Override
+            public void applyDefaultsAndInheritance(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                inheritFrom(configuratioBuilder.logToFile, configurationStack);
+            }
+
+            @Override
+            public boolean isInDefaultState(Stack<Node> configurationStack) {
+                Configuration.Builder configuratioBuilder = (Configuration.Builder) configurationStack.get(0);
+                return isInDefaultState(configuratioBuilder.logToFile, configurationStack);
+            }
+
+        };
         final ScmRepositoryMaven.Builder maven = ScmRepositoryMaven.builder();
         final ScalarNode<Boolean> skipTests = new DefaultScalarNode<>("skipTests", Boolean.TRUE);
 
@@ -149,7 +178,8 @@ public class ScmRepository {
                     addDefaultBuildArguments, //
                     skipTests, //
                     buildTimeout, //
-                    builderIo, //
+                    logToFile, //
+                    logToConsole, //
                     verbosity, //
                     buildRef, //
                     buildVersionPattern, //
@@ -175,7 +205,8 @@ public class ScmRepository {
                     maven.build(), //
                     gradle.build(), //
                     buildTimeout.getValue(), //
-                    builderIo.build(), //
+                    logToFile.getValue(), //
+                    logToConsole.getValue(), //
                     verbosity.getValue(), //
                     buildRef.getValue(), //
                     buildVersionPattern.getValue() //
@@ -256,6 +287,16 @@ public class ScmRepository {
 
         public Builder includes(List<String> includes) {
             this.includes.addAll(includes);
+            return this;
+        }
+
+        public Builder logToConsole(boolean logToConsole) {
+            this.logToConsole.setValue(logToConsole);
+            return this;
+        }
+
+        public Builder logToFile(boolean logToFile) {
+            this.logToFile.setValue(logToFile);
             return this;
         }
 
@@ -377,7 +418,6 @@ public class ScmRepository {
 
     private final boolean addDefaultBuildArguments;
     private final List<String> buildArguments;
-    private final BuilderIo builderIo;
     private final SrcVersion buildRef;
     private final Duration buildTimeout;
     private final Pattern buildVersionPattern;
@@ -385,9 +425,10 @@ public class ScmRepository {
     private final List<String> excludes;
     private final GavSet gavSet;
     private final ScmRepositoryGradle gradle;
-
     private final String id;
     private final List<String> includes;
+    private final boolean logToConsole;
+    private final boolean logToFile;
     private final ScmRepositoryMaven maven;
     private final boolean skipTests;
     private final List<String> urls;
@@ -395,8 +436,8 @@ public class ScmRepository {
 
     private ScmRepository(String id, Charset encoding, List<String> includes, List<String> excludes, List<String> urls,
             List<String> buildArgs, boolean skipTests, boolean addDefaultBuildArguments, ScmRepositoryMaven maven,
-            ScmRepositoryGradle gradle, Duration buildTimeout, BuilderIo builderIo, Verbosity verbosity,
-            SrcVersion buildRef, Pattern buildVersionPattern) {
+            ScmRepositoryGradle gradle, Duration buildTimeout, boolean logToFile, boolean logToConsole,
+            Verbosity verbosity, SrcVersion buildRef, Pattern buildVersionPattern) {
         super();
         this.id = id;
         this.includes = includes;
@@ -410,7 +451,8 @@ public class ScmRepository {
         this.maven = maven;
         this.gradle = gradle;
         this.buildTimeout = buildTimeout;
-        this.builderIo = builderIo;
+        this.logToFile = logToFile;
+        this.logToConsole = logToConsole;
         this.verbosity = verbosity;
         this.buildVersionPattern = buildVersionPattern;
         this.buildRef = buildRef;
@@ -437,10 +479,9 @@ public class ScmRepository {
                 return false;
         } else if (!buildTimeout.equals(other.buildTimeout))
             return false;
-        if (builderIo == null) {
-            if (other.builderIo != null)
-                return false;
-        } else if (!builderIo.equals(other.builderIo))
+        if (logToFile != other.logToFile)
+            return false;
+        if (logToConsole != other.logToConsole)
             return false;
         if (excludes == null) {
             if (other.excludes != null)
@@ -505,13 +546,6 @@ public class ScmRepository {
      */
     public List<String> getBuildArguments() {
         return buildArguments;
-    }
-
-    /**
-     * @return the {@link BuilderIo} to use when building source from this repository
-     */
-    public BuilderIo getBuilderIo() {
-        return builderIo;
     }
 
     public SrcVersion getBuildRef() {
@@ -622,7 +656,8 @@ public class ScmRepository {
         result = prime * result + (addDefaultBuildArguments ? 1231 : 1237);
         result = prime * result + ((buildArguments == null) ? 0 : buildArguments.hashCode());
         result = prime * result + ((buildTimeout == null) ? 0 : buildTimeout.hashCode());
-        result = prime * result + ((builderIo == null) ? 0 : builderIo.hashCode());
+        result = prime * result + (logToFile ? 1231 : 1237);
+        result = prime * result + (logToConsole ? 1231 : 1237);
         result = prime * result + ((encoding == null) ? 0 : encoding.hashCode());
         result = prime * result + ((excludes == null) ? 0 : excludes.hashCode());
         result = prime * result + ((gavSet == null) ? 0 : gavSet.hashCode());
@@ -650,6 +685,22 @@ public class ScmRepository {
     }
 
     /**
+     * @return if {@code true} the stdin and stdout of the build process should be forwarded to the parent process'es
+     *         console; otherwise the output is not forwarded to the parent process'es console
+     */
+    public boolean isLogToConsole() {
+        return logToConsole;
+    }
+
+    /**
+     * @return if {@code true} the stdin and stdout of the build process should be forwarded to a file; otherwise the
+     *         output is not forwarded to a file
+     */
+    public boolean isLogToFile() {
+        return logToFile;
+    }
+
+    /**
      * If {@code true} no tests will be run when building a dependency. For dependencies built with Maven, this accounts
      * to adding {@code -DskipTests} to the {@code mvn} arguments.
      *
@@ -662,11 +713,11 @@ public class ScmRepository {
     @Override
     public String toString() {
         return "ScmRepository [addDefaultBuildArguments=" + addDefaultBuildArguments + ", buildArguments="
-                + buildArguments + ", builderIo=" + builderIo + ", buildTimeout=" + buildTimeout + ", encoding="
-                + encoding + ", excludes=" + excludes + ", gavSet=" + gavSet + ", gradle=" + gradle + ", id=" + id
-                + ", includes=" + includes + ", maven=" + maven + ", skipTests=" + skipTests + ", urls=" + urls
-                + ", verbosity=" + verbosity + ", buildRef=" + buildRef + ", buildVersionPattern=" + buildVersionPattern
-                + "]";
+                + buildArguments + ", logToFile=" + logToFile + ", logToConsole=" + logToConsole + ", buildTimeout="
+                + buildTimeout + ", encoding=" + encoding + ", excludes=" + excludes + ", gavSet=" + gavSet
+                + ", gradle=" + gradle + ", id=" + id + ", includes=" + includes + ", maven=" + maven + ", skipTests="
+                + skipTests + ", urls=" + urls + ", verbosity=" + verbosity + ", buildRef=" + buildRef
+                + ", buildVersionPattern=" + buildVersionPattern + "]";
     }
 
 }

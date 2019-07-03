@@ -17,7 +17,6 @@
 package org.srcdeps.core;
 
 import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,7 +42,7 @@ import org.srcdeps.core.MavenSourceTree.Module.Profile;
 import org.srcdeps.core.MavenSourceTree.Module.Profile.PropertyBuilder;
 import org.srcdeps.core.shell.BadExitCodeException;
 import org.srcdeps.core.shell.CommandTimeoutException;
-import org.srcdeps.core.shell.IoRedirects;
+import org.srcdeps.core.shell.LineConsumer;
 import org.srcdeps.core.shell.Shell;
 import org.srcdeps.core.shell.ShellCommand;
 import org.srcdeps.core.shell.ShellCommand.ShellCommandBuilder;
@@ -71,9 +70,9 @@ public class MavenSourceTreeTest {
                 profs.append(profiles[i]);
             }
         }
-        final Path out = BASEDIR.resolve("target/prop-" + propertyName + "-" + ga.getGroupId() + "-"
-                + ga.getArtifactId() + profs.toString() + ".txt");
+        final LineConsumer output = LineConsumer.string();
         final ShellCommandBuilder cmd = ShellCommand.builder() //
+                .id("assertProperty") //
                 .workingDirectory(t.getRootDirectory()) //
                 .executable(MVNW.toString()) //
                 .arguments( //
@@ -83,14 +82,13 @@ public class MavenSourceTreeTest {
                         "-Dmaven.repo.local=" + MVN_LOCAL_REPO.toString(), //
                         "-q", //
                         "-DforceStdout") //
-                .ioRedirects(IoRedirects.builder().stdout(Redirect.to(out.toFile())).build()) //
+                .output(() -> output) //
         ;
         if (profiles.length > 0) {
             cmd.arguments(profs.toString());
         }
         Shell.execute(cmd.build()).assertSuccess();
-        final String helpEval = new String(Files.readAllBytes(out), StandardCharsets.UTF_8);
-        Assert.assertEquals(expectedValue, helpEval);
+        Assert.assertEquals(expectedValue, output.toString().trim());
 
         t.evaluate(Expression.of("${" + propertyName + "}", ga), ActiveProfiles.of(profiles));
     }
@@ -141,6 +139,18 @@ public class MavenSourceTreeTest {
     }
 
     @Test
+    public void ofArgs() {
+        Assert.assertEquals(ActiveProfiles.EMPTY, ActiveProfiles.ofArgs(Arrays.asList()));
+        Assert.assertEquals(ActiveProfiles.of("p1"), ActiveProfiles.ofArgs(Arrays.asList("-Pp1")));
+        Assert.assertEquals(ActiveProfiles.of("p1", "p2"), ActiveProfiles.ofArgs(Arrays.asList("-Pp1,p2")));
+        Assert.assertEquals(ActiveProfiles.of("p1"), ActiveProfiles.ofArgs(Arrays.asList("-P", "p1")));
+        Assert.assertEquals(ActiveProfiles.of("p1", "p2"), ActiveProfiles.ofArgs(Arrays.asList("-P", "p1,p2")));
+        Assert.assertEquals(ActiveProfiles.of("p1"), ActiveProfiles.ofArgs(Arrays.asList("--activate-profiles", "p1")));
+        Assert.assertEquals(ActiveProfiles.of("p1", "p2"),
+                ActiveProfiles.ofArgs(Arrays.asList("--activate-profiles", "p1,p2")));
+    }
+
+    @Test
     public void propertyEval() throws IOException, CommandTimeoutException, BuildException {
         final Path root = BASEDIR.resolve("target/test-classes/MavenSourceTree/properties");
         final MavenSourceTree t = new Builder(root, StandardCharsets.UTF_8).pomXml(root.resolve("pom.xml")).build();
@@ -156,9 +166,11 @@ public class MavenSourceTreeTest {
                 m8.findPropertyDefinition("prop1", ActiveProfiles.of("p1", "p2")).getValue());
 
         final ShellCommand cmd = ShellCommand.builder() //
+                .id("propertyEval") //
                 .workingDirectory(root) //
                 .executable(MVNW.toString()) //
-                .arguments("clean", "install", "-Dmaven.repo.local=" + MVN_LOCAL_REPO.toString()) //
+                .arguments("clean", "install", "-Dmaven.repo.local=" + MVN_LOCAL_REPO.toString(), "-B") //
+                .output(LineConsumer::dummy) //
                 .build();
         Shell.execute(cmd).assertSuccess();
 
@@ -188,18 +200,6 @@ public class MavenSourceTreeTest {
                     new String(Files.readAllBytes(actualPath), StandardCharsets.UTF_8).replace("\r", ""));
         }
 
-    }
-
-    @Test
-    public void ofArgs() {
-        Assert.assertEquals(ActiveProfiles.EMPTY, ActiveProfiles.ofArgs(Arrays.asList()));
-        Assert.assertEquals(ActiveProfiles.of("p1"), ActiveProfiles.ofArgs(Arrays.asList("-Pp1")));
-        Assert.assertEquals(ActiveProfiles.of("p1", "p2"), ActiveProfiles.ofArgs(Arrays.asList("-Pp1,p2")));
-        Assert.assertEquals(ActiveProfiles.of("p1"), ActiveProfiles.ofArgs(Arrays.asList("-P", "p1")));
-        Assert.assertEquals(ActiveProfiles.of("p1", "p2"), ActiveProfiles.ofArgs(Arrays.asList("-P", "p1,p2")));
-        Assert.assertEquals(ActiveProfiles.of("p1"), ActiveProfiles.ofArgs(Arrays.asList("--activate-profiles", "p1")));
-        Assert.assertEquals(ActiveProfiles.of("p1", "p2"),
-                ActiveProfiles.ofArgs(Arrays.asList("--activate-profiles", "p1,p2")));
     }
 
     @Test

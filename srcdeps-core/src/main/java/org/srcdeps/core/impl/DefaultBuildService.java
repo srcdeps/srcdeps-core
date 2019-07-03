@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,8 +55,9 @@ public class DefaultBuildService implements BuildService {
 
         for (Builder builder : builders) {
             if (builder.canBuild(dir)) {
-                log.info("srcdeps: Building [{}]", request.getScmRepositoryId());
-                log.debug("srcdeps: Building [{}] in {} using Builder {}", request.getScmRepositoryId(), dir, builder.getClass().getName());
+                log.info("srcdeps[{}]: Building [{}]", request.getScmRepositoryId(), request.getScmRepositoryId());
+                log.debug("srcdeps[{}]: Building [{}] in {} using Builder {}", request.getScmRepositoryId(),
+                        request.getScmRepositoryId(), dir, builder.getClass().getName());
                 builder.setVersions(request);
                 builder.build(request);
                 return;

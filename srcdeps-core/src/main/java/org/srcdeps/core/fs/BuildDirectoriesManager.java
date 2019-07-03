@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,10 +52,12 @@ public class BuildDirectoriesManager {
     private static final Logger log = LoggerFactory.getLogger(BuildDirectoriesManager.class);
 
     private final PathLocker<SrcVersion> pathLocker;
+    private final String requestId;
     private final Path rootDirectory;
 
-    public BuildDirectoriesManager(Path rootDirectory, PathLocker<SrcVersion> pathLocker) {
+    public BuildDirectoriesManager(String requestId, Path rootDirectory, PathLocker<SrcVersion> pathLocker) {
         super();
+        this.requestId = requestId;
         this.rootDirectory = rootDirectory;
         this.pathLocker = pathLocker;
     }
@@ -70,13 +72,13 @@ public class BuildDirectoriesManager {
      * The returned {@link PathLock} should be released using its {@link Closeable#close()} method.
      *
      * @param projectBuildHome the given project's build home (something like
-     *                         {@code Paths.get("org", "project", "component")}) relative to {@link #rootDirectory}
-     *                         under which a subdirectory will be taken or created and subsequently locked via
-     *                         {@link PathLocker#tryLockDirectory(Path)}
+     *        {@code Paths.get("org", "project", "component")}) relative to {@link #rootDirectory} under which a
+     *        subdirectory will be taken or created and subsequently locked via
+     *        {@link PathLocker#tryLockDirectory(Path)}
      * @param srcVersion
      * @return a {@link PathLock} whose holder is guaranteed to have an exclusive access to {@link PathLock#getPath()}
      * @throws BuildException when no such {@code i} between {@code 0} and {@link #CONCURRENCY_THRESHOLD} could be found
-     *                        that a directory <code>"${rootDirectory}/${projectBuildHome}/${i}"</code> could be locked.
+     *         that a directory <code>"${rootDirectory}/${projectBuildHome}/${i}"</code> could be locked.
      * @throws IOException
      */
     public PathLock openBuildDirectory(Path projectBuildHome, SrcVersion srcVersion)
@@ -89,11 +91,11 @@ public class BuildDirectoriesManager {
         for (int i = 0; i < CONCURRENCY_THRESHOLD; i++) {
             Path checkoutDirectoryPath = scmRepositoryDir.resolve(String.valueOf(i));
             try {
-                return pathLocker.lockDirectory(checkoutDirectoryPath, srcVersion);
+                return pathLocker.lockDirectory(requestId, checkoutDirectoryPath, srcVersion);
             } catch (CannotAcquireLockException e) {
                 /* nevermind, another i will work */
                 lastException = e;
-                log.debug("srcdeps: Could not get PathLock for path [{}]", checkoutDirectoryPath);
+                log.debug("srcdeps[{}]: Could not get PathLock for path [{}]", requestId, checkoutDirectoryPath);
             }
         }
 

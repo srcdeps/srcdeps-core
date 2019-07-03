@@ -42,7 +42,8 @@ public class MavenBuildServiceTest extends AbstractBuildServiceTest {
     };
 
     private void assertMvnBuild(String srcVersion, BuilderTransformer transformer) throws IOException, BuildException {
-        assertBuild("git:https://github.com/srcdeps/srcdeps-test-artifact.git", srcVersion, transformer,
+        int cnt = transformer == VERSIONS_SET_MAVEN_PLUGIN ? 2 : 1;
+        assertBuild("git:https://github.com/srcdeps/srcdeps-test-artifact.git", srcVersion, transformer, cnt,
                 "org.l2x6.maven.srcdeps.itest:srcdeps-test-artifact:${version}:[pom,jar]");
     }
 
@@ -57,13 +58,13 @@ public class MavenBuildServiceTest extends AbstractBuildServiceTest {
     }
 
     @Test
-    public void testMvnGitRevisionSetVersionsPlugin() throws BuildException, IOException {
-        assertMvnBuild("0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b", VERSIONS_SET_MAVEN_PLUGIN);
+    public void testMvnGitRevisionNonMaster() throws BuildException, IOException {
+        assertMvnBuild("0.0.1-SRC-revision-dbad2cdc30b5bb3ff62fc89f57987689a5f3c220", MAVEN_SOURCE_TREE_VERSIONS_SET);
     }
 
     @Test
-    public void testMvnGitRevisionNonMaster() throws BuildException, IOException {
-        assertMvnBuild("0.0.1-SRC-revision-dbad2cdc30b5bb3ff62fc89f57987689a5f3c220", MAVEN_SOURCE_TREE_VERSIONS_SET);
+    public void testMvnGitRevisionSetVersionsPlugin() throws BuildException, IOException {
+        assertMvnBuild("0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b", VERSIONS_SET_MAVEN_PLUGIN);
     }
 
     @Test

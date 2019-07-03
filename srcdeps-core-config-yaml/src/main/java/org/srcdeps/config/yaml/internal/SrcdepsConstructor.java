@@ -22,7 +22,6 @@ import java.nio.file.Paths;
 import java.util.regex.Pattern;
 
 import org.srcdeps.core.SrcVersion;
-import org.srcdeps.core.config.BuilderIo;
 import org.srcdeps.core.config.Configuration;
 import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.config.MavenAssertions;
@@ -67,8 +66,8 @@ public class SrcdepsConstructor extends Constructor {
     public SrcdepsConstructor() {
         super();
         this.yamlClassConstructors.put(NodeId.scalar, new PathConstruct());
-        this.setPropertyUtils(new BuilderPropertyUtils(Configuration.Builder.class, BuilderIo.Builder.class,
-                Maven.Builder.class, MavenAssertions.FailWithoutBuilder.class, MavenAssertions.FailWithBuilder.class,
+        this.setPropertyUtils(new BuilderPropertyUtils(Configuration.Builder.class, Maven.Builder.class,
+                MavenAssertions.FailWithoutBuilder.class, MavenAssertions.FailWithBuilder.class,
                 ScmRepository.Builder.class, ScmRepositoryMaven.Builder.class, ScmRepositoryGradle.Builder.class));
 
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,19 +48,21 @@ public interface BuildMetadataStore {
         private final BuildMetadataStore buildMetadataStore;
 
         private final String buildRequestIdHash;
+        private final String requestId;
 
-        public CheckSha1Consumer(BuildMetadataStore buildMetadataStore, String buildRequestIdHash) {
+        public CheckSha1Consumer(BuildMetadataStore buildMetadataStore, String requestId, String buildRequestIdHash) {
             this.buildMetadataStore = buildMetadataStore;
+            this.requestId = requestId;
             this.buildRequestIdHash = buildRequestIdHash;
         }
 
         @Override
         public void accept(GavtcPath gavtcPath) {
             if (!anyArtifactChanged) {
-                final String pastSha1 = buildMetadataStore.retrieveSha1(buildRequestIdHash, gavtcPath);
+                final String pastSha1 = buildMetadataStore.retrieveSha1(requestId, buildRequestIdHash, gavtcPath);
                 if (pastSha1 == null) {
-                    log.info("srcdeps: Rebuilding: sha1 of artifact [{}] was not found in {}", gavtcPath.getGavtcString(),
-                            BuildMetadataStore.class.getSimpleName());
+                    log.info("srcdeps[{}]: Rebuilding: sha1 of artifact [{}] was not found in {}", requestId,
+                            gavtcPath.getGavtcString(), BuildMetadataStore.class.getSimpleName());
                     anyArtifactChanged = true;
                 } else {
                     final Path path = gavtcPath.getPath();
@@ -68,8 +70,8 @@ public interface BuildMetadataStore {
                         final String mvnLocalRepoArtifactSha1 = SrcdepsCoreUtils.sha1HexString(path);
                         if (!pastSha1.equals(mvnLocalRepoArtifactSha1)) {
                             log.info(
-                                    "srcdeps: Rebuilding: sha1 of artifact [{}] in local Maven repository differs from last known sha1 built by srcdeps",
-                                    gavtcPath.getGavtcString());
+                                    "srcdeps[{}]: Rebuilding: sha1 of artifact [{}] in local Maven repository differs from last known sha1 built by srcdeps",
+                                    requestId, gavtcPath.getGavtcString());
                             anyArtifactChanged = true;
                         }
                     } catch (NoSuchAlgorithmException | IOException e) {
@@ -98,9 +100,11 @@ public interface BuildMetadataStore {
         private final BuildMetadataStore buildMetadataStore;
         private final String buildRequestIdHash;
         private int count = 0;
+        private final String requestId;
 
-        public StoreSha1Consumer(BuildMetadataStore buildMetadataStore, String buildRequestIdHash) {
+        public StoreSha1Consumer(BuildMetadataStore buildMetadataStore, String requestId, String buildRequestIdHash) {
             this.buildMetadataStore = buildMetadataStore;
+            this.requestId = requestId;
             this.buildRequestIdHash = buildRequestIdHash;
         }
 
@@ -113,7 +117,7 @@ public interface BuildMetadataStore {
             try {
                 final Path path = gavtcPath.getPath();
                 final String mvnLocalRepoArtifactSha1 = SrcdepsCoreUtils.sha1HexString(path);
-                buildMetadataStore.storeSha1(buildRequestIdHash, gavtcPath, mvnLocalRepoArtifactSha1);
+                buildMetadataStore.storeSha1(requestId, buildRequestIdHash, gavtcPath, mvnLocalRepoArtifactSha1);
                 count++;
             } catch (NoSuchAlgorithmException | IOException e) {
                 throw new RuntimeException(e);
@@ -135,7 +139,7 @@ public interface BuildMetadataStore {
      *
      * @since 3.2.2
      */
-    CheckSha1Consumer createCheckSha1Checker(String buildRequestIdHash);
+    CheckSha1Consumer createCheckSha1Checker(String requestId, String buildRequestIdHash);
 
     /**
      * @param buildRequestIdHash hash of a {@link BuildRequest}
@@ -143,7 +147,7 @@ public interface BuildMetadataStore {
      *
      * @since 3.2.2
      */
-    StoreSha1Consumer createStoreSha1Consumer(String buildRequestIdHash);
+    StoreSha1Consumer createStoreSha1Consumer(String requestId, String buildRequestIdHash);
 
     /**
      * Returns a {@code commitId} out of which the {@link BuildRequest} characterized by the given
@@ -157,39 +161,39 @@ public interface BuildMetadataStore {
      *
      * @since 3.2.2
      */
-    String retrieveCommitId(String buildRequestIdHash);
+    String retrieveCommitId(String requestId, String buildRequestIdHash);
 
     /**
      * @param buildRequestIdHash hash of a {@link BuildRequest}
-     * @param gavtc              the artifact
+     * @param gavtc the artifact
      * @return the sha1 of the given {@link Gavtc} in hex form or {@code null} if the given {@link Gavtc} was not stored
      *         for the given {@code buildRequestIdHash} before
      *
      * @since 3.2.2
      */
-    String retrieveSha1(String buildRequestIdHash, Gavtc gavtc);
+    String retrieveSha1(String requestId, String buildRequestIdHash, Gavtc gavtc);
 
     /**
      * Link the given {@code buildRequestIdHash} with the given {@code commitId}.
      *
      * @param buildRequestIdHash hash of a {@link BuildRequest} to add to this {@link BuildMetadataStore}
-     * @param commitId           the commitId out of which the given {@code buildRequestIdHash} was built
+     * @param commitId the commitId out of which the given {@code buildRequestIdHash} was built
      *
      * @since 3.2.2
      */
-    void storeCommitId(String buildRequestIdHash, String commitId);
+    void storeCommitId(String requestId, String buildRequestIdHash, String commitId);
 
     /**
      * Store the given {@code sha1} for the given {@code buildRequestIdHash} and {@link Gavtc} in this
      * {@link BuildMetadataStore}
      *
      * @param buildRequestIdHash hash of a {@link BuildRequest}
-     * @param gavtc              the artifact
-     * @param sha1               the sha1 hash in hex form
+     * @param gavtc the artifact
+     * @param sha1 the sha1 hash in hex form
      *
      * @since 3.2.2
      */
-    void storeSha1(String buildRequestIdHash, Gavtc gavtc, String sha1);
+    void storeSha1(String requestId, String buildRequestIdHash, Gavtc gavtc, String sha1);
 
     /**
      * Iterate over {@link BuildRequest} hashes stored in this {@link BuildMetadataStore} and pass them to the given

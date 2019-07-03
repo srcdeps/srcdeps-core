@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,7 +73,7 @@ public class PathLockerProcess {
 
         final PathLocker pathLocker = new PathLocker();
 
-        try (PathLock lock1 = pathLocker.lockDirectory(lockedDirectory, srcVersion)) {
+        try (PathLock lock1 = pathLocker.lockDirectory("org.srcdeps.example", lockedDirectory, srcVersion)) {
             /* locked for the current thread */
             log.debug(pid + " Announcing lock success in {}", lockSuccessFile);
             Files.write(lockSuccessFile, "PathLockerProcess locked this file".getBytes("utf-8"));

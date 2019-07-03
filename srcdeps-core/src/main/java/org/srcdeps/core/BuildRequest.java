@@ -34,13 +34,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.srcdeps.core.config.ScmRepository;
 import org.srcdeps.core.config.ScmRepositoryMaven;
 import org.srcdeps.core.config.scalar.CharStreamSource;
-import org.srcdeps.core.shell.IoRedirects;
+import org.srcdeps.core.shell.LineConsumer;
 import org.srcdeps.core.util.DigestOutputStream;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 
@@ -69,7 +70,7 @@ public class BuildRequest {
         private Map<String, String> forwardPropertyValues = new LinkedHashMap<>();
         private GavSet gavSet = GavSet.includeAll();
         private CharStreamSource gradleModelTransformer;
-        private IoRedirects ioRedirects = IoRedirects.inheritAll();
+        private Supplier<LineConsumer> output;
         private Path projectRootDirectory;
         private String scmRepositoryId;
         private List<String> scmUrls = new ArrayList<>();
@@ -125,7 +126,7 @@ public class BuildRequest {
 
             return new BuildRequest(dependentProjectRootDirectory, projectRootDirectory, srcVersion, useVersion, gavSet,
                     scmRepositoryId, encoding, useScmUrls, useBuildArgs, skipTests, addDefaultBuildArguments,
-                    useFwdPropNames, useFwdPropValues, useBuildEnv, addDefaultBuildEnvironment, verbosity, ioRedirects,
+                    useFwdPropNames, useFwdPropValues, useBuildEnv, addDefaultBuildEnvironment, verbosity, output,
                     timeoutMs, versionsMavenPluginVersion, useVersionsMavenPlugin, useBuildIncludes, excludeNonRequired,
                     gradleModelTransformer);
         }
@@ -292,11 +293,11 @@ public class BuildRequest {
         }
 
         /**
-         * @param ioRedirects see {@link BuildRequest#getIoRedirects()}
+         * @param output see {@link BuildRequest#getOuput()}
          * @return this {@link BuildRequestBuilder}
          */
-        public BuildRequestBuilder ioRedirects(IoRedirects ioRedirects) {
-            this.ioRedirects = ioRedirects;
+        public BuildRequestBuilder output(Supplier<LineConsumer> output) {
+            this.output = output;
             return this;
         }
 
@@ -531,7 +532,7 @@ public class BuildRequest {
     private final GavSet gavSet;
     private final CharStreamSource gradleModelTransformer;
     private final String hash;
-    private final IoRedirects ioRedirects;
+    private final Supplier<LineConsumer> output;
     private final Path projectRootDirectory;
     private final String scmRepositoryId;
     private final List<String> scmUrls;
@@ -541,6 +542,7 @@ public class BuildRequest {
     private final boolean useVersionsMavenPlugin;
     private final Verbosity verbosity;
     private final String version;
+
     private final String versionsMavenPluginVersion;
 
     private BuildRequest(Path dependentProjectRootDirectory, Path projectRootDirectory, SrcVersion srcVersion,
@@ -548,8 +550,9 @@ public class BuildRequest {
             List<String> buildArguments, boolean skipTests, boolean addDefaultBuildArguments,
             Set<String> forwardPropertyNames, Map<String, String> forwardPropertyValues,
             Map<String, String> buildEnvironment, boolean addDefaultBuildEnvironment, Verbosity verbosity,
-            IoRedirects ioRedirects, long timeoutMs, String versionsMavenPluginVersion, boolean useVersionsMavenPlugin,
-            Set<Ga> buildIncludes, boolean excludeNonRequired, CharStreamSource gradleModelTransformer) {
+            Supplier<LineConsumer> output, long timeoutMs, String versionsMavenPluginVersion,
+            boolean useVersionsMavenPlugin, Set<Ga> buildIncludes, boolean excludeNonRequired,
+            CharStreamSource gradleModelTransformer) {
         super();
 
         SrcdepsCoreUtils.assertArgNotNull(scmRepositoryId, "scmRepositoryId");
@@ -564,7 +567,7 @@ public class BuildRequest {
         SrcdepsCoreUtils.assertArgNotNull(forwardPropertyNames, "forwardPropertyNames");
         SrcdepsCoreUtils.assertArgNotNull(forwardPropertyValues, "forwardPropertyValues");
         SrcdepsCoreUtils.assertArgNotNull(buildEnvironment, "buildEnvironment");
-        SrcdepsCoreUtils.assertArgNotNull(ioRedirects, "ioRedirects");
+        SrcdepsCoreUtils.assertArgNotNull(output, "output");
         SrcdepsCoreUtils.assertArgNotNull(versionsMavenPluginVersion, "versionsMavenPluginVersion");
         SrcdepsCoreUtils.assertArgNotNull(buildIncludes, "buildIncludes");
         SrcdepsCoreUtils.assertArgNotNull(gradleModelTransformer, "gradleModelTransformer");
@@ -586,7 +589,7 @@ public class BuildRequest {
         this.addDefaultBuildArguments = addDefaultBuildArguments;
         this.forwardPropertyNames = forwardPropertyNames;
         this.forwardPropertyValues = forwardPropertyValues;
-        this.ioRedirects = ioRedirects;
+        this.output = output;
         this.versionsMavenPluginVersion = versionsMavenPluginVersion;
         this.useVersionsMavenPlugin = useVersionsMavenPlugin;
         this.buildIncludes = buildIncludes;
@@ -595,7 +598,7 @@ public class BuildRequest {
         this.hash = computeHash(addDefaultBuildArguments, addDefaultBuildEnvironment, buildArguments, buildEnvironment,
                 forwardPropertyNames, encoding, gavSet, scmUrls, skipTests, srcVersion, versionsMavenPluginVersion,
                 useVersionsMavenPlugin, buildIncludes, excludeNonRequired, timeoutMs, verbosity);
-        log.debug("srcdeps: Computed hash [{}] of [{}]", hash, this);
+        log.debug("srcdeps[{}]: Computed hash [{}] of [{}]", scmRepositoryId, hash, this);
     }
 
     /**
@@ -692,10 +695,12 @@ public class BuildRequest {
     }
 
     /**
-     * @return the {@link IoRedirects} to use when the {@link Builder} spawns new {@link Process}es
+     * @return the {@link Supplier} to to create a {@link LineConsumer} for storing the output (stdin and stderr) of the
+     *         build process
+     * @since 4.0.0
      */
-    public IoRedirects getIoRedirects() {
-        return ioRedirects;
+    public Supplier<LineConsumer> getOuput() {
+        return output;
     }
 
     /**
@@ -811,8 +816,8 @@ public class BuildRequest {
                 + buildEnvironment + ", dependentProjectRootDirectory=" + dependentProjectRootDirectory
                 + ", forwardPropertyNames=" + forwardPropertyNames + ", forwardPropertyValues=" + forwardPropertyValues
                 + ", gavSet=" + gavSet + ", gradleModelTransformer=" + gradleModelTransformer + ", id=" + hash
-                + ", ioRedirects=" + ioRedirects + ", projectRootDirectory=" + projectRootDirectory + ", scmUrls="
-                + scmUrls + ", skipTests=" + skipTests + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs
+                + ", output=" + output + ", projectRootDirectory=" + projectRootDirectory + ", scmUrls=" + scmUrls
+                + ", skipTests=" + skipTests + ", srcVersion=" + srcVersion + ", timeoutMs=" + timeoutMs
                 + ", verbosity=" + verbosity + ", version=" + version + ", versionsMavenPluginVersion="
                 + versionsMavenPluginVersion + ", useVersionsMavenPlugin=" + useVersionsMavenPlugin + " buildIncludes="
                 + buildIncludes + ", excludeNonRequired=" + excludeNonRequired + "]";

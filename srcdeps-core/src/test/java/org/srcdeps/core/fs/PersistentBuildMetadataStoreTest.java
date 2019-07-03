@@ -64,23 +64,23 @@ public class PersistentBuildMetadataStoreTest {
         final PersistentBuildMetadataStore store = new PersistentBuildMetadataStore(mdStorepath);
         {
             final String commitId = "deadbeef";
-            store.storeCommitId(id1, commitId);
+            store.storeCommitId("org.srcdeps.example", id1, commitId);
 
-            final String actual = store.retrieveCommitId(id1);
+            final String actual = store.retrieveCommitId("org.srcdeps.example", id1);
             Assert.assertEquals(commitId, actual);
         }
 
         {
             final String sha1 = "shashshs";
             final Gavtc gavtc1 = Gavtc.of("org.o1:a1:1.2.3:jar");
-            store.storeSha1(id1, gavtc1, sha1);
+            store.storeSha1("org.srcdeps.example", id1, gavtc1, sha1);
 
             final String sha2 = "shashshs";
             final Gavtc gavtc2 = Gavtc.of("org.o2:a2:1.2.3:jar");
-            store.storeSha1(id1, gavtc2, sha2);
+            store.storeSha1("org.srcdeps.example", id1, gavtc2, sha2);
 
-            final String actual1 = store.retrieveSha1(id1, gavtc1);
-            final String actual2 = store.retrieveSha1(id1, gavtc2);
+            final String actual1 = store.retrieveSha1("org.srcdeps.example", id1, gavtc1);
+            final String actual2 = store.retrieveSha1("org.srcdeps.example", id1, gavtc2);
 
             Assert.assertEquals(sha1, actual1);
             Assert.assertEquals(sha2, actual2);

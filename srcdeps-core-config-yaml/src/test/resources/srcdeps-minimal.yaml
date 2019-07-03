@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-configModelVersion: 2.6
+configModelVersion: 3.0
 
 sourcesDirectory: /home/me/.m2/srcdeps
 

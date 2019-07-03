@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.srcdeps.core.BuildRequest.BuildRequestBuilder;
 import org.srcdeps.core.config.Maven;
 import org.srcdeps.core.config.scalar.CharStreamSource;
+import org.srcdeps.core.shell.LineConsumer;
 import org.srcdeps.core.util.SrcdepsCoreUtils;
 
 /**
@@ -117,12 +118,21 @@ public class AbstractBuildServiceTest extends InjectedTest {
     };
 
     protected void assertBuild(String gitRepoUri, String srcVersion, BuilderTransformer builderTransformer,
-            String... gavtcTemplates) throws IOException, BuildException {
+            int expectedLogFileCount, String... gavtcTemplates) throws IOException, BuildException {
         Assert.assertNotNull("buildService not injected", buildService);
         log.info("Using {} as {}", buildService.getClass().getName(), BuildService.class.getName());
 
         final Path projectRoot = projectsDirectory.resolve(currentTestName);
+        final Path logPath = projectRoot.resolve("log.txt");
         final Path projectBuildDirectory = projectRoot.resolve("build");
+
+        {
+            Assert.assertFalse(Files.exists(logPath));
+            int i = 1;
+            Assert.assertFalse(Files.exists(projectRoot.resolve("log-" + (i++) + ".txt")));
+            Assert.assertFalse(Files.exists(projectRoot.resolve("log-" + (i++) + ".txt")));
+            Assert.assertFalse(Files.exists(projectRoot.resolve("log-" + (i++) + ".txt")));
+        }
 
         final List<Path> paths = resolve(srcVersion, gavtcTemplates);
 
@@ -133,12 +143,16 @@ public class AbstractBuildServiceTest extends InjectedTest {
         }
 
         BuildRequestBuilder requestBuilder = BuildRequest.builder() //
-                .scmRepositoryId(gitRepoUri) //
+                .scmRepositoryId(currentTestName) //
                 .encoding(StandardCharsets.UTF_8) //
                 .scmUrl(gitRepoUri) //
                 .srcVersion(SrcVersion.parse(srcVersion)) //
                 .projectRootDirectory(projectBuildDirectory) //
                 .dependentProjectRootDirectory(dependentProjectRootDirectory) //
+                .output(() -> LineConsumer.tee( //
+                        LineConsumer.logger(currentTestName, log), //
+                        LineConsumer.rotate(logPath, 4) //
+                )) //
                 .buildArgument("-Dmaven.repo.local=" + mvnLocalRepo.getRootDirectory().toString()) //
                 .versionsMavenPluginVersion(Maven.getDefaultVersionsMavenPluginVersion()) //
                 .gradleModelTransformer(CharStreamSource.defaultModelTransformer()) //
@@ -154,12 +168,22 @@ public class AbstractBuildServiceTest extends InjectedTest {
         for (Path path : paths) {
             assertExists(path);
         }
+        {
+            Assert.assertTrue(Files.exists(logPath));
+            int i = 1;
+            while (i < expectedLogFileCount) {
+                final Path path = projectRoot.resolve("log-" + (i++) + ".txt");
+                Assert.assertTrue("Should exist: " + path, Files.exists(path));
+            }
+            final Path path = projectRoot.resolve("log-" + (i++) + ".txt");
+            Assert.assertFalse("Should not exist: " + path, Files.exists(projectRoot.resolve("log-" + (i++) + ".txt")));
+        }
 
     }
 
     protected void assertBuild(String gitRepoUri, String srcVersion, String... gavtcTemplates)
             throws IOException, BuildException {
-        assertBuild(gitRepoUri, srcVersion, NO_TRANSFORMER, gavtcTemplates);
+        assertBuild(gitRepoUri, srcVersion, NO_TRANSFORMER, 1, gavtcTemplates);
     }
 
 }

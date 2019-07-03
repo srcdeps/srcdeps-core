@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2018 Maven Source Dependencies
+ * Copyright 2015-2019 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -108,6 +108,7 @@ public class GradleBuildServiceTest extends AbstractBuildServiceTest {
 
         assertBuild("git:https://github.com/srcdeps/mockito.git", srcVersion, //
                 bt, //
+                1, //
                 "org.mockito:mockito-core:${version}:[pom,jar]"//
         );
 
