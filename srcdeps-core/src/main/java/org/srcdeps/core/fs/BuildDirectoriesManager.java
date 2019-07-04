@@ -52,12 +52,10 @@ public class BuildDirectoriesManager {
     private static final Logger log = LoggerFactory.getLogger(BuildDirectoriesManager.class);
 
     private final PathLocker<SrcVersion> pathLocker;
-    private final String requestId;
     private final Path rootDirectory;
 
-    public BuildDirectoriesManager(String requestId, Path rootDirectory, PathLocker<SrcVersion> pathLocker) {
+    public BuildDirectoriesManager(Path rootDirectory, PathLocker<SrcVersion> pathLocker) {
         super();
-        this.requestId = requestId;
         this.rootDirectory = rootDirectory;
         this.pathLocker = pathLocker;
     }
@@ -81,7 +79,7 @@ public class BuildDirectoriesManager {
      *         that a directory <code>"${rootDirectory}/${projectBuildHome}/${i}"</code> could be locked.
      * @throws IOException
      */
-    public PathLock openBuildDirectory(Path projectBuildHome, SrcVersion srcVersion)
+    public PathLock openBuildDirectory(String requestId, Path projectBuildHome, SrcVersion srcVersion)
             throws BuildException, IOException {
 
         Path scmRepositoryDir = rootDirectory.resolve(projectBuildHome);

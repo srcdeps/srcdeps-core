@@ -697,7 +697,7 @@ public class BuildRequest {
     /**
      * @return the {@link Supplier} to to create a {@link LineConsumer} for storing the output (stdin and stderr) of the
      *         build process
-     * @since 4.0.0
+     * @since 5.0.0
      */
     public Supplier<LineConsumer> getOuput() {
         return output;
