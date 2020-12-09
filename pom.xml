@@ -80,7 +80,7 @@
          around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
     <version.com.google.inject>4.0</version.com.google.inject>
     <version.junit>4.12</version.junit>
-    <version.org.codehaus.groovy>2.4.10</version.org.codehaus.groovy>
+    <version.org.codehaus.groovy>2.4.21</version.org.codehaus.groovy>
     <version.org.eclipse.jgit>5.0.2.201807311906-r</version.org.eclipse.jgit>
     <!-- keep in sync with sisuInjectVersion in maven
          around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
