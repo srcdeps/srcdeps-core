@@ -87,7 +87,7 @@
     <version.org.eclipse.sisu>0.3.3</version.org.eclipse.sisu>
     <version.org.jboss.byteman>3.0.10</version.org.jboss.byteman>
     <version.org.slf4j>1.7.22</version.org.slf4j>
-    <version.org.snakeyaml>1.17</version.org.snakeyaml>
+    <version.org.snakeyaml>1.26</version.org.snakeyaml>
 
     <!-- The present project's version. We need a hard-coded value so that
          it works as the dependency of the checkstyle-maven-plugin in srcdeps-maven
